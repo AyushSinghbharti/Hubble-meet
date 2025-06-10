@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { StatusBar } from "expo-status-bar";
 
 const FLAG_ICON = "https://flagcdn.com/w40/in.png";
 const GOOGLE_ICON = "https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png";
@@ -27,6 +28,7 @@ export default function Login() {
       source={require("../../../assets/images/LoginPageBG.jpg")}
       style={styles.container}
     >
+      <StatusBar style="light" />
       <LinearGradient colors={["transparent", "#000000CC", "#000"]} style={styles.container}>
         <Image
           source={require("../../../assets/images/logo.png")}
