@@ -28,7 +28,7 @@ const screenInfo = [
 
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState(null);
+  const [nextIndex, setNextIndex] = useState<number | null>(null);
 
   const translateX = useRef(new Animated.Value(0)).current;
 
