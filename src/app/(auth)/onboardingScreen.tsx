@@ -1,7 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, Animated, Dimensions } from "react-native";
 import IntroCard from "../../components/introCard";
 import { StatusBar } from "expo-status-bar";
+import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -29,6 +30,7 @@ const screenInfo = [
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState<number | null>(null);
+  const router = useRouter();
 
   const translateX = useRef(new Animated.Value(0)).current;
 
@@ -46,6 +48,8 @@ export default function OnboardingScreen() {
         setCurrentIndex(currentIndex + 1);
         setNextIndex(null);
       });
+    } else{
+      router.replace("/initialLogin");
     }
   };
 
