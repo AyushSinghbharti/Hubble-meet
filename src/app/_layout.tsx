@@ -1,8 +1,11 @@
+import 'react-native-gesture-handler';
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
@@ -27,20 +30,23 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <RootLayoutNav />
+    </GestureHandlerRootView>
+  );
 }
 
 function RootLayoutNav() {
   return (
     <>
       <StatusBar style="dark" />
-      <Stack>
+      <Stack initialRouteName='(tabs)'>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(splash)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        
-        {/* For extra screens, that will be render outside of the tab bars */}
-        <Stack.Screen name="(subScreen)" options={{ headerShown: false }} /> 
+        <Stack.Screen name="(subScreen)" options={{ headerShown: false }} />
+        {/* <Stack.Screen name="" options={{ headerShown: false }} /> */}
       </Stack>
     </>
   );

@@ -50,7 +50,7 @@ export default function VBCScreen() {
         />
       </View>
 
-      {/* Apply marginTop only when Requests tab is selected */}
+
       <View style={[{ flex: 1 }, selectedTab === "Requests" && { marginTop: 20 }]}>
         {selectedTab === "VFC" && <VfcCard />}
         {selectedTab === "Hubble Circle" && <HubbleCard />}

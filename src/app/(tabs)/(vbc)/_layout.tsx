@@ -8,6 +8,10 @@ export default function StackLayout() {
         name="vbc" 
         options={{ title: "VBC" }} 
       />
+      <Stack.Screen 
+        name="HubbleCircleViewAll" 
+        options={{ title: "HubbleCircleViewAll" }} 
+      />
     </Stack>
   );
 }

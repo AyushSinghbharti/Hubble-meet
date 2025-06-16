@@ -64,12 +64,12 @@ const CustomCard = memo(
         >
           <View style={styles.topIcons}>
             <TouchableOpacity style={styles.roundIcon} onPress={onBagPress}>
-              <SimpleLineIcons name="bag" size={20} color="#000" />
+              <SimpleLineIcons name="bag" size={13} color="#000" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.roundIcon} onPress={onProfilePress}>
               <Image
                 source={require("../../assets/icons/Vfc/vbcinactive.png")}
-                style={{ width: 24, height: 24 }}
+                style={{ width: 23, height: 24 }}
                 resizeMode="contain"
               />
             </TouchableOpacity>
@@ -172,18 +172,26 @@ const ProfileCardList = () => {
         numColumns={2}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.container}
-        renderItem={({ item, index }) => (
-          <View style={{ flex: 1, padding: 8, paddingTop: index % 2 === 1 ? 40 : 8 }}>
-            <CustomCard
-              {...item}
-              onChatPress={() => handleChatPress(item)}
-              onSharePress={() => handleSharePress(item)}
-              onAddPress={() => handleAddPress(item)}
-              onBagPress={() => handleBagPress(item)}
-              onProfilePress={() => handleProfilePress(item)}
-            />
-          </View>
-        )}
+       renderItem={({ item, index }) => (
+  <View
+    style={{
+      flex: 1,
+      padding: 8,
+      marginTop: index % 2 === 1 ? 40 : 8, // 🔽 reduced margin from 40
+      marginBottom: -110, // ✅ reduce or remove bottom margin
+    }}
+  >
+    <CustomCard
+      {...item}
+      onChatPress={() => handleChatPress(item)}
+      onSharePress={() => handleSharePress(item)}
+      onAddPress={() => handleAddPress(item)}
+      onBagPress={() => handleBagPress(item)}
+      onProfilePress={() => handleProfilePress(item)}
+    />
+  </View>
+)}
+
       />
 
       <BlockUserModal
@@ -221,29 +229,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  card: {
-    width: CARD_WIDTH,
-    borderRadius: 20,
-    overflow: "hidden",
-    backgroundColor: "#fff",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-  },
+card: {
+  width: CARD_WIDTH,
+  overflow: "hidden",
+  backgroundColor: "#fff",
+  elevation: 3,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.1,
+  shadowRadius: 6,
+  marginVertical:35
+},
+
   imageSection: {
     height: 140,
     padding: 10,
     justifyContent: "space-between",
   },
   image: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
   topIcons: {
     flexDirection: "row",
     justifyContent: "space-between",
+
 
   },
   roundIcon: {

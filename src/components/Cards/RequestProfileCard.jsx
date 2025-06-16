@@ -1,45 +1,5 @@
-import React from "react";
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-  FlatList,
-} from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { AntDesign } from "@expo/vector-icons";
+import { StyleSheet } from "react-native";
 
-const { width } = Dimensions.get("window");
-
-// Dummy data for multiple cards
-const profileData = [
-  {
-    id: "1",
-    image: require("../../assets/images/p1.jpg"),
-    name: "Vikram Roy",
-    title: "Head of Product at Amazon",
-    location: "Bengaluru, India",
-  },
-  {
-    id: "2",
-    image: require("../../assets/images/p1.jpg"),
-    name: "Anita Desai",
-    title: "Design Lead at Google",
-    location: "Mumbai, India",
-  },
-  {
-    id: "3",
-    image: require("../../assets/images/p1.jpg"),
-    name: "Ravi Kapoor",
-    title: "CTO at Flipkart",
-    location: "Hyderabad, India",
-  },
-  // Add more if needed...
-];
-
-// ProfileCard Component
 const ProfileCard = ({ image, name, title, location }) => {
   return (
     <View style={styles.card}>
@@ -49,12 +9,7 @@ const ProfileCard = ({ image, name, title, location }) => {
       {/* Expand Thumbnail */}
       <TouchableOpacity style={styles.expandThumb}>
         <Image source={image} style={styles.thumbImage} />
-        <AntDesign
-          name="arrowsalt"
-          size={16}
-          color="#fff"
-          style={styles.expandIcon}
-        />
+        <AntDesign name="arrowsalt" size={16} color="#fff" style={styles.expandIcon} />
       </TouchableOpacity>
 
       {/* Gradient Footer */}
@@ -69,36 +24,7 @@ const ProfileCard = ({ image, name, title, location }) => {
     </View>
   );
 };
-
-// Main Component
-const ProfileList = () => {
-  return (
-    <View style={styles.container}>
-      <FlatList
-        data={profileData}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ProfileCard
-            image={item.image}
-            name={item.name}
-            title={item.title}
-            location={item.location}
-          />
-        )}
-        showsVerticalScrollIndicator={false}
-      />
-    </View>
-  );
-};
-
-export default ProfileList;
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#ffff",
-
-  },
   card: {
     width: width * 0.9,
     aspectRatio: 2 / 3,
