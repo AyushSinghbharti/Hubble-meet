@@ -7,14 +7,15 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   TextInput,
+  Modal,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import ChatHeader from "../../../../components/chatScreenComps/chatHeader";
-import ChatBody from "../../../../components/chatScreenComps/chatBody";
-import ChatFooter from "../../../../components/chatScreenComps/chatFooter";
+import ChatHeader from "../../../components/chatScreenComps/chatHeader";
+import ChatBody from "../../../components/chatScreenComps/chatBody";
+import ChatFooter from "../../../components/chatScreenComps/chatFooter";
 import { useEffect, useState } from "react";
-import AttachmentSheet from "../../../../components/chatScreenComps/attachmentSheet";
-import HeaderPopupMenu from "../../../../components/chatScreenComps/headerPopup";
+import AttachmentSheet from "../../../components/chatScreenComps/attachmentSheet";
+import HeaderPopupMenu from "../../../components/chatScreenComps/headerPopup";
 
 export interface ChatMsg {
   id: string;
@@ -81,39 +82,70 @@ const messages: ChatMsg[] = [
 ];
 
 export default function ChatDetailsScreen() {
+  const router = useRouter();
   const [message, setMessage] = useState<string>("");
   const [viewAttachment, setViewAttachment] = useState<boolean>(false);
+
   const params = useLocalSearchParams();
   const item: any = JSON.parse(params.item as string);
+  const id = params.id;
   const [footerHeight, setFooterHeight] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
 
   const handleOptionSelect = (option: string) => {
     console.log("Selected:", option);
+    if (option === "Media, docs and links") {
+      router.push({
+        pathname: `chatStack/${id}/sharedAssets`,
+        params: { item: JSON.stringify(item) },
+      });
+    }
+    else if (option === "View VBC") {
+      router.push({
+        pathname: `chatStack/${id}/viewVBC`,
+        params: { item: JSON.stringify(item) }, //Look out for error in future maybe!!!
+      });
+    }
+    else if (option === "Starred messages") {
+      router.push({
+        pathname: `chatStack/${id}/starredMessage`,
+      });
+    }
     setShowMenu(false);
   };
 
   return (
-    <View style={styles.container}>
+    <Modal
+      style={styles.container}
+      animationType="fade"
+      onRequestClose={() => {
+        router.back();
+      }}
+    >
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0} //Will be fixing issue, occuring in android, after opening keyboard, the footer change its positing to upward.
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0} 
       >
         {/* Modals */}
+        <HeaderPopupMenu
+          isVisible={showMenu}
+          onOptionSelect={handleOptionSelect}
+          topOffset={70}
+          rightOffset={15}
+        />
         <AttachmentSheet
           isVisible={viewAttachment}
           footerHeight={footerHeight ? footerHeight : 115}
         />
-        <HeaderPopupMenu
-          isVisible={showMenu}
-          onOptionSelect={handleOptionSelect}
-          topOffset={101}
-          rightOffset={18}
-        />
 
+        {/* Main Screens */}
         <View style={styles.flex}>
-          <ChatHeader profileInfo={item} setShowMenu={setShowMenu} showMenu={showMenu} />
+          <ChatHeader
+            profileInfo={item}
+            setShowMenu={setShowMenu}
+            showMenu={showMenu}
+          />
           <ChatBody messages={messages} />
           <ChatFooter
             onLayout={(event: any) => {
@@ -128,7 +160,7 @@ export default function ChatDetailsScreen() {
           />
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </Modal>
   );
 }
 

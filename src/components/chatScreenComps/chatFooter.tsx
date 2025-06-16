@@ -55,8 +55,6 @@ const ChatFooter = ({onLayout, message, useMessage, onPress }: ChatFooterProps) 
 
 const styles = StyleSheet.create({
   container: {
-    // paddingBottom: StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 50,
-    paddingBottom: 50,
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 8,

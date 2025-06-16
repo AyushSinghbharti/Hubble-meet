@@ -48,8 +48,7 @@ const RenderCard = ({ item }: { item: any }) => {
       style={styles.chatCard}
       onPress={() =>
         router.push({
-          pathname: `chatStack/listing/${item.id}`,
-          // pathname: `subScreen/(chatStack)/listing/${item.id}`,
+          pathname: `chatStack/${item.id}`,
           params: { item: JSON.stringify(item) }, //Look out for error in future maybe!!!
         })
       }
