@@ -10,6 +10,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import SelectCountryModal from "../../components/selectCountryModal";
 import { StatusBar } from "expo-status-bar";
+import { Link } from "expo-router";
 
 type Country = {
   name: string;
@@ -81,19 +82,21 @@ export default function Login() {
           />
         </View>
 
-        <TouchableOpacity
+        <Link href={"/connect"}
           style={[
             styles.loginBtn,
-            { backgroundColor: phoneNumber ? "#000" : "#CBD5E1" },
+            { backgroundColor: phoneNumber ? "#000" : "#CBD5E1", textAlign: "center" },
           ]}
         >
           <Text style={styles.loginText}>Log in</Text>
-        </TouchableOpacity>
+        </Link>
       </View>
-
+      
+      <Link href={"/signup"} style={styles.signupText}>
       <Text style={styles.signupText}>
         Don’t have an account? <Text style={styles.signupLink}>Sign Up</Text>
       </Text>
+      </Link>
 
       <View style={styles.orContainer}>
         <View style={styles.line} />

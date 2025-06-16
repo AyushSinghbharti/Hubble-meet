@@ -8,6 +8,13 @@ export default function StackLayout() {
         name="chat" 
         options={{ title: "Screen One" }} 
       />
+      {/* <Stack.Screen
+        name="listing/[id]"
+        options={{
+          headerTransparent: true,
+          headerTitle: "",
+        }}
+      /> */}
     </Stack>
   );
 }

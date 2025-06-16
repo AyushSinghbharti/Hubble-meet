@@ -10,12 +10,21 @@ import {
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
+import { Link } from "expo-router";
 
 const FLAG_ICON = "https://flagcdn.com/w40/in.png";
-const GOOGLE_ICON = "https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png";
-const FACEBOOK_ICON = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSy0dDdi3KJgMq_87aJt9us_0yh69ewaKgUzg&s";
+const GOOGLE_ICON =
+  "https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png";
+const FACEBOOK_ICON =
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSy0dDdi3KJgMq_87aJt9us_0yh69ewaKgUzg&s";
 
-const IconButton = ({ children, image }: { children?: React.ReactNode; image?: string }) => (
+const IconButton = ({
+  children,
+  image,
+}: {
+  children?: React.ReactNode;
+  image?: string;
+}) => (
   <TouchableOpacity style={styles.iconBtn}>
     {image ? <Image source={{ uri: image }} style={styles.icon} /> : children}
   </TouchableOpacity>
@@ -29,7 +38,10 @@ export default function Login() {
       style={styles.container}
     >
       <StatusBar style="light" />
-      <LinearGradient colors={["transparent", "#000000CC", "#000"]} style={styles.container}>
+      <LinearGradient
+        colors={["transparent", "#000000CC", "#000"]}
+        style={styles.container}
+      >
         <Image
           source={require("../../../assets/images/logo.png")}
           style={styles.logo}
@@ -37,32 +49,37 @@ export default function Login() {
 
         <Text style={styles.title}>Login</Text>
 
-        <View style={styles.inputWrapper}>
-          <Text style={styles.label}>Phone number</Text>
+        <Link href={"/loginPage"}>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>Phone number</Text>
 
-          <View style={styles.phoneContainer}>
-            <View style={styles.flagBox}>
-              <Image source={{ uri: FLAG_ICON }} style={styles.flag} />
-              <Text style={styles.countryCode}>+91</Text>
-              <FontAwesome name="chevron-down" size={12} color="#656565" />
+            <View style={styles.phoneContainer}>
+              <View style={styles.flagBox}>
+                <Image source={{ uri: FLAG_ICON }} style={styles.flag} />
+                <Text style={styles.countryCode}>+91</Text>
+                <FontAwesome name="chevron-down" size={12} color="#656565" />
+              </View>
+
+              {/* <TextInput
+                placeholder="Phone number"
+                placeholderTextColor="#aaa"
+                keyboardType="phone-pad"
+                style={styles.phoneInput}
+              /> */}
+              <Text style={styles.phoneInput}>Phone number</Text>
             </View>
-
-            <TextInput
-              placeholder="Phone number"
-              placeholderTextColor="#aaa"
-              keyboardType="phone-pad"
-              style={styles.phoneInput}
-            />
+            <TouchableOpacity style={styles.loginBtn}>
+              <Text style={styles.loginText}>Log in</Text>
+            </TouchableOpacity>
           </View>
+        </Link>
 
-          <TouchableOpacity style={styles.loginBtn}>
-            <Text style={styles.loginText}>Log in</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.signupText}>
-          Don’t have an account? <Text style={styles.signupLink}>Sign up</Text>
-        </Text>
+        <Link href={"./signup"} style={styles.signupText}>
+          <Text style={styles.signupText}>
+            Don’t have an account?{" "}
+            <Text style={styles.signupLink}>Sign up</Text>
+          </Text>
+        </Link>
 
         <View style={styles.orContainer}>
           <View style={styles.line} />
@@ -137,9 +154,10 @@ const styles = StyleSheet.create({
   },
   phoneInput: {
     flex: 1,
+    verticalAlign: "middle",
     fontSize: 16,
     paddingHorizontal: 12,
-    color: "#000",
+    color: "grey",
     borderRadius: 8,
     backgroundColor: "#fff",
   },
