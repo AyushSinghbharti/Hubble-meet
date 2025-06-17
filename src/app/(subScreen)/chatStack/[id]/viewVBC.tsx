@@ -13,14 +13,15 @@ import {
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import PopUpNotification from "../../../../components/chatScreenComps/popUpNotification";
+import PopUpOption from "../../../../components/chatScreenComps/popUpOption";
 
 export default function ViewVBC() {
   const params = useLocalSearchParams();
   const item = JSON.parse(params.item as string);
-  console.log(item);
   const router = useRouter();
   const [isCloseFriend, setCloseFriend] = useState(false);
   const [isVisible, setVisible] = useState(false);
+  const [blockPopUp, setBlockPopUp] = useState(false);
 
   const actions = [
     { id: "share", label: "Share", icon: "share-2" },
@@ -34,7 +35,9 @@ export default function ViewVBC() {
       id: "add",
       label: "Add to Hubble circle",
       icon: "star",
-      image: require("../../../../../assets/icons/star.png"),
+      image: isCloseFriend
+        ? require("../../../../../assets/icons/star.png")
+        : require("../../../../../assets/icons/star2.png"),
     },
     {
       id: "block",
@@ -45,10 +48,20 @@ export default function ViewVBC() {
   ];
 
   const operation = ({ option }: { option: string }) => {
-    setVisible(true);
-    setTimeout(() => {
-      setVisible(false);
-    }, 1000000); //Change this
+    if (option === "add") {
+      setCloseFriend(!isCloseFriend);
+      setVisible(!isVisible);
+      setTimeout(() => {
+        setVisible(false);
+      }, 1500);
+    } else if (option === "block") {
+      setBlockPopUp(!blockPopUp);
+    } else if (option === "chat") {
+      router.replace({
+        pathname: `chatStack/${item.id}`,
+        params: { item: JSON.stringify(item) }, //Look out for error in future maybe!!!
+      });
+    }
   };
 
   const ActionRow = ({ item }: { item: (typeof actions)[0] }) => (
@@ -85,10 +98,8 @@ export default function ViewVBC() {
 
         <TouchableOpacity hitSlop={8}>
           <Image
-            source={{
-              uri: "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
-            }}
-            style={{ width: 200, height: 200 }}
+            source={require("../../../../../assets/icons/pitch2.png")}
+            style={{ width: 24, height: 24 }}
           />
         </TouchableOpacity>
       </View>
@@ -109,11 +120,23 @@ export default function ViewVBC() {
       {/* Screen Popups */}
       <PopUpNotification
         visible={isVisible}
+        closeFriend={isCloseFriend}
         onClose={() => {
-          setCloseFriend(!isCloseFriend);
           setVisible(!isVisible);
         }}
         name={item.name}
+      />
+
+      <PopUpOption
+        visible={blockPopUp}
+        onClose={() => setBlockPopUp(!blockPopUp)}
+        onSelect={() => {}}
+        message={`Block ${item.name}`}
+        description={
+          "Blocked contacts cannot send you message. This contact will not be notified"
+        }
+        acceptButtonName={"Block"}
+        cancelButtonName={"Cancel"}
       />
     </Modal>
   );

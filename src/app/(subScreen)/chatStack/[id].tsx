@@ -16,6 +16,7 @@ import ChatFooter from "../../../components/chatScreenComps/chatFooter";
 import { useEffect, useState } from "react";
 import AttachmentSheet from "../../../components/chatScreenComps/attachmentSheet";
 import HeaderPopupMenu from "../../../components/chatScreenComps/headerPopup";
+import PopUpOption from "../../../components/chatScreenComps/popUpOption";
 
 export interface ChatMsg {
   id: string;
@@ -25,7 +26,7 @@ export interface ChatMsg {
   delivered?: boolean;
 }
 
-const messages: ChatMsg[] = [
+let messageList: ChatMsg[] = [
   { id: "1", text: "Hello!", timestamp: new Date(), isMe: false },
   {
     id: "2",
@@ -85,12 +86,13 @@ export default function ChatDetailsScreen() {
   const router = useRouter();
   const [message, setMessage] = useState<string>("");
   const [viewAttachment, setViewAttachment] = useState<boolean>(false);
-
+  const [messages, setMessages] = useState<ChatMsg[]>(messageList);
   const params = useLocalSearchParams();
   const item: any = JSON.parse(params.item as string);
   const id = params.id;
   const [footerHeight, setFooterHeight] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
+  const [clearChatPopUp, setClearChatPopUp] = useState(false);
 
   const handleOptionSelect = (option: string) => {
     console.log("Selected:", option);
@@ -99,17 +101,17 @@ export default function ChatDetailsScreen() {
         pathname: `chatStack/${id}/sharedAssets`,
         params: { item: JSON.stringify(item) },
       });
-    }
-    else if (option === "View VBC") {
+    } else if (option === "View VBC") {
       router.push({
         pathname: `chatStack/${id}/viewVBC`,
         params: { item: JSON.stringify(item) }, //Look out for error in future maybe!!!
       });
-    }
-    else if (option === "Starred messages") {
+    } else if (option === "Starred messages") {
       router.push({
         pathname: `chatStack/${id}/starredMessage`,
       });
+    } else if (option === "Clear chat") {
+      setClearChatPopUp(!clearChatPopUp);
     }
     setShowMenu(false);
   };
@@ -125,7 +127,7 @@ export default function ChatDetailsScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0} 
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         {/* Modals */}
         <HeaderPopupMenu
@@ -138,6 +140,19 @@ export default function ChatDetailsScreen() {
           isVisible={viewAttachment}
           footerHeight={footerHeight ? footerHeight : 115}
         />
+        <PopUpOption
+          visible={clearChatPopUp}
+          onClose={() => setClearChatPopUp(!clearChatPopUp)}
+          onSelect={() => {
+            setMessages([]), setClearChatPopUp(false);
+          }}
+          message={`Clear this chat?`}
+          description={
+            "Also delete media received in this chat from the device gallery"
+          }
+          acceptButtonName={"Clear Chat"}
+          cancelButtonName={"Cancel"}
+        />
 
         {/* Main Screens */}
         <View style={styles.flex}>
@@ -146,7 +161,13 @@ export default function ChatDetailsScreen() {
             setShowMenu={setShowMenu}
             showMenu={showMenu}
           />
-          <ChatBody messages={messages} />
+          {messages.length > 0 ? (
+            <ChatBody messages={messages} />
+          ) : (
+            <View style={{flex: 1, justifyContent: "flex-end", alignItems: "center"}}>
+              <Text style={{marginBottom: 10, color: "#8B8B8BCC", fontFamily: "Inter", fontSize: 12}}>Start the Conversation</Text>
+            </View>
+          )}
           <ChatFooter
             onLayout={(event: any) => {
               const { height } = event.nativeEvent.layout;
