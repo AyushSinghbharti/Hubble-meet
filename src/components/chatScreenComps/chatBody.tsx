@@ -1,15 +1,15 @@
 // components/ChatBody.tsx
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   Platform,
   ScrollView,
   Image,
   Pressable,
 } from "react-native";
+import MessageAction from "./messageAction";
 
 export interface ChatMsg {
   id: string;
@@ -36,13 +36,31 @@ function dateLabel(date: Date) {
 }
 
 export default function ChatBody({ messages }: { messages: ChatMsg[] }) {
+  const [messageProps, setMessageprops] = useState({ x: 0, y: 0, h: 0, w: 0 });
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
+    null
+  );
+
   const renderItem = ({ item }: { item: ChatMsg }) => {
     const me = item.isMe;
+    const isSelected = selectedMessageId === item.id;
+
     return (
-      <Pressable style={[styles.row, me && styles.rowEnd]}>
+      <Pressable
+        style={[
+          styles.row,
+          me && styles.rowEnd,
+          isSelected && styles.onMenu,
+        ]}
+        onPress={(event) => {
+          event.target.measure((fx, fy, width, height, px, py) => {
+            setMessageprops({ x: px, y: py, w: width, h: height });
+            setSelectedMessageId((prev) => (prev === item.id ? null : item.id));
+          });
+        }}
+      >
         <View style={[styles.bubble, me ? styles.bubbleMe : styles.bubbleThem]}>
           <Text style={styles.messageText}>{item.text}</Text>
-
           <View style={styles.timeRow}>
             <Text style={styles.timeText}>
               {item.timestamp.toLocaleTimeString("en-GB", {
@@ -52,7 +70,10 @@ export default function ChatBody({ messages }: { messages: ChatMsg[] }) {
             </Text>
 
             {me && (
-              <Image source={require("../../../assets/icons/tick.png")} style={{height: 16, width: 16, marginLeft: 2}} />
+              <Image
+                source={require("../../../assets/icons/tick.png")}
+                style={{ height: 16, width: 16, marginLeft: 2 }}
+              />
             )}
           </View>
         </View>
@@ -62,9 +83,9 @@ export default function ChatBody({ messages }: { messages: ChatMsg[] }) {
 
   const scrollViewRef = useRef<ScrollView>(null);
   useEffect(() => {
-    // Auto-scroll to bottom when new messages arrive
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
+  const isMenuVisible = selectedMessageId !== null;
 
   return (
     <ScrollView
@@ -72,6 +93,19 @@ export default function ChatBody({ messages }: { messages: ChatMsg[] }) {
       ref={scrollViewRef}
       contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
     >
+      <MessageAction
+        onAction={() => {}}
+        isVisible={isMenuVisible}
+        topOffset={
+          messageProps.y > 550
+            ? messageProps.y - messageProps.y / 2.5
+            : messageProps.y > 515
+            ? messageProps.y - messageProps.y / 2
+            : messageProps.y - 50
+        }
+        leftOffset={messageProps.x > 90 ? 265 : 25}
+      />
+
       <View style={styles.dateChip}>
         <Text style={styles.dateChipText}>
           {dateLabel(messages[0].timestamp)}
@@ -110,15 +144,19 @@ const styles = StyleSheet.create({
   dateChipText: { fontSize: 10, fontFamily: "Inter", color: "#8E8E8E" },
 
   /* List content spacing */
-  listContent: { paddingHorizontal: 8, paddingBottom: 9 },
+  listContent: { paddingBottom: 9 },
 
   /* Message rows */
-  row: { flexDirection: "row" },
+  row: { flexDirection: "row", paddingHorizontal: 8},
   rowEnd: { justifyContent: "flex-end" },
-
+  onMenu: {
+    backgroundColor: "#000",
+    opacity: 0.5,
+    paddingVertical: 2,
+  },
   /* Bubbles */
   bubble: {
-    gap:10,
+    gap: 10,
     minHeight: 50,
     paddingLeft: 20,
     padding: 10,

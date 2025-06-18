@@ -44,9 +44,15 @@ function RootLayoutNav() {
       <Stack initialRouteName='(tabs)'>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(splash)" options={{ headerShown: false }} />
+
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(subScreen)" options={{ headerShown: false }} />
         {/* <Stack.Screen name="" options={{ headerShown: false }} /> */}
+
+        
+        {/* For extra screens, that will be render outside of the tab bars */}
+        <Stack.Screen name="(subScreen)" options={{ headerShown: false }} /> 
+
       </Stack>
     </>
   );
