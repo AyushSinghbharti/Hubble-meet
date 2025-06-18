@@ -13,6 +13,7 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require("../../assets/fonts/SpaceMono-Regular.ttf"),
     Inter: require("../../assets/fonts/Interfont/Inter-VariableFont.ttf"),
+    InterSemiBold: require("../../assets/fonts/Interfont/static/Inter_18pt-SemiBold.ttf"),
     InterBold: require("../../assets/fonts/Interfont/static/Inter_18pt-Bold.ttf"),
     InterItalicBold: require("../../assets/fonts/Interfont/static/Inter_18pt-BoldItalic.ttf"),
     InterItalic: require("../../assets/fonts/Interfont/Inter-Italic-VariableFont.ttf"),

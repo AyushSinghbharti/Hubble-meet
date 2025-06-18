@@ -1,5 +1,5 @@
 import React from "react";
-import { Image, StyleSheet, View, Text } from "react-native";
+import { Image, StyleSheet, View, Text, StatusBar } from "react-native";
 import { Tabs } from "expo-router";
 
 const baseUrl = "../../../assets/icons";
@@ -22,12 +22,14 @@ const getIcon = (iconKey: keyof typeof icons, focused: boolean) => (
 export default function StackLayout() {
   return (
     <Tabs
+      initialRouteName="(pitch)"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#BBCF8D",
         tabBarStyle: {paddingTop: 7}
       }}
     >
+      <StatusBar barStyle="dark-content" />
       <Tabs.Screen
         name="(chat)"
         options={{
