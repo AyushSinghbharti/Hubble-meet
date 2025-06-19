@@ -1,7 +1,7 @@
-const FONTS = {
-  BOLD: 'Urbanist-Bold',
-  REGULAR: 'Urbanist-Regular',
-  SEMIBOLD: 'Urbanist-SemiBold',
+// constants/fonts.ts
+export const FONT = {
+  REGULAR: 'InterRegular',
+  BOLD: 'InterBold',
+  SEMIBOLD: 'InterSemiBold',
+  MEDIUM:'InterMedium'
 };
-
-export default FONTS;

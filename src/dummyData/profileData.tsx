@@ -5,7 +5,10 @@ const profileData = [
     name: "Ashley Joe",
     title: "Head of Product at Amazon",
     location: "Bengaluru, India",
-    backText: "Passionate about building innovative products and leading high-performing teams. Experienced in e-commerce and logistics. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    about:
+      "Passionate about building innovative products and leading high-performing teams. Experienced in e-commerce and logistics. Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
+    industries: ["E-commerce", "Logistics", "Retail"],
+    areasOfInterest: ["Product Management", "Team Leadership", "Innovation"],
   },
   {
     id: "2",
@@ -13,7 +16,10 @@ const profileData = [
     name: "Vikram Roy",
     title: "Head of Product at Flipkart",
     location: "Mumbai, India",
-    backText: "Driven by innovation and creating user-centric solutions. Skilled in product strategy and market analysis. Always eager to learn and grow. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    about:
+      "Driven by innovation and creating user-centric solutions. Skilled in product strategy and market analysis. Always eager to learn and grow. Lorem ipsum dolor sit amet...",
+    industries: ["E-commerce", "Consumer Tech", "Retail"],
+    areasOfInterest: ["Product Strategy", "User Experience", "Analytics"],
   },
   {
     id: "3",
@@ -21,7 +27,10 @@ const profileData = [
     name: "Priya Sharma",
     title: "Senior Software Engineer at Google",
     location: "Hyderabad, India",
-    backText: "Enthusiastic about scalable systems and clean code. Passionate about open source and community contributions. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    about:
+      "Enthusiastic about scalable systems and clean code. Passionate about open source and community contributions. Lorem ipsum dolor sit amet...",
+    industries: ["Technology", "Cloud Computing", "Open Source"],
+    areasOfInterest: ["Scalable Systems", "Clean Code", "Open Source Projects"],
   },
   {
     id: "4",
@@ -29,7 +38,10 @@ const profileData = [
     name: "Rohan Kumar",
     title: "UX Designer at Microsoft",
     location: "Delhi, India",
-    backText: "Focus on user experience and design thinking. Believes in creating intuitive and beautiful interfaces. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    about:
+      "Focus on user experience and design thinking. Believes in creating intuitive and beautiful interfaces. Lorem ipsum dolor sit amet...",
+    industries: ["Technology", "Design", "Software"],
+    areasOfInterest: ["UX/UI Design", "Design Thinking", "Accessibility"],
   },
   {
     id: "5",
@@ -37,7 +49,33 @@ const profileData = [
     name: "Anjali Singh",
     title: "Data Scientist at TCS",
     location: "Chennai, India",
-    backText: "Expert in machine learning and data analysis. Passionate about extracting insights from complex datasets. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    about:
+      "Expert in machine learning and data analysis. Passionate about extracting insights from complex datasets. Lorem ipsum dolor sit amet...",
+    industries: ["IT Services", "Finance", "Healthcare"],
+    areasOfInterest: ["Machine Learning", "Big Data", "Predictive Analytics"],
+  },
+  {
+    id: "6",
+    image: require("../../assets/images/p1.jpg"),
+    name: "Anjali Singh",
+    title: "Data Scientist at TCS",
+    location: "Chennai, India",
+    about:
+      "Expert in machine learning and data analysis. Passionate about extracting insights from complex datasets. Lorem ipsum dolor sit amet...",
+    industries: ["IT Services", "Finance", "Healthcare"],
+    areasOfInterest: ["Machine Learning", "Big Data", "Predictive Analytics"],
+  },
+  {
+    id: "7",
+    image: require("../../assets/images/p1.jpg"),
+    name: "Anjali Singh",
+    title: "Data Scientist at TCS",
+    location: "Chennai, India",
+    about:
+      "Expert in machine learning and data analysis. Passionate about extracting insights from complex datasets. Lorem ipsum dolor sit amet...",
+    industries: ["IT Services", "Finance", "Healthcare"],
+    areasOfInterest: ["Machine Learning", "Big Data", "Predictive Analytics"],
   },
 ];
-export default profileData
+
+export default profileData;

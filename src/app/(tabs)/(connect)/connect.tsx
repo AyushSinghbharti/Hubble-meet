@@ -8,6 +8,7 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
+  ImageBackground,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -24,6 +25,7 @@ import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
 import logo from '../../../../assets/logo/logo.png';
 import profileData from "../../../dummyData/profileData";
+import { FONT } from "../../../../assets/constants/fonts";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -37,10 +39,12 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
   const rotate = useSharedValue(0);
   const opacity = useSharedValue(1);
 
+
   const [showDetails, setShowDetails] = useState(false);
   const [undoVisible, setUndoVisible] = useState(false);
   const [requestSentVisible, setRequestSentVisible] = useState(false);
   const [rightSwipeAlertVisible, setRightSwipeAlertVisible] = useState(false);
+    const [activeDetailId, setActiveDetailId] = useState(null);
 
   const undoTimeoutRef = useRef(null);
 
@@ -102,7 +106,7 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
     })
     .onEnd(() => {
       'worklet';
-      
+
       const swipedLeft = translateX.value < -SWIPE_THRESHOLD;
       const swipedRight = translateX.value > SWIPE_THRESHOLD;
 
@@ -186,11 +190,60 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
               </View>
             </>
           ) : (
-            <ScrollView style={styles.backCardScroll}>
-              <View style={styles.backCardContent}>
-                <Text style={styles.backText}>{profile.backText}</Text>
-              </View>
+            <ScrollView style={styles.backCardScroll} contentContainerStyle={styles.backCardScrollContent}>
+              <ImageBackground source={profile.image} style={styles.backCardContent} resizeMode="cover">
+                <LinearGradient
+                  colors={['rgba(255, 255, 255, 0.03)', '#fff','#fff','#fff','#fff','#fff','#fff','#fff']}
+                  style={styles.gradientOverlay}
+                >
+                  <View style={styles.detailContent}>
+                    <Text style={[styles.name, { color: "#000", fontFamily: FONT.BOLD }]}>
+                      {profile.name}
+                    </Text>
+                    <Text style={[styles.title, { color: "#000", fontFamily: FONT.SEMIBOLD }]}>
+                      {profile.title}
+                    </Text>
+                    <Text style={[styles.location, { color: "#000", fontFamily: FONT.BOLD }]}>
+                      {profile.location}
+                    </Text>
+
+                    {/* About */}
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>About</Text>
+                      <Text style={[styles.backText, { fontFamily: FONT.MEDIUM }]}>
+                        {profile.about}
+                      </Text>
+                    </View>
+
+                    {/* Industries */}
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>Industries</Text>
+                      <View style={styles.tagsContainer}>
+                        {profile.industries?.map((industry, index) => (
+                          <View key={index} style={styles.tagBox}>
+                            <Text style={styles.tagText}>{industry}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+
+                    {/* Areas of Interest */}
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>Areas of Interest</Text>
+                      <View style={styles.tagsContainer}>
+                        {profile.areasOfInterest?.map((interest, index) => (
+                          <View key={index} style={styles.tagBox}>
+                            <Text style={styles.tagText}>{interest}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                </LinearGradient>
+              </ImageBackground>
             </ScrollView>
+
+
           )}
         </Animated.View>
       </GestureDetector>
@@ -229,6 +282,7 @@ const Connect = () => {
   const [swipedIds, setSwipedIds] = useState([]);
   const [rightSwipeCount, setRightSwipeCount] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
+      const [activeDetailId, setActiveDetailId] = useState(null);
   const [firstCardInteracted, setFirstCardInteracted] = useState(false);
 
   const handleSwipeComplete = useCallback((id, direction) => {
@@ -245,19 +299,26 @@ const Connect = () => {
   }, [showLimitModal]);
 
   const handleFirstCardInteraction = useCallback(() => {
-    setFirstCardInteracted(true);
+    setFirstCardInteracted(prev => (prev === id ? null : id));
   }, []);
+
+  const handleCardDetailToggle = useCallback((id) => {
+  setActiveDetailId(prev => (prev === id ? null : id)); // toggle
+}, []);
+
 
   const renderItem = useCallback(({ item, index }) => {
     return (
-      <ProfileCard
-        profile={item}
-        onSwipeComplete={handleSwipeComplete}
-        disabled={false}
-        rightSwipeCount={rightSwipeCount}
-        isFirstCard={index === 0 && !firstCardInteracted}
-        onFirstCardInteract={handleFirstCardInteraction}
-      />
+     <ProfileCard
+  profile={item}
+  onSwipeComplete={handleSwipeComplete}
+  disabled={false}
+  rightSwipeCount={rightSwipeCount}
+  isFirstCard={index === 0 && !firstCardInteracted}
+  onFirstCardInteract={() => handleCardDetailToggle(item.id)}
+  showOnly={activeDetailId === null || activeDetailId === item.id}
+/>
+
     );
   }, [rightSwipeCount, firstCardInteracted, handleSwipeComplete, handleFirstCardInteraction]);
 
@@ -352,18 +413,8 @@ const styles = StyleSheet.create({
   backCardScroll: {
     flex: 1,
     width: '100%',
-    padding: 20,
   },
-  backCardContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backText: {
-    fontSize: 18,
-    color: "#333",
-    textAlign: "center",
-  },
+
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
@@ -392,5 +443,67 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     justifyContent: "center",
+  },
+  tagsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8, 
+    marginTop: 8,
+  },
+
+  tagBox: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+
+  tagText: {
+    fontSize: 14,
+    color: "#333",
+    fontFamily: FONT.MEDIUM,
+  },
+
+  sectionTitle: {
+    fontSize: 16,
+    fontFamily: FONT.BOLD,
+    color: "#000",
+    marginBottom: 6,
+  },
+  backCardScrollContent: {
+    flexGrow: 1,
+  },
+
+  backCardContent: {
+    width: '100%',
+    height: CARD_HEIGHT * 1.9,
+    justifyContent: 'flex-end',
+    borderRadius: 20,
+    overflow: 'hidden',
+
+  },
+  gradientOverlay: {
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    width: '100%',
+    top:100,
+    
+  },
+  detailContent: {
+    paddingBottom: 50,
+  },
+  section: {
+    marginTop: 16,
+  },
+  backText: {
+    fontSize: 16,
+    color: "#333",
+    lineHeight: 22,
+    textAlign: "left",
+    fontFamily: FONT.REGULAR,
   },
 });
