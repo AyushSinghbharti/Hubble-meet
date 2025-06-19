@@ -9,16 +9,14 @@ import {
   Platform,
   UIManager,
   Dimensions,
-  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 
 const { width: screenWidth } = Dimensions.get('window');
 const MAX_WIDTH = 330;
-
 const MIN_WIDTH = 40;
 
-// Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -34,16 +32,16 @@ const Header = ({ logoSource, onSearch, onBagPress }) => {
       setSearchActive(true);
       setTimeout(() => {
         inputRef.current?.focus();
-      }, 1); // Delay must match LayoutAnimation duration
+      }, 250);
     } else {
       setSearchActive(false);
       setSearchText('');
+      Keyboard.dismiss();
     }
   };
 
   return (
     <View style={styles.header}>
-      {/* Center Logo */}
       {!searchActive && (
         <View style={styles.logoWrapper}>
           <Image source={logoSource} style={styles.logo} resizeMode="contain" />
@@ -51,39 +49,39 @@ const Header = ({ logoSource, onSearch, onBagPress }) => {
       )}
 
       <View style={styles.rightSection}>
-        <TouchableWithoutFeedback onPress={handleSearchToggle}>
-          <View
-            style={[
-              styles.searchContainer,
-              {
-                width: searchActive ? MAX_WIDTH : MIN_WIDTH,
-                borderColor: searchActive ? '#BBCF8D' : '#ccc',
-                shadowColor: searchActive ? '#BBCF8D' : 'transparent',
-                shadowOpacity: searchActive ? 0.8 : 0,
-                shadowRadius: searchActive ? 6 : 0,
-                elevation: searchActive ? 8 : 0,
-              },
-            ]}
-          >
-            <TextInput
-              ref={inputRef}
-              style={styles.input}
-              value={searchText}
-              onChangeText={setSearchText}
-              placeholder="Search..."
-              placeholderTextColor="#888"
-              onSubmitEditing={() => onSearch && onSearch(searchText)}
-            />
+        <TouchableOpacity
+          onPress={handleSearchToggle}
+          activeOpacity={0.9}
+          style={[
+            styles.searchContainer,
+            {
+              width: searchActive ? MAX_WIDTH : MIN_WIDTH,
+              borderColor: searchActive ? '#BBCF8D' : '#ccc',
+              shadowColor: searchActive ? '#BBCF8D' : 'transparent',
+              shadowOpacity: searchActive ? 0.8 : 0,
+              shadowRadius: searchActive ? 6 : 0,
+              elevation: searchActive ? 8 : 0,
+            },
+          ]}
+        >
+          <TextInput
+            ref={inputRef}
+            style={styles.input}
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholder="Search..."
+            placeholderTextColor="#888"
+            editable={searchActive}
+            onSubmitEditing={() => onSearch && onSearch(searchText)}
+          />
 
-            <TouchableOpacity onPress={handleSearchToggle}>
-              {searchActive ? (
-                <Feather name="x" size={20} style={{right:15}} color="#000" />
-              ) : (
-                <Feather name="search" size={20} style={{right:6}}  color="#000" />
-              )}
-            </TouchableOpacity>
-          </View>
-        </TouchableWithoutFeedback>
+          <Feather
+            name={searchActive ? 'x' : 'search'}
+            size={20}
+            style={{ marginRight: 10 ,right:6}}
+            color="#000"
+          />
+        </TouchableOpacity>
 
         <TouchableOpacity onPress={onBagPress} style={styles.bagBtn}>
           <Ionicons name="bag-outline" size={24} color="#000" />
@@ -130,16 +128,14 @@ const styles = StyleSheet.create({
     marginRight: 10,
     borderWidth: 2,
     overflow: 'hidden',
-    paddingRight:-20
-
-
-
+    zIndex:1,
   },
   input: {
     flex: 1,
     height: 40,
     paddingHorizontal: 8,
     color: '#000',
+        zIndex:0,
   },
   bagBtn: {
     padding: 6,

@@ -20,6 +20,7 @@ import { AntDesign } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import MatchModal from "../../../components/Alerts/RequestModalAlert";
 import AlertModal from "../../../components/Alerts/AlertModal";
+import profileData from "../../../dummyData/profileData";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -33,37 +34,6 @@ interface Profile {
   location: string;
 }
 
-const profileData: Profile[] = [
-  {
-    id: "1",
-    image: require("../../../../assets/images/p1.jpg"),
-    name: "Vikram Roy",
-    title: "Head of Product at Amazon",
-    location: "Bengaluru, India",
-  },
-  {
-    id: "2",
-    image: require("../../../../assets/images/p1.jpg"),
-    name: "Vikram Roy",
-    title: "Head of Product at Amazon",
-    location: "Bengaluru, India",
-  },
-  {
-    id: "3",
-    image: require("../../../../assets/images/p1.jpg"),
-    name: "Vikram Roy",
-    title: "Head of Product at Amazon",
-    location: "Bengaluru, India",
-  },
-  {
-    id: "4",
-    image: require("../../../../assets/images/p1.jpg"),
-    name: "Vikram Roy",
-    title: "Head of Product at Amazon",
-    location: "Bengaluru, India",
-  },
-  // ... other profiles
-];
 
 interface ProfileCardProps {
   profile: Profile;
@@ -100,33 +70,33 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onSwipeComplete }) =
     }
   }, [profile.id, onSwipeComplete]);
 
-  const panGesture = Gesture.Pan()
-    .activeOffsetX([-10, 10])
-    .onUpdate((event) => {
-      if (!isSwiped) {
-        translateX.value = event.translationX;
-        translateY.value = event.translationY;
-        rotate.value = (event.translationX / width) * 15;
-      }
-    })
-    .onEnd(() => {
-      if (isSwiped) return;
-      if (translateX.value < -SWIPE_THRESHOLD) {
-        translateX.value = withSpring(-width * 2);
-        translateY.value = withSpring(-100);
-        rotate.value = withSpring(-30);
-        runOnJS(handleSwipe)("left");
-      } else if (translateX.value > SWIPE_THRESHOLD) {
-        translateX.value = withSpring(width * 2);
-        translateY.value = withSpring(-100);
-        rotate.value = withSpring(30);
-        runOnJS(handleSwipe)("right");
-      } else {
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
-        rotate.value = withSpring(0);
-      }
-    });
+const panGesture = Gesture.Pan()
+  .activeOffsetX([-10, 10])       // Enable horizontal pan
+  .activeOffsetY([-1000, 1000])   // Disable vertical pan
+.onUpdate((event) => {
+  if (!isSwiped) {
+    translateX.value = event.translationX;
+    // Lock vertical movement by not updating translateY
+    rotate.value = (event.translationX / width) * 15;
+  }
+})
+
+  .onEnd(() => {
+    if (isSwiped) return;
+    if (translateX.value < -SWIPE_THRESHOLD) {
+      translateX.value = withSpring(-width * 2);
+      rotate.value = withSpring(-30);
+      runOnJS(handleSwipe)("left");
+    } else if (translateX.value > SWIPE_THRESHOLD) {
+      translateX.value = withSpring(width * 2);
+      rotate.value = withSpring(30);
+      runOnJS(handleSwipe)("right");
+    } else {
+      translateX.value = withSpring(0);
+      rotate.value = withSpring(0);
+    }
+  });
+
 
   const handleSendMessage = () => {
     setModalVisible(false);
@@ -167,8 +137,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onSwipeComplete }) =
         onClose={() => setAlertVisible(false)}
         imageSource={require("../../../../assets/icons/Cross.png")}
         label="Request Rejected"
+        positionBottom
       />
-
       <MatchModal
         visible={modalVisible}
         onClose={handleBackToRequest}

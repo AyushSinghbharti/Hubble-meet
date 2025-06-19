@@ -12,14 +12,22 @@ import {
   UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import NavHeader from '../../../components/NavHeader';
 import SelectCountryModal from '../../../components/selectCountryModal';
 import TagDropdown from '../../../components/TagDropdown';
 
 export default function SettingsScreen() {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [location, setLocation] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
   const [bio, setBio] = useState('');
   const [companies, setCompanies] = useState([]);
   const [industries, setIndustries] = useState([]);
+  const [dob, setDob] = useState(null);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const [selectedFlag, setSelectedFlag] = useState({
     flag: 'https://flagcdn.com/w40/us.png',
@@ -30,6 +38,13 @@ export default function SettingsScreen() {
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef(null);
 
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
+  const handleConfirm = (date) => {
+    setDob(date);
+    hideDatePicker();
+  };
+
   const handleOpenModal = () => {
     const handle = findNodeHandle(flagBoxRef.current);
     if (handle) {
@@ -38,6 +53,23 @@ export default function SettingsScreen() {
         setModalVisible(true);
       });
     }
+  };
+
+  const handleSave = () => {
+    const formData = {
+      name,
+      dob: dob ? dob.toISOString().split('T')[0] : '',
+      phone,
+      email,
+      location,
+      bio,
+      companies,
+      jobTitle,
+      industries,
+      countryCode: selectedFlag.dial_code,
+    };
+
+    console.log('Form data:', JSON.stringify(formData, null, 2));
   };
 
   return (
@@ -53,10 +85,25 @@ export default function SettingsScreen() {
       </View>
 
       <FormLabel label="User Name *" />
-      <Input placeholder="Dennis Callis" />
+      <Input placeholder="Enter name" value={name} onChangeText={setName} />
 
       <FormLabel label="DOB *" />
-      <Input placeholder="20/03/1999" icon={"calendar-clear-outline"}/>
+      <TouchableOpacity onPress={showDatePicker}>
+        <Input
+          placeholder="Select date"
+          value={dob ? dob.toLocaleDateString() : ''}
+          icon="calendar-clear-outline"
+          editable={false}
+        />
+      </TouchableOpacity>
+
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        date={dob || new Date(1990, 0, 1)}
+        onConfirm={handleConfirm}
+        onCancel={hideDatePicker}
+      />
 
       <FormLabel label="Phone Number *" />
       <View style={styles.phoneContainer}>
@@ -73,17 +120,17 @@ export default function SettingsScreen() {
           )}
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Input placeholder="525 735 4556" containerStyle={{ marginLeft: 8 }} />
+          <Input placeholder="525 735 4556" containerStyle={{ marginLeft: 8 }} value={phone} onChangeText={setPhone} />
         </View>
       </View>
       <Text style={styles.otpText}>Verify with OTP</Text>
 
       <FormLabel label="Email" />
-      <Input placeholder="r.g.rhodes@aol.com" />
+      <Input placeholder="r.g.rhodes@aol.com" value={email} onChangeText={setEmail} />
       <Text style={styles.otpText}>Verify with OTP</Text>
 
       <FormLabel label="Country/City" />
-      <Input placeholder="Jaipur" />
+      <Input placeholder="Jaipur" value={location} onChangeText={setLocation} />
 
       <FormLabel label="Your Bio" />
       <Input
@@ -102,11 +149,10 @@ export default function SettingsScreen() {
         selected={companies}
         onChange={setCompanies}
         placeholder="Select companies"
-        compactInput
       />
 
       <FormLabel label="Job Title" />
-      <Input placeholder="General Manager" />
+      <Input placeholder="General Manager" value={jobTitle} onChangeText={setJobTitle} />
 
       <FormLabel label="Industries" />
       <TagDropdown
@@ -114,10 +160,9 @@ export default function SettingsScreen() {
         selected={industries}
         onChange={setIndustries}
         placeholder="Select industries"
-        compactInput
       />
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={handleSave}>
         <Text style={styles.buttonText}>Save settings</Text>
       </TouchableOpacity>
 
@@ -139,6 +184,7 @@ const FormLabel = ({ label }) => <Text style={styles.label}>{label}</Text>;
 const Input = ({
   placeholder,
   icon,
+  editable = true,
   multiline = false,
   numberOfLines = 1,
   maxLength,
@@ -148,13 +194,16 @@ const Input = ({
 }) => (
   <View style={[styles.inputContainer, containerStyle]}>
     <TextInput
-      style={[styles.input, multiline && styles.textArea]}
+      style={[styles.input, multiline && styles.textArea, { color: '#000' }]}
       placeholder={placeholder}
+      placeholderTextColor="#000"
       multiline={multiline}
       numberOfLines={numberOfLines}
       maxLength={maxLength}
       value={value}
       onChangeText={onChangeText}
+      editable={editable}
+      pointerEvents={editable ? 'auto' : 'none'}
     />
     {icon && <Ionicons name={icon} size={20} color="gray" />}
   </View>

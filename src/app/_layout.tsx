@@ -5,6 +5,7 @@ import { Stack } from "expo-router";
 import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { PaperProvider } from 'react-native-paper';
 
 export { ErrorBoundary } from "expo-router";
 
@@ -39,7 +40,9 @@ export default function RootLayout() {
 function RootLayoutNav() {
   return (
     <>
-      <StatusBar style="dark" />
+    <PaperProvider>
+         <GestureHandlerRootView>
+            <StatusBar style="dark" />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -49,6 +52,12 @@ function RootLayoutNav() {
         {/* <Stack.Screen name="(subScreen)" options={{ headerShown: false }} />  */}
 
       </Stack>
+      
+    </GestureHandlerRootView>
+
+    </PaperProvider>
+ 
+
     </>
   );
 }

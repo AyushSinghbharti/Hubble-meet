@@ -20,31 +20,35 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
-import Toast from "react-native-toast-message";
+
 import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
 import logo from '../../../../assets/logo/logo.png';
 import profileData from "../../../dummyData/profileData";
 import { FONT } from "../../../../assets/constants/fonts";
+import styles from "./Styles/Styles";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
 const SWIPE_THRESHOLD = width * 0.25;
-const ROTATION_DEGREE = 20;
+const ROTATION_DEGREE = 30;
 const MAX_RIGHT_SWIPES = 10;
-const UNDO_DURATION = 2500; // 2.5 seconds for undo window
+const UNDO_DURATION = 2000; // 2 seconds for undo window
 
-const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFirstCard, onFirstCardInteract }) => {
+const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount }) => {
   const translateX = useSharedValue(0);
   const rotate = useSharedValue(0);
   const opacity = useSharedValue(1);
-
+  const buttonOpacity = useSharedValue(1);
 
   const [showDetails, setShowDetails] = useState(false);
   const [undoVisible, setUndoVisible] = useState(false);
   const [requestSentVisible, setRequestSentVisible] = useState(false);
   const [rightSwipeAlertVisible, setRightSwipeAlertVisible] = useState(false);
-    const [activeDetailId, setActiveDetailId] = useState(null);
+  const [shareAlertVisible, setShareAlertVisible] = useState(false);
+  const [restartAlertVisible, setRestartAlertVisible] = useState(false);
+  const [blockAlertVisible, setBlockAlertVisible] = useState(false);
+  const [thumbImageAlertVisible, setThumbImageAlertVisible] = useState(false);
 
   const undoTimeoutRef = useRef(null);
 
@@ -56,7 +60,10 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
     opacity: opacity.value,
   }));
 
-  // Regular JS functions - no need for worklet directive
+  const buttonStyle = useAnimatedStyle(() => ({
+    opacity: buttonOpacity.value,
+  }));
+
   const handleUndo = useCallback(() => {
     if (undoTimeoutRef.current) {
       clearTimeout(undoTimeoutRef.current);
@@ -73,16 +80,28 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
     setUndoVisible(true);
   }, []);
 
-  const hideUndoModal = useCallback(() => {
-    setUndoVisible(false);
-  }, []);
-
   const showRequestSentModal = useCallback(() => {
     setRequestSentVisible(true);
   }, []);
 
   const showRightSwipeAlert = useCallback(() => {
     setRightSwipeAlertVisible(true);
+  }, []);
+
+  const showShareAlert = useCallback(() => {
+    setShareAlertVisible(true);
+  }, []);
+
+  const showRestartAlert = useCallback(() => {
+    setRestartAlertVisible(true);
+  }, []);
+
+  const showBlockAlert = useCallback(() => {
+    setBlockAlertVisible(true);
+  }, []);
+
+  const showThumbImageAlert = useCallback(() => {
+    setThumbImageAlertVisible(true);
   }, []);
 
   const completeSwipe = useCallback((profileId, direction) => {
@@ -96,8 +115,36 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
     }, UNDO_DURATION);
   }, [onSwipeComplete]);
 
+  const handleButtonPress = useCallback(() => {
+    buttonOpacity.value = withTiming(0.5, { duration: 100 }, () => {
+      buttonOpacity.value = withTiming(1, { duration: 100 });
+    });
+  }, [buttonOpacity]);
+
+  const handleShareButtonPress = useCallback((event) => {
+    event.stopPropagation();
+    handleButtonPress();
+    showShareAlert();
+  }, [handleButtonPress, showShareAlert]);
+
+  const handleRestartButtonPress = useCallback((event) => {
+    event.stopPropagation();
+    handleButtonPress();
+    showRestartAlert();
+  }, [handleButtonPress, showRestartAlert]);
+
+  const handleBlockButtonPress = useCallback((event) => {
+    event.stopPropagation();
+    handleButtonPress();
+    showBlockAlert();
+  }, [handleButtonPress, showBlockAlert]);
+
+  const handleThumbImagePress = useCallback((event) => {
+    event.stopPropagation();
+    showThumbImageAlert();
+  }, [showThumbImageAlert]);
+
   const panGesture = Gesture.Pan()
-    .enabled(!disabled)
     .activeOffsetX([-10, 10])
     .onUpdate((e) => {
       'worklet';
@@ -143,14 +190,10 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
     });
 
   const handleCardTap = useCallback(() => {
-    if (isFirstCard) {
-      onFirstCardInteract();
-    }
     setShowDetails(prev => !prev);
-  }, [isFirstCard, onFirstCardInteract]);
+  }, []);
 
   const tapGesture = Gesture.Tap()
-    .enabled(!disabled)
     .onEnd(() => {
       'worklet';
       runOnJS(handleCardTap)();
@@ -165,7 +208,11 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
           {!showDetails ? (
             <>
               <Image source={profile.image} style={styles.image} resizeMode="cover" />
-              <TouchableOpacity style={styles.expandThumb}>
+              <TouchableOpacity 
+                style={styles.expandThumb}
+                onPress={handleThumbImagePress}
+                activeOpacity={0.7}
+              >
                 <Image source={profile.image} style={styles.thumbImage} />
                 <AntDesign name="arrowsalt" size={16} color="#fff" style={styles.expandIcon} />
               </TouchableOpacity>
@@ -178,14 +225,29 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
                 <Text style={styles.location}>{profile.location}</Text>
               </LinearGradient>
               <View style={styles.bottomActions}>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Image source={require("../../../../assets/icons/share1.png")} style={{ width: 18, height: 18 }} />
+                <TouchableOpacity 
+                  onPress={handleShareButtonPress}
+    
+                >
+                  <Animated.View style={[styles.actionButton, buttonStyle]}>
+                    <Image source={require("../../../../assets/icons/share1.png")} style={{ width: 18, height: 18 }} />
+                  </Animated.View>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Image source={require("../../../../assets/icons/restart.png")} style={{ width: 18, height: 18 }} />
+                <TouchableOpacity 
+                  onPress={handleRestartButtonPress}
+                  activeOpacity={0.7}
+                >
+                  <Animated.View style={[styles.actionButton, buttonStyle]}>
+                    <Image source={require("../../../../assets/icons/restart.png")} style={{ width: 18, height: 18 }} />
+                  </Animated.View>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Image source={require("../../../../assets/icons/block.png")} style={{ width: 18, height: 18 }} />
+                <TouchableOpacity 
+                  onPress={handleBlockButtonPress}
+                  activeOpacity={0.7}
+                >
+                  <Animated.View style={[styles.actionButton, buttonStyle]}>
+                    <Image source={require("../../../../assets/icons/block.png")} style={{ width: 18, height: 18 }} />
+                  </Animated.View>
                 </TouchableOpacity>
               </View>
             </>
@@ -206,16 +268,12 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
                     <Text style={[styles.location, { color: "#000", fontFamily: FONT.BOLD }]}>
                       {profile.location}
                     </Text>
-
-                    {/* About */}
                     <View style={styles.section}>
                       <Text style={styles.sectionTitle}>About</Text>
                       <Text style={[styles.backText, { fontFamily: FONT.MEDIUM }]}>
                         {profile.about}
                       </Text>
                     </View>
-
-                    {/* Industries */}
                     <View style={styles.section}>
                       <Text style={styles.sectionTitle}>Industries</Text>
                       <View style={styles.tagsContainer}>
@@ -226,8 +284,6 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
                         ))}
                       </View>
                     </View>
-
-                    {/* Areas of Interest */}
                     <View style={styles.section}>
                       <Text style={styles.sectionTitle}>Areas of Interest</Text>
                       <View style={styles.tagsContainer}>
@@ -242,11 +298,10 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
                 </LinearGradient>
               </ImageBackground>
             </ScrollView>
-
-
           )}
         </Animated.View>
       </GestureDetector>
+
 
       <AlertModal
         visible={undoVisible}
@@ -257,6 +312,7 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
         onButtonPress={handleUndo}
         positionBottom
       />
+
       <AlertModal
         visible={rightSwipeAlertVisible}
         onClose={() => setRightSwipeAlertVisible(false)}
@@ -266,12 +322,58 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFi
         onButtonPress={() => setRightSwipeAlertVisible(false)}
         positionBottom
       />
+
+
       <AlertModal
         visible={requestSentVisible}
         onClose={() => setRequestSentVisible(false)}
         imageSource={require("../../../../assets/icons/tick1.png")}
         label="Request Sent"
         onButtonPress={() => setRequestSentVisible(false)}
+        positionBottom
+      />
+
+
+      <AlertModal
+        visible={shareAlertVisible}
+        onClose={() => setShareAlertVisible(false)}
+        imageSource={require("../../../../assets/icons/share1.png")}
+        label="Profile Shared"
+        buttonText="OK"
+        onButtonPress={() => setShareAlertVisible(false)}
+        positionBottom
+      />
+
+      {/* Restart Alert */}
+      <AlertModal
+        visible={restartAlertVisible}
+        onClose={() => setRestartAlertVisible(false)}
+        imageSource={require("../../../../assets/icons/restart.png")}
+        label="Profile Restarted"
+        buttonText="OK"
+        onButtonPress={() => setRestartAlertVisible(false)}
+        positionBottom
+      />
+
+      {/* Block Alert */}
+      <AlertModal
+        visible={blockAlertVisible}
+        onClose={() => setBlockAlertVisible(false)}
+        imageSource={require("../../../../assets/icons/block.png")}
+        label="Profile Blocked"
+        buttonText="OK"
+        onButtonPress={() => setBlockAlertVisible(false)}
+        positionBottom
+      />
+
+      {/* Thumbnail Image Alert */}
+      <AlertModal
+        visible={thumbImageAlertVisible}
+        onClose={() => setThumbImageAlertVisible(false)}
+        imageSource={profile.image}
+        label="Thumbnail Image Clicked"
+        buttonText="OK"
+        onButtonPress={() => setThumbImageAlertVisible(false)}
         positionBottom
       />
     </>
@@ -282,8 +384,6 @@ const Connect = () => {
   const [swipedIds, setSwipedIds] = useState([]);
   const [rightSwipeCount, setRightSwipeCount] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
-      const [activeDetailId, setActiveDetailId] = useState(null);
-  const [firstCardInteracted, setFirstCardInteracted] = useState(false);
 
   const handleSwipeComplete = useCallback((id, direction) => {
     setSwipedIds((prev) => {
@@ -298,29 +398,15 @@ const Connect = () => {
     }
   }, [showLimitModal]);
 
-  const handleFirstCardInteraction = useCallback(() => {
-    setFirstCardInteracted(prev => (prev === id ? null : id));
-  }, []);
-
-  const handleCardDetailToggle = useCallback((id) => {
-  setActiveDetailId(prev => (prev === id ? null : id)); // toggle
-}, []);
-
-
-  const renderItem = useCallback(({ item, index }) => {
+  const renderItem = useCallback(({ item }) => {
     return (
-     <ProfileCard
-  profile={item}
-  onSwipeComplete={handleSwipeComplete}
-  disabled={false}
-  rightSwipeCount={rightSwipeCount}
-  isFirstCard={index === 0 && !firstCardInteracted}
-  onFirstCardInteract={() => handleCardDetailToggle(item.id)}
-  showOnly={activeDetailId === null || activeDetailId === item.id}
-/>
-
+      <ProfileCard
+        profile={item}
+        onSwipeComplete={handleSwipeComplete}
+        rightSwipeCount={rightSwipeCount}
+      />
     );
-  }, [rightSwipeCount, firstCardInteracted, handleSwipeComplete, handleFirstCardInteraction]);
+  }, [rightSwipeCount, handleSwipeComplete]);
 
   const visibleProfileData = profileData.filter(item => !swipedIds.includes(item.id));
 
@@ -347,163 +433,12 @@ const Connect = () => {
         visible={showLimitModal}
         onClose={() => setShowLimitModal(false)}
         imageSource={require("../../../../assets/icons/Vfc/vbcactive.png")}
-        label="You need to complete the profile\nto swipe on more profiles"
+        label="We need a bit more info before you can swipe further. Finish your profile to continue."
         buttonText="Complete Profile"
         onButtonPress={() => setShowLimitModal(false)}
       />
-      <Toast />
     </View>
   );
 };
 
 export default Connect;
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  flatListContent: {
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    paddingBottom: 20,
-    alignItems: 'center',
-  },
-  card: {
-    width: width * 0.9,
-    height: CARD_HEIGHT * 1.9,
-    borderRadius: 20,
-    overflow: "hidden",
-    backgroundColor: "#fff",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    marginVertical: 10,
-    alignSelf: "center",
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  image: { width: "100%", height: "100%", position: "absolute" },
-  expandThumb: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    borderRadius: 10,
-    overflow: "hidden",
-    width: 80,
-    height: 120,
-    backgroundColor: "#00000020",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  thumbImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 10,
-  },
-  expandIcon: { position: "absolute", top: 4, right: 4 },
-  gradient: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    padding: 16,
-    alignItems: "flex-start",
-  },
-  name: { fontSize: 24, fontWeight: "bold", color: "#fff" },
-  title: { fontSize: 16, color: "#f0f0f0", marginTop: 4 },
-  location: { fontSize: 14, color: "#e0e0e0", marginTop: 2 },
-  backCardScroll: {
-    flex: 1,
-    width: '100%',
-  },
-
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    height: height * 0.5,
-  },
-  emptyText: { fontSize: 18, fontWeight: "bold", color: "#666" },
-  bottomActions: {
-    position: "absolute",
-    bottom: 20,
-    right: 16,
-    flexDirection: "column",
-    gap: 12,
-  },
-  actionButton: {
-    backgroundColor: "#BBCF8D",
-    borderRadius: 40,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
-    width: 48,
-    height: 48,
-    justifyContent: "center",
-  },
-  tagsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8, 
-    marginTop: 8,
-  },
-
-  tagBox: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 20,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-
-  tagText: {
-    fontSize: 14,
-    color: "#333",
-    fontFamily: FONT.MEDIUM,
-  },
-
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: FONT.BOLD,
-    color: "#000",
-    marginBottom: 6,
-  },
-  backCardScrollContent: {
-    flexGrow: 1,
-  },
-
-  backCardContent: {
-    width: '100%',
-    height: CARD_HEIGHT * 1.9,
-    justifyContent: 'flex-end',
-    borderRadius: 20,
-    overflow: 'hidden',
-
-  },
-  gradientOverlay: {
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    width: '100%',
-    top:100,
-    
-  },
-  detailContent: {
-    paddingBottom: 50,
-  },
-  section: {
-    marginTop: 16,
-  },
-  backText: {
-    fontSize: 16,
-    color: "#333",
-    lineHeight: 22,
-    textAlign: "left",
-    fontFamily: FONT.REGULAR,
-  },
-});

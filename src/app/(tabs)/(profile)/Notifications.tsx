@@ -40,15 +40,18 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
       <NavHeader title="Notifications" />
-{/* 
-      <Text style={styles.sectionHeader}>Permissions</Text>
-      <SettingItem label="Allow Matched Users to Share My VBC" value={toggles.shareVBC} onValueChange={() => toggleSwitch('shareVBC')} />
-      <SettingItem label="Access Contacts from Phone" value={toggles.accessContacts} onValueChange={() => toggleSwitch('accessContacts')} subLabel="Required for sharing contacts in chat" />
-      <SettingItem label="Access Photos from Phone" value={toggles.accessPhotos} onValueChange={() => toggleSwitch('accessPhotos')} subLabel="Required for sharing media in chat" /> */}
 
-      <Text style={styles.sectionHeader}>Notifications</Text>
+
+      <View style={{ flex: 1,
+  paddingHorizontal: 16,
+  backgroundColor: '#fff',
+  borderRadius: 16,
+  margin: 16,
+  paddingTop: 16,}} >
+
+    <Text style={styles.sectionHeader}>Notifications</Text>
       <SettingItem label="New Pending Requests" value={toggles.pendingRequests} onValueChange={() => toggleSwitch('pendingRequests')} />
       <SettingItem label="New Connections Made" value={toggles.newConnections} onValueChange={() => toggleSwitch('newConnections')} />
       <SettingItem label="Chat Notifications" value={toggles.chatNotifications} onValueChange={() => toggleSwitch('chatNotifications')} />
@@ -58,21 +61,10 @@ export default function SettingsScreen() {
       <SettingItem label="Feedback Emails" value={toggles.feedbackEmails} onValueChange={() => toggleSwitch('feedbackEmails')} />
       <SettingItem label="News / Marketing Emails" value={toggles.marketingEmails} onValueChange={() => toggleSwitch('marketingEmails')} />
 
-      {/* <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
-        <Text style={styles.buttonText}>Delete account</Text>
-      </TouchableOpacity> */}
 
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Thinking about deleting your account?</Text>
-            <Text style={styles.modalDescription}>Your account will be permanently removed after a 30-day grace period.</Text>
-            <TouchableOpacity style={styles.button} onPress={() => setModalVisible(false)}>
-              <Text style={styles.buttonText}>Delete account</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      </View>
+
+      
 
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Save settings</Text>

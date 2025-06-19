@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
-    zIndex: 999,
+
   },
   item: {
     flexDirection: "row",

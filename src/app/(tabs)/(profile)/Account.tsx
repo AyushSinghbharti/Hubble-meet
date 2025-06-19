@@ -1,28 +1,31 @@
-// App.tsx or SettingScreen.tsx
 import React, { useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  TextInput,
   StyleSheet,
   TouchableOpacity,
   Image,
   Modal,
   Switch,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { TextInput } from 'react-native-paper';
 import NavHeader from '../../../components/NavHeader';
+import { FONT } from '../../../../assets/constants/fonts';
 
 export default function SettingsScreen() {
   const [darkMode, setDarkMode] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
+  // ✅ State for inputs
+  const [phoneNumber, setPhoneNumber] = useState('(814) 413-9191');
+  const [email, setEmail] = useState('patricia651@outlook.com');
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <NavHeader  title='Account'/>
-    
+      <NavHeader title="Account" />
+
       <View style={styles.avatarContainer}>
         <Image
           source={{ uri: 'https://randomuser.me/api/portraits/men/41.jpg' }}
@@ -32,15 +35,35 @@ export default function SettingsScreen() {
 
       {/* Phone Section */}
       <View style={styles.card}>
-        <Text style={styles.label}>Phone number</Text>
-        <Text style={styles.textInput}>(814) 413-9191</Text>
+
+        <TextInput
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          mode="outlined"
+          outlineColor="#5C5C65"
+          activeOutlineColor="#5C5C65"
+          style={styles.paperInput}
+                    label={"Phone number"}
+          theme={{ roundness: 8 }}
+
+        />
         <Text style={styles.note}>* You can not edit mobile number</Text>
       </View>
 
       {/* Email Section */}
       <View style={styles.card}>
-        <Text style={styles.label}>Email address</Text>
-        <Text style={styles.textInput}>patricia651@outlook.com</Text>
+
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          mode="outlined"
+          label={"Email address"}
+          outlineColor="#ccc"
+          activeOutlineColor="#000"
+          style={styles.paperInput}
+          theme={{ roundness: 8 }}
+         
+        />
         <Text style={styles.note}>* You can not edit email address</Text>
       </View>
 
@@ -74,7 +97,10 @@ export default function SettingsScreen() {
             >
               <Ionicons name="close" size={24} color="#000" />
             </TouchableOpacity>
-           <Image style={styles.trashIcon}  source={require("../../../../assets/icons/Delete1.png")}/>
+            <Image
+              style={styles.trashIcon}
+              source={require('../../../../assets/icons/Delete1.png')}
+            />
             <Text style={styles.modalTitle}>Thinking about deleting your account?</Text>
             <Text style={styles.modalText}>
               Your account will be permanently removed after a 30-day grace period.
@@ -101,7 +127,6 @@ const styles = StyleSheet.create({
   avatarContainer: {
     alignItems: 'center',
     marginVertical: 24,
-
   },
   avatar: {
     width: 146,
@@ -122,15 +147,15 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontWeight: '500',
   },
-  textInput: {
-    fontSize: 16,
-    fontStyle: 'italic',
-    marginBottom: 6,
-    color: '#111',
-  },
   note: {
     color: '#888',
     fontSize: 12,
+    marginTop: 6,
+    fontFamily:FONT.REGULAR
+  },
+  paperInput: {
+    backgroundColor: '#fff',
+    fontSize: 16,
   },
   toggleCard: {
     flexDirection: 'row',
@@ -179,8 +204,8 @@ const styles = StyleSheet.create({
   },
   trashIcon: {
     marginBottom: 16,
-    height:40,
-    width:40
+    height: 40,
+    width: 40,
   },
   modalTitle: {
     fontSize: 16,

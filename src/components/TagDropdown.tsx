@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  LayoutChangeEvent,
 } from 'react-native';
 
 type TagDropdownProps = {
@@ -22,6 +23,8 @@ export default function TagDropdown({
   placeholder = 'Add',
 }: TagDropdownProps) {
   const [input, setInput] = useState('');
+  const [inputLayout, setInputLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const containerRef = useRef<View>(null);
 
   const handleAddTag = (tag: string) => {
     if (!selected.includes(tag)) {
@@ -40,27 +43,49 @@ export default function TagDropdown({
       !selected.includes(option)
   );
 
+  const onLayoutInput = (e: LayoutChangeEvent) => {
+    const { x, y, width, height } = e.nativeEvent.layout;
+    setInputLayout({ x, y, width, height });
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.tagRow}>
-        {selected.map((tag) => (
-          <View key={tag} style={styles.tag}>
-            <Text style={styles.tagText}>{tag}</Text>
-            <TouchableOpacity onPress={() => handleRemoveTag(tag)}>
-              <Text style={styles.remove}>×</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-        <TextInput
-          value={input}
-          onChangeText={setInput}
-          placeholder={placeholder}
-          style={styles.input}
-        />
+    <View>
+      <View
+        style={styles.container}
+        onLayout={onLayoutInput}
+        ref={containerRef}
+      >
+        <View style={styles.tagRow}>
+          {selected.map((tag) => (
+            <View key={tag} style={styles.tag}>
+              <Text style={styles.tagText}>{tag}</Text>
+              <TouchableOpacity onPress={() => handleRemoveTag(tag)}>
+                <Text style={styles.remove}>×</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            placeholder={placeholder}
+            style={styles.input}
+          />
+        </View>
       </View>
 
       {input.length > 0 && filteredOptions.length > 0 && (
-        <View style={styles.dropdown}>
+        <View
+          style={[
+            styles.dropdown,
+            {
+              top: inputLayout.y + inputLayout.height + 4,
+              left: inputLayout.x,
+              width: inputLayout.width,
+              position: 'absolute',
+              zIndex: 999,
+            },
+          ]}
+        >
           <FlatList
             data={filteredOptions}
             keyExtractor={(item) => item}
@@ -121,15 +146,14 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     backgroundColor: '#fff',
-    marginTop: 4,
     borderRadius: 8,
     maxHeight: 120,
     borderWidth: 1,
     borderColor: '#ccc',
-    elevation: 3,
+    elevation: 5,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 2 },
   },
   dropdownItem: {
     padding: 10,
