@@ -1,132 +1,164 @@
-// CircularUI.tsx
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
-  StyleSheet,
   Image,
-  Modal,
-  Text,
+  StyleSheet,
   TouchableOpacity,
+  Text,
   Dimensions,
+  Modal,
+  Pressable,
   ImageBackground,
-} from "react-native";
-import {LinearGradient} from "expo-linear-gradient";
-import {
-  AntDesign,
-  Entypo,
-  Ionicons,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { Ionicons, Entypo, MaterialCommunityIcons } from '@expo/vector-icons';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
+const CENTER = width / 2;
 
-const OUTER_RADIUS = 180;
-const INNER_RADIUS = 130;
-const IMAGE_SIZE = 60;
-const DASH_COUNT = 60;
-const DASH_WIDTH = 2;
-const DASH_HEIGHT = 10;
-
-const outerImages = [
-  require("../../assets/images/p1.jpg"),
-  require("../../assets/images/p1.jpg"),
-  require("../../assets/images/p1.jpg"),
-  require("../../assets/images/p1.jpg"),
-  require("../../assets/images/p1.jpg"),
+const outerAvatars = [
+  {
+    src: require('../../assets/images/p1.jpg'),
+    borderColor: '#FF6B6B',
+    name: 'Robin Gupta',
+    title: 'Design Lead at Amazon',
+    location: 'Bengaluru, India',
+  },
+  {
+    src: require('../../assets/images/p1.jpg'),
+    borderColor: '#6BCB77',
+    name: 'Sanya Mehta',
+    title: 'Product Manager at Meta',
+    location: 'Mumbai, India',
+  },
+  {
+    src: require('../../assets/images/p1.jpg'),
+    borderColor: '#4D96FF',
+    name: 'Raj Patel',
+    title: 'UX Designer at Flipkart',
+    location: 'Delhi, India',
+  },
+  {
+    src: require('../../assets/images/p1.jpg'),
+    borderColor: '#FFB703',
+    name: 'Aisha Khan',
+    title: 'Data Analyst at Google',
+    location: 'Hyderabad, India',
+  },
 ];
 
-const innerImages = [
-  require("../../assets/images/p1.jpg"),
-  require("../../assets/images/p1.jpg"),
+const innerAvatars = [
+  {
+    src: require('../../assets/images/p1.jpg'),
+    borderColor: '#8338EC',
+    name: 'Ankit Sharma',
+    title: 'Dev Lead at Swiggy',
+    location: 'Pune, India',
+  },
+  {
+    src: require('../../assets/images/p1.jpg'),
+    borderColor: '#FB5607',
+    name: 'Neha Singh',
+    title: 'QA Engineer at Zoho',
+    location: 'Chennai, India',
+  },
+  {
+    src: require('../../assets/images/p1.jpg'),
+    borderColor: '#3A86FF',
+    name: 'Aman Verma',
+    title: 'Mobile Dev at Zomato',
+    location: 'Indore, India',
+  },
+  {
+    src: require('../../assets/images/p1.jpg'),
+    borderColor: '#FF006E',
+    name: 'Priya Desai',
+    title: 'HR at Paytm',
+    location: 'Ahmedabad, India',
+  },
+  {
+    src: require('../../assets/images/p1.jpg'),
+    borderColor: '#06D6A0',
+    name: 'Kunal Rao',
+    title: 'Analyst at Ola',
+    location: 'Jaipur, India',
+  },
 ];
 
-const centerImage = require("../../assets/images/p1.jpg");
-
-interface Profile {
-  name: string;
-  title: string;
-  location: string;
-  image: any;
-}
-
-const CircularUI = () => {
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+const ProfileOrbit = () => {
+  const router = useRouter();
+  const [selectedProfile, setSelectedProfile] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const renderDashes = (radius: number) => {
-    return Array.from({ length: DASH_COUNT }).map((_, index) => {
-      const angle = (index / DASH_COUNT) * 2 * Math.PI;
-      const x = radius + radius * Math.cos(angle) - DASH_WIDTH / 2;
-      const y = radius + radius * Math.sin(angle) - DASH_HEIGHT / 2;
-      return (
-        <View
-          key={`dash-${radius}-${index}`}
-          style={[
-            styles.dash,
-            {
-              left: x,
-              top: y,
-              transform: [{ rotate: `${(angle * 180) / Math.PI}deg` }],
-            },
-          ]}
-        />
-      );
-    });
+  const handleViewAll = () => {
+    router.push('/HubbleCircleViewAll');
   };
 
-  const renderImages = (images: any[], radius: number) => {
-    const angleStep = (2 * Math.PI) / images.length;
-    return images.map((img, index) => {
-      const angle = index * angleStep;
-      const x = radius + radius * Math.cos(angle) - IMAGE_SIZE / 2;
-      const y = radius + radius * Math.sin(angle) - IMAGE_SIZE / 2;
+  const handleAvatarPress = (profile) => {
+    setSelectedProfile(profile);
+    setModalVisible(true);
+  };
+
+  const renderOrbitAvatars = (radius, avatars) =>
+    avatars.map((avatar, index) => {
+      const angle = (2 * Math.PI * index) / avatars.length;
+      const x = CENTER + radius * Math.cos(angle) - 25;
+      const y = CENTER + radius * Math.sin(angle) - 25;
 
       return (
         <TouchableOpacity
-          key={`img-${radius}-${index}`}
-          onPress={() => {
-            setSelectedProfile({
-              name: "Robin Gupta",
-              title: "Design Lead at Amazon",
-              location: "Bengaluru, India",
-              image: img,
-            });
-            setModalVisible(true);
-          }}
-          style={[styles.imageContainer, { top: y, left: x }]}
+          key={index}
+          onPress={() => handleAvatarPress(avatar)}
+          activeOpacity={0.8}
+          style={[styles.avatarWrapper, { left: x, top: y }]}
         >
-          <Image source={img} style={styles.image} />
+          <Image
+            source={avatar.src}
+            style={[styles.avatar, { borderColor: avatar.borderColor }]}
+          />
         </TouchableOpacity>
       );
     });
-  };
 
   return (
     <View style={styles.container}>
+      {/* Orbit Gradients */}
       <LinearGradient
-        colors={["#BBCF8D", "#FFFFFF"]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.circleWrapper}
+        colors={['#fff', '#BBCF8D']}
+        start={{ x: 0.1, y: 0 }}
+        end={{ x: 0.1, y: 3 }}
+        style={[styles.gradientCircle, styles.outerGradient]}
       >
-        <View style={[styles.circle, { width: OUTER_RADIUS * 2, height: OUTER_RADIUS * 2 }]}> 
-          {renderDashes(OUTER_RADIUS)}
-          {renderImages(outerImages, OUTER_RADIUS)}
-        </View>
-
-        <View
-          style={[styles.circle, { width: INNER_RADIUS * 2, height: INNER_RADIUS * 2 }]}
-        >
-          {renderDashes(INNER_RADIUS)}
-          {renderImages(innerImages, INNER_RADIUS)}
-        </View>
-
-        <View style={styles.centerImageWrapper}>
-          <Image source={centerImage} style={styles.centerImage} />
-        </View>
+        <View style={styles.dashedBorderOuter} />
       </LinearGradient>
 
-      {selectedProfile && (
+      <LinearGradient
+        colors={['#BBCF8D', '#FFFFFF']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={[styles.gradientCircle, styles.innerGradient]}
+      >
+        <View style={styles.dashedBorderInner} />
+      </LinearGradient>
+
+      {/* Orbit Avatars */}
+      {renderOrbitAvatars(180, outerAvatars)}
+      {renderOrbitAvatars(130, innerAvatars)}
+
+      {/* Center Avatar */}
+      <Image
+        source={require('../../assets/images/p1.jpg')}
+        style={[styles.centerAvatar, { left: CENTER - 50, top: CENTER - 50 }]}
+      />
+
+      {/* Button */}
+      <TouchableOpacity style={styles.button} onPress={handleViewAll}>
+        <Text style={styles.buttonText}>View All</Text>
+      </TouchableOpacity>
+
+      {/* Profile Modal */}
+     {selectedProfile && (
         <Modal
           visible={modalVisible}
           animationType="slide"
@@ -137,15 +169,15 @@ const CircularUI = () => {
             <View style={styles.modalBox}>
               <ImageBackground
                 borderRadius={10}
-                source={selectedProfile.image}
+                source={selectedProfile.src}
                 style={styles.modalImage}
               >
                 <View style={styles.modalTopIcons}>
                   <Ionicons name="chatbubble-ellipses" size={24} color="#4CAF50" />
                   <Ionicons name="chatbubble-ellipses" size={24} color="#4CAF50" />
                 </View>
+<View style={[styles.profileDetails, { backgroundColor: selectedProfile.borderColor }]}>
 
-                <View style={styles.profileDetails}>
                   <Text style={styles.name}>{selectedProfile.name}</Text>
                   <Text style={styles.title}>{selectedProfile.title}</Text>
                   <Text style={styles.location}>{selectedProfile.location}</Text>
@@ -174,63 +206,87 @@ const CircularUI = () => {
   );
 };
 
-export default CircularUI;
+export default ProfileOrbit;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#fff',
+    marginTop: 30,
+    right: 15,
   },
-  circleWrapper: {
-    width: OUTER_RADIUS * 2,
-    height: OUTER_RADIUS * 2,
-    borderRadius: OUTER_RADIUS,
-    alignItems: "center",
-    justifyContent: "center",
+  gradientCircle: {
+    position: 'absolute',
+    borderRadius: 1000,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  circle: {
-    position: "absolute",
+  outerGradient: {
+    width: 360,
+    height: 360,
+    top: CENTER - 180,
+    left: CENTER - 180,
   },
-  dash: {
-    position: "absolute",
-    width: DASH_WIDTH,
-    height: DASH_HEIGHT,
-    backgroundColor: "#BBCF8D",
-    borderRadius: 1,
+  innerGradient: {
+    width: 260,
+    height: 260,
+    top: CENTER - 130,
+    left: CENTER - 130,
   },
-  imageContainer: {
-    position: "absolute",
-    width: IMAGE_SIZE,
-    height: IMAGE_SIZE,
-    borderRadius: IMAGE_SIZE / 2,
-    backgroundColor: "#fff",
+  dashedBorderOuter: {
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    borderWidth: 2,
+    borderColor: '#a8d69f',
+    borderStyle: 'dashed',
+    position: 'absolute',
+  },
+  dashedBorderInner: {
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    borderWidth: 2,
+    borderColor: '#a8d69f',
+    borderStyle: 'dashed',
+    position: 'absolute',
+  },
+  avatarWrapper: {
+    position: 'absolute',
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 3,
-    borderColor: "#E5E7EB",
-    overflow: "hidden",
+    backgroundColor: '#fff',
   },
-  image: {
-    width: "100%",
-    height: "100%",
-    borderRadius: IMAGE_SIZE / 2,
+  centerAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    position: 'absolute',
+    zIndex: 2,
+    borderWidth: 2,
+    borderColor: '#fff',
   },
-  centerImageWrapper: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    overflow: "hidden",
-    borderWidth: 3,
-    borderColor: "#A7F3D0",
-    alignItems: "center",
-    justifyContent: "center",
+  button: {
+    position: 'absolute',
+    bottom: 60,
+    alignSelf: 'center',
+    backgroundColor: '#d1e9c6',
+    paddingHorizontal: 30,
+    paddingVertical: 12,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#b0d6a1',
   },
-  centerImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 40,
+  buttonText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#333',
   },
-  overlay: {
+overlay: {
     flex: 1,
     backgroundColor: "#00000099",
     justifyContent: "center",
@@ -255,7 +311,7 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   profileDetails: {
-    backgroundColor: "#FFE699",
+
     marginTop: 370,
     borderRadius: 10,
     padding: 16,

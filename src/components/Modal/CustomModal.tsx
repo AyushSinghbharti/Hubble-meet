@@ -1,50 +1,42 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
     Modal,
     View,
     Text,
-    TouchableOpacity,
     StyleSheet,
     TouchableWithoutFeedback,
+    Image,
 } from "react-native";
 
 interface CustomModalProps {
     visible: boolean;
-    title?: string;
-    children?: React.ReactNode;
     onClose: () => void;
-    onConfirm?: () => void;
-    confirmText?: string;
-    cancelText?: string;
+    name: string;
 }
 
-const CustomModal: React.FC<CustomModalProps> = ({
-    visible,
-    title = "Modal Title",
-    children,
-    onClose,
-    onConfirm,
-    confirmText = "Confirm",
-    cancelText = "Cancel",
-}) => {
+const CustomModal: React.FC<CustomModalProps> = ({ visible, onClose, name }) => {
+    useEffect(() => {
+        if (visible) {
+            const timer = setTimeout(() => {
+                onClose();
+            }, 2000); // Auto-close after 2 seconds
+
+            return () => clearTimeout(timer);
+        }
+    }, [visible]);
+
     return (
         <Modal transparent visible={visible} animationType="fade">
             <TouchableWithoutFeedback onPress={onClose}>
                 <View style={styles.backdrop}>
                     <TouchableWithoutFeedback>
                         <View style={styles.modalContainer}>
-                            <Text style={styles.modalTitle}>{title}</Text>
-                            <View style={styles.content}>{children}</View>
-                            <View style={styles.buttonContainer}>
-                                <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-                                    <Text style={styles.cancelText}>{cancelText}</Text>
-                                </TouchableOpacity>
-                                {onConfirm && (
-                                    <TouchableOpacity style={styles.confirmButton} onPress={onConfirm}>
-                                        <Text style={styles.confirmText}>{confirmText}</Text>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
+                            <Image
+                                source={require("../../../assets/gif/Hubble Meet icon logo.gif")}
+                                style={styles.gif}
+                            />
+                            <Text style={styles.name}>{name}</Text>
+                            <Text style={styles.subLabel}>Added on your Hubble Circle</Text>
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
@@ -63,41 +55,28 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     modalContainer: {
-        width: "80%",
-        backgroundColor: "#fff",
+        width: "90%",
+        backgroundColor: "#000",
         borderRadius: 16,
-        padding: 20,
+        padding: 24,
+        alignItems: "center",
         elevation: 5,
     },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: "bold",
-        marginBottom: 10,
-        color: "#111",
+    gif: {
+        width: 180,
+        height: 40,
+        marginBottom: 16,
     },
-    content: {
-        marginBottom: 20,
-    },
-    buttonContainer: {
-        flexDirection: "row",
-        justifyContent: "flex-end",
-    },
-    cancelButton: {
-        marginRight: 12,
-    },
-    confirmButton: {
-        backgroundColor: "#6366F1",
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 8,
-    },
-    cancelText: {
-        color: "#888",
+    name: {
         fontSize: 16,
-    },
-    confirmText: {
+        fontWeight: "bold",
         color: "#fff",
-        fontWeight: "bold",
-        fontSize: 16,
+        marginBottom: 4,
+        fontFamily: "InterBold",
+    },
+    subLabel: {
+        fontSize: 14,
+        color: "#fff",
+        fontFamily: "InterRegular",
     },
 });

@@ -1,20 +1,35 @@
-// App.tsx or SettingScreen.tsx
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  Image,
+  findNodeHandle,
+  UIManager,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DropDownPicker from 'react-native-dropdown-picker';
 import NavHeader from '../../../components/NavHeader';
 import TagInput from '../../../components/TagInput';
+import SelectCountryModal from '../../../components/selectCountryModal';
+ // Adjust path
 
 export default function SettingsScreen() {
   const [bio, setBio] = useState('');
   const [companies, setCompanies] = useState(['Google', 'Amazon']);
   const [industries, setIndustries] = useState(['Tech', 'Finance']);
-  const [interests, setInterests] = useState(['Fintech', 'Hospitality']);
+  const [interests, setInterests] = useState([]); // for industries interests dropdown
 
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
+  const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(null);
+
+  const [interestsDropdownOpen, setInterestsDropdownOpen] = useState(false);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+
   const [items, setItems] = useState([
     { label: 'Google', value: 'Google' },
     { label: 'Amazon', value: 'Amazon' },
@@ -23,9 +38,37 @@ export default function SettingsScreen() {
     { label: 'Meta', value: 'Meta' },
   ]);
 
+  const [selectedFlag, setSelectedFlag] = useState<{ flag: string; dial_code: string } | null>({
+    flag: 'https://flagcdn.com/w40/us.png',
+    dial_code: '+1',
+  });
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
+  const flagBoxRef = useRef(null);
+
+  const handleOpenModal = () => {
+    const handle = findNodeHandle(flagBoxRef.current);
+    if (handle) {
+      UIManager.measure(handle, (x, y, width, height, pageX, pageY) => {
+        setFlagBoxPosition({ x: pageX, y: pageY });
+        setModalVisible(true);
+      });
+    }
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
       <NavHeader title="Edit Profile" />
+
+      {/* Profile Image Section */}
+      <View style={styles.profileContainer}>
+        <Image
+          source={{ uri: 'https://randomuser.me/api/portraits/men/41.jpg' }}
+          style={styles.profileImage}
+        />
+        <Text style={styles.profileName}>Dennis Callis</Text>
+      </View>
 
       <FormLabel label="User Name *" />
       <Input placeholder="Dennis Callis" />
@@ -35,7 +78,18 @@ export default function SettingsScreen() {
 
       <FormLabel label="Phone Number *" />
       <View style={styles.phoneContainer}>
-        <View style={styles.countryCode}><Text>🇩🇪 +1</Text></View>
+        <TouchableOpacity
+          style={styles.countryCode}
+          onPress={handleOpenModal}
+          ref={flagBoxRef}
+        >
+          {selectedFlag && (
+            <>
+              <Image source={{ uri: selectedFlag.flag }} style={{ width: 24, height: 18, marginRight: 6 }} />
+              <Text>{selectedFlag.dial_code}</Text>
+            </>
+          )}
+        </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Input placeholder="525 735 4556" containerStyle={{ marginLeft: 8 }} />
         </View>
@@ -62,17 +116,18 @@ export default function SettingsScreen() {
 
       <FormLabel label="Company (Dropdown)" />
       <DropDownPicker
-        open={open}
-        value={value}
+        open={companyDropdownOpen}
+        value={selectedCompany}
         items={items}
-        setOpen={setOpen}
+        setOpen={setCompanyDropdownOpen}
         setValue={(val) => {
-          setValue(val);
+          setSelectedCompany(val);
           if (val && !companies.includes(val)) setCompanies([...companies, val]);
         }}
         setItems={setItems}
         placeholder="Select or add a company"
-        style={{ marginBottom: open ? 160 : 16 }}
+        style={{ marginBottom: companyDropdownOpen ? 160 : 16 }}
+        dropDownContainerStyle={{ zIndex: 1000 }}
       />
 
       <FormLabel label="Company Tags" />
@@ -84,12 +139,34 @@ export default function SettingsScreen() {
       <FormLabel label="Industries you work in ?" />
       <TagInput tags={industries} onChange={setIndustries} />
 
-      <FormLabel label="Industries Interests" />
-      <TagInput tags={interests} onChange={setInterests} />
+      <FormLabel label="Industries Interests (Dropdown)" />
+      <DropDownPicker
+        multiple
+        open={interestsDropdownOpen}
+        value={selectedInterests}
+        items={items}
+        setOpen={setInterestsDropdownOpen}
+        setValue={setSelectedInterests}
+        setItems={setItems}
+        placeholder="Select one or more"
+        style={{ marginBottom: interestsDropdownOpen ? 160 : 16 }}
+        dropDownContainerStyle={{ zIndex: 900 }}
+      />
 
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Save settings</Text>
       </TouchableOpacity>
+
+      {/* Country Modal */}
+      <SelectCountryModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSelect={(country) => {
+          setSelectedFlag({ flag: country.flag, dial_code: country.dial_code });
+          setModalVisible(false);
+        }}
+        position={flagBoxPosition}
+      />
     </ScrollView>
   );
 }
@@ -98,7 +175,16 @@ const FormLabel = ({ label }: { label: string }) => (
   <Text style={styles.label}>{label}</Text>
 );
 
-const Input = ({ placeholder, icon, multiline = false, numberOfLines = 1, maxLength, value, onChangeText, containerStyle = {} }: any) => (
+const Input = ({
+  placeholder,
+  icon,
+  multiline = false,
+  numberOfLines = 1,
+  maxLength,
+  value,
+  onChangeText,
+  containerStyle = {},
+}: any) => (
   <View style={[styles.inputContainer, containerStyle]}>
     <TextInput
       style={[styles.input, multiline && styles.textArea]}
@@ -119,6 +205,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     backgroundColor: '#fff',
+  },
+  profileContainer: {
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  profileImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    marginBottom: 8,
+  },
+  profileName: {
+    fontSize: 18,
+    fontWeight: '600',
   },
   label: {
     fontWeight: 'bold',
@@ -150,6 +250,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countryCode: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,

@@ -51,7 +51,7 @@ function RootLayoutNav() {
 
         
         {/* For extra screens, that will be render outside of the tab bars */}
-        <Stack.Screen name="(subScreen)" options={{ headerShown: false }} /> 
+        {/* <Stack.Screen name="(subScreen)" options={{ headerShown: false }} />  */}
 
       </Stack>
     </>

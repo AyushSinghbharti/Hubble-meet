@@ -8,62 +8,49 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons, Entypo, Feather } from '@expo/vector-icons';
-import { useFonts } from 'expo-font';
-// Install if missing: expo install expo-app-loading
 import InviteModal from '../../../components/Modal/InviteModal';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+
+// Profile Data
+const profileData = {
+  name: "Robin Gupta",
+  title: "Head of Product at Amazon",
+  location: "Bengaluru, India",
+  email: "user.work@gmail.com",
+  phone: "+91 1234567890",
+  about:
+    "I am a passionate and detail-oriented Product designer with a strong focus on creating user-centric designs that enhance usability and deliver seamless digital experiences.",
+  avatar: "https://via.placeholder.com/100",
+  inviteMessage:
+    "Invite friends and peers to join HubbleMeet and grow the community",
+};
 
 export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
-
 
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Profile</Text>
-        <TouchableOpacity onPress={() => router.push('(profile)/Setting')}>
+        <TouchableOpacity style={{ left: 150 }} onPress={() => router.push('(profile)/Setting')}>
           <Ionicons name="settings-outline" size={24} color="black" />
         </TouchableOpacity>
       </View>
 
-      {/* Profile Picture (old style) */}
+      {/* Profile */}
       <View style={styles.profileContainer}>
-        <Image
-          source={{ uri: 'https://via.placeholder.com/100' }}
-          style={styles.profileImage}
-        />
-        <Text style={styles.name}>Robin Gupta</Text>
-        <Text style={styles.subtitle}>Head of Product at Amazon</Text>
+        <Image source={{ uri: profileData.avatar }} style={styles.profileImage} />
+        <Text style={styles.name}>{profileData.name}</Text>
+        <Text style={styles.subtitle}>{profileData.title}</Text>
       </View>
 
-      {/* Profile Card */}
-      <View style={[styles.card, styles.profileCard]}>
-        <View style={styles.profileRow}>
-          <Image
-            source={{ uri: 'https://via.placeholder.com/100' }}
-            style={styles.profileImageSmall}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={styles.name}>Robin Gupta</Text>
-            <Text style={styles.subtitle}>Head of Product at Amazon</Text>
-            <Text style={styles.location}>Bengaluru, India</Text>
-          </View>
-          <Ionicons name="volume-high-outline" size={24} color="#000" />
-        </View>
-
-        <TouchableOpacity style={styles.shareIcon}>
-          <Entypo name="share" size={20} color="#000" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Expand Hubble Circle */}
+      {/* Invite Card */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Expand your Hubble Circle</Text>
-        <Text style={styles.cardText}>
-          Invite friends and peers to join HubbleMeet and grow the community
-        </Text>
+        <Text style={styles.cardText}>{profileData.inviteMessage}</Text>
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
           style={styles.inviteButton}
@@ -72,43 +59,80 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* About Section */}
+      {/* About Card */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>About</Text>
-        <Text style={styles.cardText}>
-          I am a passionate and details oriented Product designer with a strong
-          focus on creating user - centric designs that enhances usability and
-          deliver seamless digital experiences
-        </Text>
+        <Text style={styles.cardText}>{profileData.about}</Text>
       </View>
 
-      {/* Contact Section */}
+      {/* Contact Card */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Contact</Text>
 
+        {/* Email Row */}
         <View style={styles.contactRow}>
-          <Ionicons name="mail-outline" size={20} color="#7D7D7D" style={{ marginRight: 8 }} />
+          <LinearGradient
+            colors={['#BBCF8D', '#fff']}
+
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.iconGradient}
+          >
+            <Ionicons name="mail-outline" size={20} color="#1F2937" />
+          </LinearGradient>
           <View>
             <Text style={styles.contactLabel}>Email</Text>
-            <Text style={styles.contactEmail}>user.work@gmail.com</Text>
+            <Text style={styles.contactEmail}>{profileData.email}</Text>
           </View>
         </View>
 
+        {/* Phone Row */}
         <View style={styles.contactRow}>
-          <Feather name="phone" size={20} color="#7D7D7D" style={{ marginRight: 8, marginTop: 12 }} />
+          <LinearGradient
+            colors={['#BBCF8D', '#fff']}
+   
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.iconGradient}
+          >
+            <Feather name="phone" size={20} color="#1F2937" />
+          </LinearGradient>
           <View>
             <Text style={styles.contactLabel}>Mobile</Text>
-            <Text style={styles.contactEmail}>+91 1234567890</Text>
+            <Text style={styles.contactEmail}>{profileData.phone}</Text>
           </View>
         </View>
       </View>
 
-      {/* Invite Modal */}
+      {/* Highlighted Profile Card */}
+      <View style={[styles.card, styles.profileCard]}>
+        <View style={styles.profileRow}>
+          <Image source={{ uri: profileData.avatar }} style={styles.profileImageSmall} />
+          <View style={styles.profileInfo}>
+            <Text style={styles.name}>{profileData.name}</Text>
+            <Text style={styles.subtitle}>{profileData.title}</Text>
+            <Text style={styles.location}>{profileData.location}</Text>
+          </View>
+          <TouchableOpacity style={styles.pitchButton}>
+            <Image
+              style={{ height: 25, width: 25 }}
+              source={require("../../../../assets/icons/pitch2.png")}
+            />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.shareIcon}>
+          <Entypo name="share" size={20} color="#000" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Modal */}
       <InviteModal visible={modalVisible} onClose={() => setModalVisible(false)} />
     </ScrollView>
   );
 }
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F8F8F8',
@@ -119,14 +143,13 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   headerText: {
     fontSize: 20,
     fontFamily: 'InterBold',
   },
-  // Profile Picture block (classic)
   profileContainer: {
     alignItems: 'center',
     marginBottom: 24,
@@ -146,32 +169,8 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     fontFamily: 'Inter',
-    color: '#7D7D7D',
+    color: '#3E3E3E',
     marginTop: 4,
-  },
-
-  // Profile Card
-  profileCard: {
-    backgroundColor: '#FFE07B',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-    position: 'relative',
-  },
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  profileImageSmall: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginRight: 12,
-  },
-  profileInfo: {
-    flex: 1,
-    marginLeft: 12,
   },
   location: {
     fontSize: 12,
@@ -179,13 +178,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     marginTop: 2,
   },
-  shareIcon: {
-    position: 'absolute',
-    bottom: 12,
-    left: 16,
-  },
-
-  // Cards
   card: {
     backgroundColor: '#FFFFFF',
     padding: 16,
@@ -214,11 +206,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'InterBold',
   },
-
   contactRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginTop: 8,
+    alignItems: 'center',
+    marginTop: 12,
   },
   contactLabel: {
     fontSize: 12,
@@ -228,5 +219,56 @@ const styles = StyleSheet.create({
   contactEmail: {
     fontSize: 14,
     fontFamily: 'InterBold',
+  },
+  iconGradient: {
+    width: 35,
+    height: 35,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  profileCard: {
+    backgroundColor: '#FFE07B',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 16,
+    position: 'relative',
+  },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  profileImageSmall: {
+    width: 120,
+    height: 150,
+    borderRadius: 32,
+    marginRight: 12,
+  },
+  profileInfo: {
+    flex: 1,
+    marginLeft: 10,
+    bottom: 40,
+  },
+  pitchButton: {
+    backgroundColor: "#fff",
+    height: 35,
+    width: 35,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 30,
+    bottom: 60,
+  },
+  shareIcon: {
+    position: 'absolute',
+    bottom: 12,
+    right: 190,
+    backgroundColor: "#fff",
+    height: 35,
+    width: 35,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
