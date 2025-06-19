@@ -1,5 +1,5 @@
 import React from "react";
-import { Image, StyleSheet, View, Text } from "react-native";
+import { Image, StyleSheet, View, Text, StatusBar } from "react-native";
 import { Tabs } from "expo-router";
 
 const baseUrl = "../../../assets/icons";
@@ -21,77 +21,81 @@ const getIcon = (iconKey: keyof typeof icons, focused: boolean) => (
 
 export default function StackLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: "#BBCF8D",
-        tabBarStyle: {paddingTop: 7}
-      }}
-    >
-      <Tabs.Screen
-        name="(chat)"
-        options={{
-          title: "Chat",
-          tabBarIcon: ({ focused }) => getIcon("chat", focused),
+    <>
+      <StatusBar barStyle="dark-content" />
+      <Tabs
+        initialRouteName="(pitch)"
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: "#BBCF8D",
+          tabBarStyle: { paddingTop: 7 },
         }}
-      />
-      <Tabs.Screen
-        name="(pitch)"
-        options={{
-          title: "Pitch",
-          tabBarIcon: ({ focused }) => getIcon("pitch", focused),
-        }}
-      />
-      <Tabs.Screen
-        name="(connect)"
-        options={{
-          tabBarLabel: ({ focused }) =>
-            !focused ? (
-              <Text
-                style={{ fontWeight: "bold", fontSize: 10, color: "#64748B" }}
-              >
-                Connect
-              </Text>
-            ) : null,
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <View style={styles.circleWrapper}>
-                <Image
-                  source={icons.connect}
-                  style={[styles.icon, { tintColor: "#000" }]}
-                />
+      >
+        <Tabs.Screen
+          name="(chat)"
+          options={{
+            title: "Chat",
+            tabBarIcon: ({ focused }) => getIcon("chat", focused),
+          }}
+        />
+        <Tabs.Screen
+          name="(pitch)"
+          options={{
+            title: "Pitch",
+            tabBarIcon: ({ focused }) => getIcon("pitch", focused),
+          }}
+        />
+        <Tabs.Screen
+          name="(connect)"
+          options={{
+            tabBarLabel: ({ focused }) =>
+              !focused ? (
                 <Text
-                  style={{ fontWeight: "bold", fontSize: 10, color: "#000" }}
+                  style={{ fontWeight: "bold", fontSize: 10, color: "#64748B" }}
                 >
                   Connect
                 </Text>
-              </View>
-            ) : (
-              <View style={{ alignItems: "center" }}>
-                <Image
-                  source={icons.connect}
-                  style={[styles.icon, { tintColor: "#000" }]}
-                />
-              </View>
-            ),
-        }}
-      />
+              ) : null,
+            tabBarIcon: ({ focused }) =>
+              focused ? (
+                <View style={styles.circleWrapper}>
+                  <Image
+                    source={icons.connect}
+                    style={[styles.icon, { tintColor: "#000" }]}
+                  />
+                  <Text
+                    style={{ fontWeight: "bold", fontSize: 10, color: "#000" }}
+                  >
+                    Connect
+                  </Text>
+                </View>
+              ) : (
+                <View style={{ alignItems: "center" }}>
+                  <Image
+                    source={icons.connect}
+                    style={[styles.icon, { tintColor: "#000" }]}
+                  />
+                </View>
+              ),
+          }}
+        />
 
-      <Tabs.Screen
-        name="(vbc)"
-        options={{
-          title: "VBC",
-          tabBarIcon: ({ focused }) => getIcon("vbc", focused),
-        }}
-      />
-      <Tabs.Screen
-        name="(profile)"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ focused }) => getIcon("profile", focused),
-        }}
-      />
-    </Tabs>
+        <Tabs.Screen
+          name="(vbc)"
+          options={{
+            title: "VBC",
+            tabBarIcon: ({ focused }) => getIcon("vbc", focused),
+          }}
+        />
+        <Tabs.Screen
+          name="(profile)"
+          options={{
+            title: "Profile",
+            tabBarIcon: ({ focused }) => getIcon("profile", focused),
+          }}
+        />
+      </Tabs>
+    </>
   );
 }
 
