@@ -5,18 +5,19 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
-  Image,
   Pressable,
 } from "react-native";
+import { Image } from "expo-image";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
   name: string;
+  closeFriend: boolean;
 };
 
-const PopUpNotification = ({ visible, onClose, name }: Props) => {
+const PopUpNotification = ({ visible, onClose, name, closeFriend }: Props) => {
   return (
     <Modal
       animationType="fade"
@@ -26,12 +27,22 @@ const PopUpNotification = ({ visible, onClose, name }: Props) => {
     >
       <Pressable style={styles.overlay} onPress={onClose}>
         <View style={styles.popup}>
-          <View style={styles.iconContainer}>
-            <FontAwesome name="close" size={32} color="black" />
-          </View>
-            {/* <Image source={require("../../../assets/icons/added.gif")} style={{height: 52, width: 60}} /> */}
+          {closeFriend ? (
+            <View style={styles.iconContainer}>
+              <FontAwesome name="close" size={32} color="black" />
+            </View>
+          ) : (
+            <Image
+              source={require("../../../assets/icons/added.gif")}
+              style={{ height: 52, width: 60 }}
+            />
+          )}
           <Text style={styles.name}>{name}</Text>
-          <Text style={styles.desc}>Removed from your Hubble Circle</Text>
+          {closeFriend ? (
+            <Text style={styles.desc}>Removed from your Hubble Circle</Text>
+          ) : (
+            <Text style={styles.desc}>Added from your Hubble Circle</Text>
+          )}
         </View>
       </Pressable>
     </Modal>
@@ -72,8 +83,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
     marginBottom: 4,
-},
-desc: {
+  },
+  desc: {
     color: "#ccc",
     fontFamily: "Inter",
     fontSize: 13,
