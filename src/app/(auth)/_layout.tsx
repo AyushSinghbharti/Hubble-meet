@@ -7,6 +7,7 @@ export default function StackLayout() {
     <>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="profileSetup" />
         <Stack.Screen name="otpVerify" />
         <Stack.Screen name="onboardingScreen" />
         <Stack.Screen name="signup" />

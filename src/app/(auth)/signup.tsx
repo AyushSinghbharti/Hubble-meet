@@ -10,6 +10,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import SelectCountryModal from "../../components/selectCountryModal";
 import ErrorAlert from "../../components/errorAlert";
+import { useRouter } from "expo-router";
 
 type Country = {
   name: string;
@@ -23,6 +24,7 @@ const FACEBOOK_ICON =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSy0dDdi3KJgMq_87aJt9us_0yh69ewaKgUzg&s";
 
 export default function SignUp() {
+  const router = useRouter();
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [termAccept, toogleTerm] = useState<Boolean>(false);
   const [email, setEmail] = useState<string>("");
@@ -36,6 +38,10 @@ export default function SignUp() {
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef<View>(null);
   const [error, setError] = useState<String>("invalid email address");
+
+  const handleSignUp = () => {
+    router.push("/otpVerify");
+  }
 
   return (
     <View style={styles.container}>
@@ -60,7 +66,7 @@ export default function SignUp() {
               onChangeText={setEmail}
               placeholder="Email"
               placeholderTextColor="#aaa"
-              keyboardType="phone-pad"
+              keyboardType="email-address"
               style={[
                 styles.phoneInput,
                 { borderColor: error ? "red" : "black" },
@@ -160,6 +166,7 @@ export default function SignUp() {
             styles.loginBtn,
             { backgroundColor: phoneNumber ? "#000" : "#CBD5E1" },
           ]}
+          onPress={handleSignUp}
         >
           <Text style={styles.loginText}>Verify</Text>
         </TouchableOpacity>

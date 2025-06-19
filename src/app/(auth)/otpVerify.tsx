@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Image } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 import { SimpleLineIcons, Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const OtpVerificationUI = () => {
   const [error, setError] = useState<String>(
@@ -52,7 +53,7 @@ const OtpVerificationUI = () => {
         </View>
       )}
 
-      <TouchableOpacity style={styles.continueBtn}>
+      <TouchableOpacity style={styles.continueBtn} onPress={() => useRouter().replace("/profileSetup")}>
         <Text style={styles.continueText}>Verify</Text>
       </TouchableOpacity>
       {error && (
