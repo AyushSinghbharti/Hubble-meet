@@ -8,9 +8,7 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import {
-  Feather,
-} from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useFocusEffect } from "expo-router";
 
@@ -19,12 +17,12 @@ let VideoUri =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
 const MainCardWrapper = ({ pitch, onPress }) => {
+  const [options, setOptions] = useState(false);
   const player = useVideoPlayer(VideoUri, (player) => {
     player.loop = true;
     player.play();
   });
 
-  
   useFocusEffect(
     useCallback(() => {
       player?.play?.();
@@ -97,7 +95,7 @@ const MainCardWrapper = ({ pitch, onPress }) => {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setOptions(!options)}>
           <Feather name="more-horizontal" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -119,6 +117,37 @@ const MainCardWrapper = ({ pitch, onPress }) => {
           </Text>
         </View>
       </View>
+
+      {/* Side Options */}
+      {options && (
+        <View
+          style={{
+            position: "absolute",
+            bottom: 10,
+            right: 60,
+            backgroundColor: "#000000",
+            borderRadius: 12,
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: 10,
+            gap: 5,
+          }}
+        >
+          <Text
+            style={{ fontFamily: "InterSemiBold", fontSize: 12, color: "#fff" }}
+          >
+            Report Pitch
+          </Text>
+          <View
+            style={{ borderBottomWidth: 1, borderColor: "#fff", width: "100%" }}
+          />
+          <Text
+            style={{ fontFamily: "InterSemiBold", fontSize: 12, color: "#fff" }}
+          >
+            Not Interested
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

@@ -26,18 +26,26 @@ export default function CreatePitch() {
   const router = useRouter();
 
   const handleRoutes = () => {
-    // if(!name || !desc){
-    //     setError("Please fill all Fields");
-    //     return;
-    // } 
-    router.push({
-        pathname: "/profileStack/recordPitch",
-    })
+    if (!name || !desc) {
+      setError("Please fill all Fields");
+      return;
+    }
 
-    // router.push({
-    //     pathname: "/profileStack/uploadPitch",
-    //     params: { item: JSON.stringify({ name, desc, format, pitchType, duration }) }
-    // })
+    if (format === "Upload") {
+      router.push({
+        pathname: "/pitchStack/uploadPitch",
+        params: {
+          item: JSON.stringify({ name, desc, format, pitchType, duration, videoUrl: null }),
+        },
+      });
+    } else {
+      router.push({
+        pathname: "/pitchStack/recordPitch",
+        params: {
+          item: JSON.stringify({ name, desc, format, pitchType, duration, videoUrl: null }),
+        },
+      });
+    }
   };
 
   return (

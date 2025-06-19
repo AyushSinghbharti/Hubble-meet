@@ -14,8 +14,6 @@ import { useRouter } from "expo-router";
 
 const pitch = {
   id: "1",
-  // thumbnail:/
-  // "https://images.unsplash.com/photo-1523292562811-33063c2c62b7?auto=format&fit=crop&w=800&q=60",
   thumbnail:
     "https://www.google.com/url?sa=i&url=https%3A%2F%2Funsplash.com%2Fs%2Fphotos%2F9%253A16&psig=AOvVaw292RLKOhdyyYphWZibBzPd&ust=1750270110186000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCJCIu7OG-Y0DFQAAAAAdAAAAABAE",
   user: {
@@ -57,7 +55,7 @@ export default function PitchScreen() {
           style={{ height: 24, width: 148 }}
         />
         <TouchableOpacity
-          onPress={() => router.push("/profileStack/createPitch")}
+          onPress={() => router.push("/pitchStack/createPitch")}
         >
           <View style={[styles.iconContainer]}>
             <Image

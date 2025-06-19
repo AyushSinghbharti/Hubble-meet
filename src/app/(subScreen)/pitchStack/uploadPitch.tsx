@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -23,19 +23,30 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import { useEvent } from "expo";
 import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
 
+interface Item {
+  name: string;
+  desc: string;
+  format: string;
+  pitchType: string;
+  duration: number;
+  videoUrl: string | null;
+}
+
 export default function UploadPitch() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const item = JSON.parse(params.item as string);
+  const item: Item = JSON.parse(params.item as string);
   const [name, setName] = useState<string>(item.name);
   const [desc, setDesc] = useState<string>(item.desc);
   const [error, setError] = useState<string>();
   const [status, setStatus] = useState<"pending" | "success" | "error">();
-  const [media, setMedia] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<
-    "video" | "image" | "livePhoto" | "pairedVideo" | undefined
-  >();
+  const [media, setMedia] = useState<string | null>(item.videoUrl);
   const [popUp, setPopUp] = useState(false);
+
+  useEffect(() => {
+    console.log(media);
+  }, [media]);
+
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -47,7 +58,6 @@ export default function UploadPitch() {
 
     if (!result.canceled && result.assets && result.assets[0]) {
       setMedia(result.assets[0].uri);
-      setMediaType(result.assets[0].type);
       if (
         result.assets[0].fileSize !== undefined &&
         result.assets[0].fileSize >= 5000 * 1024
@@ -77,6 +87,8 @@ export default function UploadPitch() {
       setPopUp(!popUp);
     } else if (status === "pending") {
       router.push("/pitch");
+    } else {
+      router.push("/chat");
     }
   };
 
@@ -205,7 +217,7 @@ export default function UploadPitch() {
       <UploadErrorModal
         visible={popUp}
         onClose={handleClosePopup}
-        type={status}
+        type={status ?? "error"}
       />
     </View>
   );

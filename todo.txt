@@ -6,3 +6,4 @@ ChatScreen Bugs
 
 PitchScreen bugs
  - MainCardWrapper showing on press on wrapper after unmounting of video as Video cleanup error
+ - My pitch Screen to be add into route later
