@@ -6,7 +6,7 @@ type TagInputProps = {
   onChange: (tags: string[]) => void;
 };
 
-export default function TagInput({ tags, onChange }: { tags: string[]; onChange: (tags: string[]) => void }) {
+export default function TagInput({ tags, onChange }: TagInputProps) {
   const [input, setInput] = React.useState('');
 
   const addTag = () => {
@@ -41,6 +41,7 @@ export default function TagInput({ tags, onChange }: { tags: string[]; onChange:
           placeholder="Add"
           style={styles.input}
           returnKeyType="done"
+          blurOnSubmit={false}
         />
       </View>
     </View>
@@ -54,6 +55,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 8,
     backgroundColor: '#fff',
+    marginTop: 4,
   },
   tagRow: {
     flexDirection: 'row',
@@ -86,5 +88,6 @@ const styles = StyleSheet.create({
     minWidth: 60,
     padding: 4,
     fontSize: 16,
+    flex: 1,
   },
 });

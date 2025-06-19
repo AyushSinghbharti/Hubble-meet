@@ -5,113 +5,86 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
   Dimensions,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 
 const { width: screenWidth } = Dimensions.get('window');
-const MAX_WIDTH = screenWidth * 0.9;
+const MAX_WIDTH = 330;
+
 const MIN_WIDTH = 40;
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const Header = ({ logoSource, onSearch, onBagPress }) => {
   const [searchActive, setSearchActive] = useState(false);
   const [searchText, setSearchText] = useState('');
   const inputRef = useRef(null);
 
-  const inputWidth = useRef(new Animated.Value(MIN_WIDTH)).current;
-  const borderColor = useRef(new Animated.Value(0)).current;
-
   const handleSearchToggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     if (!searchActive) {
       setSearchActive(true);
-      Animated.parallel([
-        Animated.timing(inputWidth, {
-          toValue: MAX_WIDTH,
-          duration: 300,
-          useNativeDriver: false,
-        }),
-        Animated.timing(borderColor, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: false,
-        }),
-      ]).start(() => {
-        if (inputRef.current) inputRef.current.focus();
-      });
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 1); // Delay must match LayoutAnimation duration
     } else {
       setSearchActive(false);
       setSearchText('');
-      Animated.parallel([
-        Animated.timing(inputWidth, {
-          toValue: MIN_WIDTH,
-          duration: 300,
-          useNativeDriver: false,
-        }),
-        Animated.timing(borderColor, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: false,
-        }),
-      ]).start();
     }
   };
-
-  const interpolatedBorderColor = borderColor.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#ccc', '#BBCF8D'],
-  });
 
   return (
     <View style={styles.header}>
       {/* Center Logo */}
       {!searchActive && (
         <View style={styles.logoWrapper}>
-          <Image
-            source={logoSource}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <Image source={logoSource} style={styles.logo} resizeMode="contain" />
         </View>
       )}
 
       <View style={styles.rightSection}>
-        <Animated.View
-          style={[
-            styles.searchContainer,
-            {
-              width: inputWidth,
-              borderColor: interpolatedBorderColor,
-              shadowColor: searchActive ? '#BBCF8D' : 'transparent',
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: searchActive ? 0.8 : 0,
-              shadowRadius: searchActive ? 6 : 0,
-              elevation: searchActive ? 8 : 0,
-            },
-          ]}
-        >
-          <Feather name="search" size={18} color="#000" style={styles.searchIconInside} />
+        <TouchableWithoutFeedback onPress={handleSearchToggle}>
+          <View
+            style={[
+              styles.searchContainer,
+              {
+                width: searchActive ? MAX_WIDTH : MIN_WIDTH,
+                borderColor: searchActive ? '#BBCF8D' : '#ccc',
+                shadowColor: searchActive ? '#BBCF8D' : 'transparent',
+                shadowOpacity: searchActive ? 0.8 : 0,
+                shadowRadius: searchActive ? 6 : 0,
+                elevation: searchActive ? 8 : 0,
+              },
+            ]}
+          >
+            <TextInput
+              ref={inputRef}
+              style={styles.input}
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholder="Search..."
+              placeholderTextColor="#888"
+              onSubmitEditing={() => onSearch && onSearch(searchText)}
+            />
 
-          <TextInput
-            ref={inputRef}
-            style={styles.input}
-            value={searchText}
-            onChangeText={setSearchText}
-            placeholder="Search..."
-            placeholderTextColor="#888"
-            onSubmitEditing={() => onSearch && onSearch(searchText)}
-            editable={searchActive}
-            pointerEvents={searchActive ? 'auto' : 'none'}
-          />
-
-          {searchActive && (
             <TouchableOpacity onPress={handleSearchToggle}>
-              <Feather name="x" size={20} color="#000" />
+              {searchActive ? (
+                <Feather name="x" size={20} style={{right:15}} color="#000" />
+              ) : (
+                <Feather name="search" size={20} style={{right:6}}  color="#000" />
+              )}
             </TouchableOpacity>
-          )}
-        </Animated.View>
+          </View>
+        </TouchableWithoutFeedback>
 
-        {/* Bag Icon */}
         <TouchableOpacity onPress={onBagPress} style={styles.bagBtn}>
           <Ionicons name="bag-outline" size={24} color="#000" />
         </TouchableOpacity>
@@ -154,13 +127,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#eee',
     borderRadius: 20,
-    paddingHorizontal: 10,
     marginRight: 10,
-    overflow: 'hidden',
     borderWidth: 2,
-  },
-  searchIconInside: {
-    marginRight: 6,
+    overflow: 'hidden',
+    paddingRight:-20
+
+
+
   },
   input: {
     flex: 1,

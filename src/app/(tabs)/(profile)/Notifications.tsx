@@ -41,7 +41,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
-      <NavHeader title="Settings" />
+      <NavHeader title="Notifications" />
 {/* 
       <Text style={styles.sectionHeader}>Permissions</Text>
       <SettingItem label="Allow Matched Users to Share My VBC" value={toggles.shareVBC} onValueChange={() => toggleSwitch('shareVBC')} />
@@ -58,9 +58,9 @@ export default function SettingsScreen() {
       <SettingItem label="Feedback Emails" value={toggles.feedbackEmails} onValueChange={() => toggleSwitch('feedbackEmails')} />
       <SettingItem label="News / Marketing Emails" value={toggles.marketingEmails} onValueChange={() => toggleSwitch('marketingEmails')} />
 
-      <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
+      {/* <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
         <Text style={styles.buttonText}>Delete account</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalBackground}>
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+
     backgroundColor: '#f4f5f7',
   },
   sectionHeader: {
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   button: {
-    marginTop: 24,
+    marginTop:94,
     backgroundColor: '#000',
     paddingVertical: 16,
     alignItems: 'center',

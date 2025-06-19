@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Dimensions,
   FlatList,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -14,241 +15,186 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   runOnJS,
+  withTiming,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
-import MatchModal from "../../../components/Alerts/RequestModalAlert";
 import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
 import logo from '../../../../assets/logo/logo.png';
-import ProfilePromptModal from "../../../components/Modal/ProfilePromptModal";
+import profileData from "../../../dummyData/profileData";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
-const SWIPE_THRESHOLD = 120;
+const SWIPE_THRESHOLD = width * 0.25;
+const ROTATION_DEGREE = 20;
 const MAX_RIGHT_SWIPES = 10;
+const UNDO_DURATION = 2500; // 2.5 seconds for undo window
 
-const profileData = [
-  {
-    id: "1",
-    image: require("../../../../assets/images/p1.jpg"),
-    name: "Vikram Roy",
-    title: "Head of Product at Amazon",
-    location: "Bengaluru, India",
-    backText: "Passionate about building innovative products.",
-  },
-  {
-    id: "2",
-    image: require("../../../../assets/images/p1.jpg"),
-    name: "Vikram Roy",
-    title: "Head of Product at Amazon",
-    location: "Bengaluru, India",
-    backText: "Passionate about building innovative products.",
-  },
-  {
-    id: "3",
-    image: require("../../../../assets/images/p1.jpg"),
-    name: "Vikram Roy",
-    title: "Head of Product at Amazon",
-    location: "Bengaluru, India",
-    backText: "Passionate about building innovative products.",
-  },
-  {
-    id: "4",
-    image: require("../../../../assets/images/p1.jpg"),
-    name: "Vikram Roy",
-    title: "Head of Product at Amazon",
-    location: "Bengaluru, India",
-    backText: "Passionate about building innovative products.",
-  },
-  {
-    id: "5",
-    image: require("../../../../assets/images/p1.jpg"),
-    name: "Vikram Roy",
-    title: "Head of Product at Amazon",
-    location: "Bengaluru, India",
-    backText: "Passionate about building innovative products.",
-  },
-];
-
-const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount }) => {
+const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount, isFirstCard, onFirstCardInteract }) => {
   const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
   const rotate = useSharedValue(0);
-  const flipY = useSharedValue(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [isSwiped, setIsSwiped] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+  const opacity = useSharedValue(1);
+
+  const [showDetails, setShowDetails] = useState(false);
   const [undoVisible, setUndoVisible] = useState(false);
+  const [requestSentVisible, setRequestSentVisible] = useState(false);
   const [rightSwipeAlertVisible, setRightSwipeAlertVisible] = useState(false);
+
+  const undoTimeoutRef = useRef(null);
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
-      { translateY: translateY.value },
       { rotate: `${rotate.value}deg` },
-      { rotateY: `${flipY.value}deg` },
     ],
-    opacity: isSwiped ? 0 : translateX.value === 0 ? 1 : 0.8,
-    backfaceVisibility: 'hidden',
+    opacity: opacity.value,
   }));
 
-  const backCardStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { rotate: `${rotate.value}deg` },
-      { rotateY: `${flipY.value + 180}deg` },
-    ],
-    opacity: isSwiped ? 0 : translateX.value === 0 ? 1 : 0.8,
-    backfaceVisibility: 'hidden',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  }));
-
-  const handleFlip = useCallback(() => {
-    if (!isFlipped) {
-      flipY.value = withSpring(180);
-      setIsFlipped(true);
-    } else {
-      flipY.value = withSpring(0);
-      setIsFlipped(false);
-    }
-  }, [isFlipped]);
-
-  const handleSwipe = useCallback((direction) => {
-    if (direction === "left") {
-      setUndoVisible(true);
-      setTimeout(() => {
-        setUndoVisible(false);
-        setIsSwiped(true);
-        runOnJS(onSwipeComplete)(profile.id, "left");
-      }, 2000);
-    } else if (direction === "right") {
-      if (rightSwipeCount >= MAX_RIGHT_SWIPES) {
-        setRightSwipeAlertVisible(true);
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
-        rotate.value = withSpring(0);
-        return;
-      }
-      setModalVisible(true);
-    }
-  }, [profile.id, onSwipeComplete, rightSwipeCount]);
-
+  // Regular JS functions - no need for worklet directive
   const handleUndo = useCallback(() => {
-    setUndoVisible(false);
+    if (undoTimeoutRef.current) {
+      clearTimeout(undoTimeoutRef.current);
+      undoTimeoutRef.current = null;
+    }
+
     translateX.value = withSpring(0);
-    translateY.value = withSpring(0);
     rotate.value = withSpring(0);
+    opacity.value = withTiming(1);
+    setUndoVisible(false);
+  }, [translateX, rotate, opacity]);
+
+  const showUndoModal = useCallback(() => {
+    setUndoVisible(true);
   }, []);
 
+  const hideUndoModal = useCallback(() => {
+    setUndoVisible(false);
+  }, []);
+
+  const showRequestSentModal = useCallback(() => {
+    setRequestSentVisible(true);
+  }, []);
+
+  const showRightSwipeAlert = useCallback(() => {
+    setRightSwipeAlertVisible(true);
+  }, []);
+
+  const completeSwipe = useCallback((profileId, direction) => {
+    onSwipeComplete(profileId, direction);
+  }, [onSwipeComplete]);
+
+  const startUndoTimer = useCallback((profileId) => {
+    undoTimeoutRef.current = setTimeout(() => {
+      setUndoVisible(false);
+      onSwipeComplete(profileId, 'left');
+    }, UNDO_DURATION);
+  }, [onSwipeComplete]);
+
   const panGesture = Gesture.Pan()
-    .enabled(!isSwiped && !disabled && isFlipped)
+    .enabled(!disabled)
     .activeOffsetX([-10, 10])
-    .onUpdate((event) => {
-      translateX.value = event.translationX;
-      translateY.value = event.translationY;
-      rotate.value = (event.translationX / width) * 15;
+    .onUpdate((e) => {
+      'worklet';
+      translateX.value = e.translationX;
+      rotate.value = (e.translationX / width) * ROTATION_DEGREE;
     })
     .onEnd(() => {
-      if (translateX.value < -SWIPE_THRESHOLD) {
-        translateX.value = withSpring(-width * 2);
-        translateY.value = withSpring(-100);
-        rotate.value = withSpring(-30);
-        runOnJS(handleSwipe)("left");
-      } else if (translateX.value > SWIPE_THRESHOLD) {
-        translateX.value = withSpring(width * 2);
-        translateY.value = withSpring(-100);
-        rotate.value = withSpring(30);
-        runOnJS(handleSwipe)("right");
+      'worklet';
+      
+      const swipedLeft = translateX.value < -SWIPE_THRESHOLD;
+      const swipedRight = translateX.value > SWIPE_THRESHOLD;
+
+      if (swipedLeft) {
+        translateX.value = withSpring(-width);
+        rotate.value = withSpring(-ROTATION_DEGREE);
+
+        runOnJS(showUndoModal)();
+        runOnJS(startUndoTimer)(profile.id);
+
+      } else if (swipedRight) {
+        if (rightSwipeCount >= MAX_RIGHT_SWIPES) {
+          runOnJS(showRightSwipeAlert)();
+          translateX.value = withSpring(0);
+          rotate.value = withSpring(0);
+          return;
+        }
+
+        runOnJS(showRequestSentModal)();
+        translateX.value = withSpring(width);
+        rotate.value = withSpring(ROTATION_DEGREE);
+
+        opacity.value = withTiming(0, { duration: 300 }, (finished) => {
+          'worklet';
+          if (finished) {
+            runOnJS(completeSwipe)(profile.id, 'right');
+          }
+        });
+
       } else {
         translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
         rotate.value = withSpring(0);
       }
     });
 
+  const handleCardTap = useCallback(() => {
+    if (isFirstCard) {
+      onFirstCardInteract();
+    }
+    setShowDetails(prev => !prev);
+  }, [isFirstCard, onFirstCardInteract]);
+
   const tapGesture = Gesture.Tap()
-    .enabled(!isSwiped && !disabled)
+    .enabled(!disabled)
     .onEnd(() => {
-      runOnJS(handleFlip)();
+      'worklet';
+      runOnJS(handleCardTap)();
     });
 
   const composedGesture = Gesture.Simultaneous(panGesture, tapGesture);
-
-  const handleSendMessage = () => {
-    setModalVisible(false);
-    setIsSwiped(true);
-    onSwipeComplete(profile.id, "right");
-    Toast.show({
-      type: 'success',
-      text1: 'Request Sent',
-      text2: `Connection request sent to ${profile.name}`,
-    });
-  };
-
-  const handleBackToRequest = () => {
-    setModalVisible(false);
-    translateX.value = withSpring(0);
-    translateY.value = withSpring(0);
-    rotate.value = withSpring(0);
-  };
-
-  if (isSwiped) return null;
 
   return (
     <>
       <GestureDetector gesture={composedGesture}>
         <Animated.View style={[styles.card, cardStyle]}>
-          <Image source={profile.image} style={styles.image} resizeMode="cover" />
-          <TouchableOpacity style={styles.expandThumb}>
-            <Image source={profile.image} style={styles.thumbImage} />
-            <AntDesign name="arrowsalt" size={16} color="#fff" style={styles.expandIcon} />
-          </TouchableOpacity>
-          <LinearGradient
-            colors={["transparent", "rgba(255,255,255,0.9)", "#fff"]}
-            style={styles.gradient}
-          >
-            <Text style={styles.name}>{profile.name}</Text>
-            <Text style={styles.title}>{profile.title}</Text>
-            <Text style={styles.location}>{profile.location}</Text>
-          </LinearGradient>
-          <View style={styles.bottomActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => console.log("Share", profile.id)}
-            >
-              <Image style={{ height: 18, width: 18 }} source={require("../../../../assets/icons/share1.png")} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => console.log("Restart", profile.id)}
-            >
-              <Image style={{ height: 18, width: 18 }} source={require("../../../../assets/icons/restart.png")} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => console.log("Block", profile.id)}
-            >
-              <Image style={{ height: 18, width: 18 }} source={require("../../../../assets/icons/block.png")} />
-            </TouchableOpacity>
-          </View>
+          {!showDetails ? (
+            <>
+              <Image source={profile.image} style={styles.image} resizeMode="cover" />
+              <TouchableOpacity style={styles.expandThumb}>
+                <Image source={profile.image} style={styles.thumbImage} />
+                <AntDesign name="arrowsalt" size={16} color="#fff" style={styles.expandIcon} />
+              </TouchableOpacity>
+              <LinearGradient
+                colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,0.9)"]}
+                style={styles.gradient}
+              >
+                <Text style={styles.name}>{profile.name}</Text>
+                <Text style={styles.title}>{profile.title}</Text>
+                <Text style={styles.location}>{profile.location}</Text>
+              </LinearGradient>
+              <View style={styles.bottomActions}>
+                <TouchableOpacity style={styles.actionButton}>
+                  <Image source={require("../../../../assets/icons/share1.png")} style={{ width: 18, height: 18 }} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                  <Image source={require("../../../../assets/icons/restart.png")} style={{ width: 18, height: 18 }} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                  <Image source={require("../../../../assets/icons/block.png")} style={{ width: 18, height: 18 }} />
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <ScrollView style={styles.backCardScroll}>
+              <View style={styles.backCardContent}>
+                <Text style={styles.backText}>{profile.backText}</Text>
+              </View>
+            </ScrollView>
+          )}
         </Animated.View>
       </GestureDetector>
-      <GestureDetector gesture={composedGesture}>
-        <Animated.View style={[styles.card, backCardStyle]}>
-          <View style={styles.backCard}>
-                      <Image source={profile.image} style={styles.image} resizeMode="cover" />
 
-            <Text style={styles.backText}>{profile.backText}</Text>
-          </View>
-          <View style={styles.bottomActions}>
-          </View>
-        </Animated.View>
-      </GestureDetector>
       <AlertModal
         visible={undoVisible}
         onClose={handleUndo}
@@ -258,11 +204,6 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount }) =>
         onButtonPress={handleUndo}
         positionBottom
       />
-      {/* <ProfilePromptModal
-        visible={modalVisible}
-        onClose={handleBackToRequest}
-        onSendMessage={handleSendMessage}
-      /> */}
       <AlertModal
         visible={rightSwipeAlertVisible}
         onClose={() => setRightSwipeAlertVisible(false)}
@@ -273,11 +214,11 @@ const ProfileCard = ({ profile, onSwipeComplete, disabled, rightSwipeCount }) =>
         positionBottom
       />
       <AlertModal
-        visible={modalVisible}
-        onClose={handleBackToRequest}
+        visible={requestSentVisible}
+        onClose={() => setRequestSentVisible(false)}
         imageSource={require("../../../../assets/icons/tick1.png")}
         label="Request Sent"
-        onButtonPress={handleSendMessage}
+        onButtonPress={() => setRequestSentVisible(false)}
         positionBottom
       />
     </>
@@ -288,29 +229,39 @@ const Connect = () => {
   const [swipedIds, setSwipedIds] = useState([]);
   const [rightSwipeCount, setRightSwipeCount] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [firstCardInteracted, setFirstCardInteracted] = useState(false);
 
   const handleSwipeComplete = useCallback((id, direction) => {
     setSwipedIds((prev) => {
       const updated = [...prev, id];
-      if (updated.length >= 5) setShowLimitModal(true);
+      if (updated.length >= 5 && !showLimitModal) {
+        setShowLimitModal(true);
+      }
       return updated;
     });
     if (direction === "right") {
       setRightSwipeCount((prev) => prev + 1);
     }
+  }, [showLimitModal]);
+
+  const handleFirstCardInteraction = useCallback(() => {
+    setFirstCardInteracted(true);
   }, []);
 
-  const renderItem = useCallback(({ item }) => {
-    if (swipedIds.includes(item.id)) return null;
+  const renderItem = useCallback(({ item, index }) => {
     return (
       <ProfileCard
         profile={item}
         onSwipeComplete={handleSwipeComplete}
-        disabled={swipedIds.length >= 5}
+        disabled={false}
         rightSwipeCount={rightSwipeCount}
+        isFirstCard={index === 0 && !firstCardInteracted}
+        onFirstCardInteract={handleFirstCardInteraction}
       />
     );
-  }, [swipedIds, rightSwipeCount]);
+  }, [rightSwipeCount, firstCardInteracted, handleSwipeComplete, handleFirstCardInteraction]);
+
+  const visibleProfileData = profileData.filter(item => !swipedIds.includes(item.id));
 
   return (
     <View style={styles.container}>
@@ -320,14 +271,14 @@ const Connect = () => {
         onBagPress={() => console.log('Bag pressed')}
       />
       <FlatList
-        data={profileData}
+        data={visibleProfileData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>You have no Request yet</Text>
+            <Text style={styles.emptyText}>You have no profiles left to connect with!</Text>
           </View>
         }
       />
@@ -352,6 +303,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 10,
     paddingBottom: 20,
+    alignItems: 'center',
   },
   card: {
     width: width * 0.9,
@@ -365,6 +317,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     marginVertical: 10,
     alignSelf: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: { width: "100%", height: "100%", position: "absolute" },
   expandThumb: {
@@ -392,16 +346,18 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "flex-start",
   },
-  name: { fontSize: 24, fontWeight: "bold", color: "#000" },
-  title: { fontSize: 16, color: "#444", marginTop: 4 },
-  location: { fontSize: 14, color: "#666", marginTop: 2 },
-  backCard: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "#f9f9f9",
-    justifyContent: "center",
-    alignItems: "center",
+  name: { fontSize: 24, fontWeight: "bold", color: "#fff" },
+  title: { fontSize: 16, color: "#f0f0f0", marginTop: 4 },
+  location: { fontSize: 14, color: "#e0e0e0", marginTop: 2 },
+  backCardScroll: {
+    flex: 1,
+    width: '100%',
     padding: 20,
+  },
+  backCardContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backText: {
     fontSize: 18,

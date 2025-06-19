@@ -12,33 +12,16 @@ import {
   UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import DropDownPicker from 'react-native-dropdown-picker';
 import NavHeader from '../../../components/NavHeader';
-import TagInput from '../../../components/TagInput';
 import SelectCountryModal from '../../../components/selectCountryModal';
- // Adjust path
+import TagDropdown from '../../../components/TagDropdown';
 
 export default function SettingsScreen() {
   const [bio, setBio] = useState('');
-  const [companies, setCompanies] = useState(['Google', 'Amazon']);
-  const [industries, setIndustries] = useState(['Tech', 'Finance']);
-  const [interests, setInterests] = useState([]); // for industries interests dropdown
+  const [companies, setCompanies] = useState([]);
+  const [industries, setIndustries] = useState([]);
 
-  const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState(null);
-
-  const [interestsDropdownOpen, setInterestsDropdownOpen] = useState(false);
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-
-  const [items, setItems] = useState([
-    { label: 'Google', value: 'Google' },
-    { label: 'Amazon', value: 'Amazon' },
-    { label: 'Apple', value: 'Apple' },
-    { label: 'Netflix', value: 'Netflix' },
-    { label: 'Meta', value: 'Meta' },
-  ]);
-
-  const [selectedFlag, setSelectedFlag] = useState<{ flag: string; dial_code: string } | null>({
+  const [selectedFlag, setSelectedFlag] = useState({
     flag: 'https://flagcdn.com/w40/us.png',
     dial_code: '+1',
   });
@@ -58,10 +41,9 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
-      <NavHeader title="Edit Profile" />
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
+      <NavHeader title="Profile" />
 
-      {/* Profile Image Section */}
       <View style={styles.profileContainer}>
         <Image
           source={{ uri: 'https://randomuser.me/api/portraits/men/41.jpg' }}
@@ -74,7 +56,7 @@ export default function SettingsScreen() {
       <Input placeholder="Dennis Callis" />
 
       <FormLabel label="DOB *" />
-      <Input placeholder="20/03/1999" icon name="calendar-outline" />
+      <Input placeholder="20/03/1999" icon={"calendar-clear-outline"}/>
 
       <FormLabel label="Phone Number *" />
       <View style={styles.phoneContainer}>
@@ -114,50 +96,31 @@ export default function SettingsScreen() {
       />
       <Text style={styles.counter}>{bio.length}/100</Text>
 
-      <FormLabel label="Company (Dropdown)" />
-      <DropDownPicker
-        open={companyDropdownOpen}
-        value={selectedCompany}
-        items={items}
-        setOpen={setCompanyDropdownOpen}
-        setValue={(val) => {
-          setSelectedCompany(val);
-          if (val && !companies.includes(val)) setCompanies([...companies, val]);
-        }}
-        setItems={setItems}
-        placeholder="Select or add a company"
-        style={{ marginBottom: companyDropdownOpen ? 160 : 16 }}
-        dropDownContainerStyle={{ zIndex: 1000 }}
+      <FormLabel label="Company" />
+      <TagDropdown
+        options={['Google', 'Microsoft', 'Amazon', 'Apple', 'Netflix']}
+        selected={companies}
+        onChange={setCompanies}
+        placeholder="Select companies"
+        compactInput
       />
-
-      <FormLabel label="Company Tags" />
-      <TagInput tags={companies} onChange={setCompanies} />
 
       <FormLabel label="Job Title" />
       <Input placeholder="General Manager" />
 
-      <FormLabel label="Industries you work in ?" />
-      <TagInput tags={industries} onChange={setIndustries} />
-
-      <FormLabel label="Industries Interests (Dropdown)" />
-      <DropDownPicker
-        multiple
-        open={interestsDropdownOpen}
-        value={selectedInterests}
-        items={items}
-        setOpen={setInterestsDropdownOpen}
-        setValue={setSelectedInterests}
-        setItems={setItems}
-        placeholder="Select one or more"
-        style={{ marginBottom: interestsDropdownOpen ? 160 : 16 }}
-        dropDownContainerStyle={{ zIndex: 900 }}
+      <FormLabel label="Industries" />
+      <TagDropdown
+        options={['Technology', 'Healthcare', 'Finance', 'Education', 'Retail']}
+        selected={industries}
+        onChange={setIndustries}
+        placeholder="Select industries"
+        compactInput
       />
 
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Save settings</Text>
       </TouchableOpacity>
 
-      {/* Country Modal */}
       <SelectCountryModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -171,9 +134,7 @@ export default function SettingsScreen() {
   );
 }
 
-const FormLabel = ({ label }: { label: string }) => (
-  <Text style={styles.label}>{label}</Text>
-);
+const FormLabel = ({ label }) => <Text style={styles.label}>{label}</Text>;
 
 const Input = ({
   placeholder,
@@ -184,7 +145,7 @@ const Input = ({
   value,
   onChangeText,
   containerStyle = {},
-}: any) => (
+}) => (
   <View style={[styles.inputContainer, containerStyle]}>
     <TextInput
       style={[styles.input, multiline && styles.textArea]}
@@ -203,7 +164,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: Platform.OS === 'ios' ? 30 : 40,
     backgroundColor: '#fff',
   },
   profileContainer: {

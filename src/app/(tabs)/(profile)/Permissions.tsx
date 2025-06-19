@@ -41,19 +41,44 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
-      <NavHeader title="Permissions" />
+  <View>
+    <NavHeader title="Permissions" />
 
+
+    <View  style={styles.cardContainer}>
       <Text style={styles.sectionHeader}>Permissions</Text>
-      <SettingItem label="Allow Matched Users to Share My VBC" value={toggles.shareVBC} onValueChange={() => toggleSwitch('shareVBC')} />
-      <SettingItem label="Access Contacts from Phone" value={toggles.accessContacts} onValueChange={() => toggleSwitch('accessContacts')} subLabel="Required for sharing contacts in chat" />
-      <SettingItem label="Access Photos from Phone" value={toggles.accessPhotos} onValueChange={() => toggleSwitch('accessPhotos')} subLabel="Required for sharing media in chat" />
+
+
+
+    <SettingItem
+      label="Allow Matched Users to Share My VBC"
+      value={toggles.shareVBC}
+      onValueChange={() => toggleSwitch('shareVBC')}
+    />
+    <SettingItem
+      label="Access Contacts from Phone"
+      value={toggles.accessContacts}
+      onValueChange={() => toggleSwitch('accessContacts')}
+      subLabel="Required for sharing contacts in chat"
+    />
+    <SettingItem
+      label="Access Photos from Phone"
+      value={toggles.accessPhotos}
+      onValueChange={() => toggleSwitch('accessPhotos')}
+      subLabel="Required for sharing media in chat"
+    />
+
+   
+
+    </View>
 
     
+  </View>
+   <TouchableOpacity style={styles.button}>
+      <Text style={styles.buttonText}>Save settings</Text>
+    </TouchableOpacity>
+</ScrollView>
 
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Save settings</Text>
-      </TouchableOpacity>
-    </ScrollView>
   );
 }
 
@@ -71,7 +96,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
     backgroundColor: '#f4f5f7',
   },
   sectionHeader: {
@@ -81,6 +105,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: '#333',
   },
+  cardContainer: {
+  backgroundColor: '#fff',
+  borderRadius: 20,
+  padding: 16,
+  shadowColor: '#000',
+  shadowOpacity: 0.1,
+  shadowOffset: { width: 0, height: 2 },
+  shadowRadius: 8,
+  elevation: 4,
+  marginTop: 16,
+},
+
   settingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -99,13 +135,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   button: {
-    marginTop: 24,
+    marginTop: 380,
     backgroundColor: '#000',
     paddingVertical: 16,
     alignItems: 'center',
     borderRadius: 12,
     marginHorizontal: 16,
     justifyContent:"flex-end",
+    
 
   },
   buttonText: {

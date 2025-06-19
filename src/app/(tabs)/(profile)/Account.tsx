@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import NavHeader from '../../../components/NavHeader';
 
 export default function SettingsScreen() {
   const [darkMode, setDarkMode] = useState(false);
@@ -20,10 +21,11 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Profile Image */}
+      <NavHeader  title='Account'/>
+    
       <View style={styles.avatarContainer}>
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1544725176-7c40e5a2c9f9' }}
+          source={{ uri: 'https://randomuser.me/api/portraits/men/41.jpg' }}
           style={styles.avatar}
         />
       </View>
@@ -72,7 +74,7 @@ export default function SettingsScreen() {
             >
               <Ionicons name="close" size={24} color="#000" />
             </TouchableOpacity>
-            <Ionicons name="trash" size={48} color="#e53935" style={styles.trashIcon} />
+           <Image style={styles.trashIcon}  source={require("../../../../assets/icons/Delete1.png")}/>
             <Text style={styles.modalTitle}>Thinking about deleting your account?</Text>
             <Text style={styles.modalText}>
               Your account will be permanently removed after a 30-day grace period.
@@ -99,11 +101,12 @@ const styles = StyleSheet.create({
   avatarContainer: {
     alignItems: 'center',
     marginVertical: 24,
+
   },
   avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 146,
+    height: 146,
+    borderRadius: 28,
   },
   card: {
     backgroundColor: '#fff',
@@ -176,6 +179,8 @@ const styles = StyleSheet.create({
   },
   trashIcon: {
     marginBottom: 16,
+    height:40,
+    width:40
   },
   modalTitle: {
     fontSize: 16,
