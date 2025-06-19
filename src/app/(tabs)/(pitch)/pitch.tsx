@@ -56,7 +56,9 @@ export default function PitchScreen() {
           source={require("../../../../assets/images/logo.png")}
           style={{ height: 24, width: 148 }}
         />
-        <TouchableOpacity onPress={() => router.push("/profileStack/createPitch")}>
+        <TouchableOpacity
+          onPress={() => router.push("/profileStack/createPitch")}
+        >
           <View style={[styles.iconContainer]}>
             <Image
               source={require("../../../../assets/icons/pitch2.png")}
