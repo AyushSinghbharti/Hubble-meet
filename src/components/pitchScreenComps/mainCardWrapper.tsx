@@ -1,35 +1,61 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   TouchableOpacity,
   Pressable,
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import {
-  Ionicons,
   Feather,
-  MaterialIcons,
-  MaterialCommunityIcons,
-  SimpleLineIcons,
 } from "@expo/vector-icons";
+import { useVideoPlayer, VideoView } from "expo-video";
+import { useFocusEffect } from "expo-router";
 
-const MainCardWrapper = ({ pitch }) => {
+//Dummy data
+let VideoUri =
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
+
+const MainCardWrapper = ({ pitch, onPress }) => {
+  const player = useVideoPlayer(VideoUri, (player) => {
+    player.loop = true;
+    player.play();
+  });
+
+  
+  useFocusEffect(
+    useCallback(() => {
+      player?.play?.();
+
+      return () => {
+        // Only attempt to pause if player is valid and not already released
+        if (player?.pause && typeof player.pause === "function") {
+          try {
+            player.pause();
+          } catch (error) {
+            console.warn("Video cleanup error:", error);
+          }
+        }
+        // Removed player.dispose() as it does not exist on VideoPlayer
+      };
+    }, [player])
+  );
+
   const [isLiked, setLiked] = useState(false);
+
   return (
-    <Pressable style={styles.cardWrapper}>
+    <View style={styles.cardWrapper}>
       {/* Thumb / video */}
-      <ImageBackground
-        source={{
-          uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwMoT_TFoX8xrY-Ud0_K4Ktnafy-Xa0v50Cw&s",
-        }}
-        resizeMode="cover"
+      <VideoView
         style={StyleSheet.absoluteFillObject}
+        player={player}
+        nativeControls={false}
+        startsPictureInPictureAutomatically={false}
+        allowsPictureInPicture={false}
       />
-      {/* subtle dark overlay so text is readable */}
+
       <LinearGradient
         colors={[
           "transparent",
@@ -38,7 +64,9 @@ const MainCardWrapper = ({ pitch }) => {
           "rgba(0,0,0,0.95)",
         ]}
         style={StyleSheet.absoluteFillObject}
-      />
+      >
+        <Pressable onPress={onPress} style={StyleSheet.absoluteFillObject} />
+      </LinearGradient>
 
       {/* right‑hand vertical action rail (à‑la TikTok) */}
       <View style={styles.actionRail}>
@@ -49,7 +77,10 @@ const MainCardWrapper = ({ pitch }) => {
           />
         </TouchableOpacity>
 
-        <View style={styles.likeSection}>
+        <TouchableOpacity
+          style={styles.likeSection}
+          onPress={() => setLiked(!isLiked)}
+        >
           {isLiked ? (
             <Image
               source={require("../../../assets/icons/like.png")}
@@ -62,9 +93,9 @@ const MainCardWrapper = ({ pitch }) => {
             />
           )}
           <Text style={styles.likeCount}>
-            {Intl.NumberFormat().format(pitch.likes)}
+            {Intl.NumberFormat().format(pitch.likes + isLiked)}
           </Text>
-        </View>
+        </TouchableOpacity>
 
         <TouchableOpacity>
           <Feather name="more-horizontal" size={24} color="#fff" />
@@ -88,7 +119,7 @@ const MainCardWrapper = ({ pitch }) => {
           </Text>
         </View>
       </View>
-    </Pressable>
+    </View>
   );
 };
 
@@ -101,7 +132,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "#e5e7eb",
   },
-  /* --- right‑hand vertical buttons --- */
+
   actionRail: {
     position: "absolute",
     right: 26,

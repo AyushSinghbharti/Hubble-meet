@@ -8,6 +8,7 @@ import {
   Animated,
   ScrollView,
   StatusBar,
+  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -24,25 +25,25 @@ interface UserProfile {
 // Global Variable
 let aspectRatio = 3 / 4;
 
-const FlipCardWrapper = ({ item }: { item: UserProfile }) => {
-  const imageUri = item.image;
+const FlipCardWrapper = ({
+  item,
+  onPress,
+}: {
+  item: UserProfile;
+  onPress: any;
+}) => {
   const scrollY = React.useRef(new Animated.Value(0)).current;
-
-  // useEffect(() => {
-  //   Image.getSize(imageUri, (width, height) => {
-  //     aspectRatio = width / height;
-  //   });
-  // }, []);
 
   return (
     <View style={styles.root}>
-
       {/* STATIC background image */}
       <Image
         source={{ uri: item.image }}
-        style={[styles.backgroundImage, { aspectRatio, flex: 1, width: "100%" }]}
+        style={[
+          styles.backgroundImage,
+          { aspectRatio, flex: 1, width: "100%" },
+        ]}
         resizeMode="cover"
-        // resizeMode="contain"
       />
 
       {/* White fade over the lower half of the image */}
@@ -52,11 +53,11 @@ const FlipCardWrapper = ({ item }: { item: UserProfile }) => {
           "transparent",
           "transparent",
           "rgba(255,255,255, 0.75)",
-          "#ffffff"
+          "#ffffff",
         ]}
         style={styles.gradient}
         pointerEvents="none"
-      />
+      ></LinearGradient>
 
       {/* FOREGROUND, fully scrollable */}
       <Animated.ScrollView
@@ -68,50 +69,58 @@ const FlipCardWrapper = ({ item }: { item: UserProfile }) => {
           { useNativeDriver: false }
         )}
       >
-        <LinearGradient
-          colors={[
-            "transparent",
-            "rgba(255,255,255, 0.75)",
-            "rgba(255,255,255, 0.85)",
-            "rgba(255,255,255, 0.95)",
-            "rgba(255,255,255, 1)",
-            "rgba(255,255,255, 1)",
-            "#ffffff",
-          ]}
-          style={{width: "100%", flex: 1, height: "100%", paddingTop: 50, paddingHorizontal: 12}}
-          pointerEvents="none"
-        >
-          {/* Header text overlays the image */}
-          <View style={styles.headerTextBlock}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.position}>{item.position}</Text>
-            <Text style={styles.location}>{item.location}</Text>
-          </View>
+        <Pressable onPress={onPress}>
+          <LinearGradient
+            colors={[
+              "transparent",
+              "rgba(255,255,255, 0.75)",
+              "rgba(255,255,255, 0.85)",
+              "rgba(255,255,255, 0.95)",
+              "rgba(255,255,255, 1)",
+              "rgba(255,255,255, 1)",
+              "#ffffff",
+            ]}
+            style={{
+              width: "100%",
+              flex: 1,
+              height: "100%",
+              paddingTop: 50,
+              paddingHorizontal: 12,
+            }}
+            pointerEvents="none"
+          >
+            {/* Header text overlays the image */}
+            <View style={styles.headerTextBlock}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.position}>{item.position}</Text>
+              <Text style={styles.location}>{item.location}</Text>
+            </View>
 
-          {/* ABOUT */}
-          <Text style={styles.sectionTitle}>About</Text>
-          <Text style={styles.paragraph}>{item.about}</Text>
+            {/* ABOUT */}
+            <Text style={styles.sectionTitle}>About</Text>
+            <Text style={styles.paragraph}>{item.about}</Text>
 
-          {/* INDUSTRIES WORK */}
-          <Text style={styles.sectionTitle}>Industries work</Text>
-          <View style={styles.chipRow}>
-            {item.industries.map((chip) => (
-              <View key={chip} style={styles.chip}>
-                <Text style={styles.chipText}>{chip}</Text>
-              </View>
-            ))}
-          </View>
+            {/* INDUSTRIES WORK */}
+            <Text style={styles.sectionTitle}>Industries work</Text>
+            <View style={styles.chipRow}>
+              {item.industries.map((chip) => (
+                <View key={chip} style={styles.chip}>
+                  <Text style={styles.chipText}>{chip}</Text>
+                </View>
+              ))}
+            </View>
 
-          {/* AREA OF INTEREST */}
-          <Text style={styles.sectionTitle}>Area of Interest</Text>
-          <View style={styles.chipRow}>
-            {item.interests.map((chip) => (
-              <View key={chip} style={styles.chip}>
-                <Text style={styles.chipText}>{chip}</Text>
-              </View>
-            ))}
-          </View>
-        </LinearGradient>
+            {/* AREA OF INTEREST */}
+            <Text style={styles.sectionTitle}>Area of Interest</Text>
+            <View style={styles.chipRow}>
+              {item.interests.map((chip) => (
+                <View key={chip} style={styles.chip}>
+                  <Text style={styles.chipText}>{chip}</Text>
+                </View>
+              ))}
+            </View>
+          </LinearGradient>
+        </Pressable>
         {/* Add more subsections below as needed */}
       </Animated.ScrollView>
     </View>
@@ -156,8 +165,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "InterSemiBold",
     color: "#000",
-},
-location: {
+  },
+  location: {
     fontSize: 14,
     fontFamily: "InterSemiBold",
     color: "#000",

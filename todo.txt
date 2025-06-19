@@ -3,3 +3,6 @@ This is not an important file, It created it to share bugs on screens that neede
 ChatScreen Bugs
 - Swipe to reply option on chatScreen (To be implemented) on "src\components\chatScreenComps\chatBody.tsx"
 - Add screen that popup after select photos and document to send
+
+PitchScreen bugs
+ - MainCardWrapper showing on press on wrapper after unmounting of video as Video cleanup error

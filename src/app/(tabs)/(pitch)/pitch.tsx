@@ -10,6 +10,7 @@ import {
 import { Image } from "expo-image";
 import FlipCardWrapper from "../../../components/pitchScreenComps/flipCardWrapper";
 import MainCardWrapper from "../../../components/pitchScreenComps/mainCardWrapper";
+import { useRouter } from "expo-router";
 
 const pitch = {
   id: "1",
@@ -43,6 +44,7 @@ const dummyUser = {
 };
 
 export default function PitchScreen() {
+  const router = useRouter();
   const [flipped, setFlipped] = useState(true);
 
   return (
@@ -54,7 +56,7 @@ export default function PitchScreen() {
           source={require("../../../../assets/images/logo.png")}
           style={{ height: 24, width: 148 }}
         />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/profileStack/createPitch")}>
           <View style={[styles.iconContainer]}>
             <Image
               source={require("../../../../assets/icons/pitch2.png")}
@@ -66,11 +68,21 @@ export default function PitchScreen() {
       </View>
 
       {/* Main Cards Container */}
-        {flipped ? (
-          <MainCardWrapper pitch={pitch} />
-        ) : (
-          <FlipCardWrapper item={dummyUser} />
-        )}
+      {flipped ? (
+        <MainCardWrapper
+          pitch={pitch}
+          onPress={() => {
+            setFlipped(!flipped);
+          }}
+        />
+      ) : (
+        <FlipCardWrapper
+          item={dummyUser}
+          onPress={() => {
+            setFlipped(!flipped);
+          }}
+        />
+      )}
     </View>
   );
 }
