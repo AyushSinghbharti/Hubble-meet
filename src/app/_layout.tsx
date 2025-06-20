@@ -10,7 +10,7 @@ import { PaperProvider } from 'react-native-paper';
 export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-  initialRouteName: "(auth)",
+  initialRouteName: "(splash)",
 };
 
 export default function RootLayout() {
