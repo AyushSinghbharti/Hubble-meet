@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     backgroundColor: '#f4f5f7',
+      paddingTop: Platform.OS === 'ios' ? 30 : 40,
   },
   sectionHeader: {
     fontSize: 18,

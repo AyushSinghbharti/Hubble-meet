@@ -11,6 +11,7 @@ import { Ionicons, Entypo, Feather } from '@expo/vector-icons';
 import InviteModal from '../../../components/Modal/InviteModal';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import MyInviteModal from '../../../components/Alerts/MyInviteModal';
 
 // Profile Data
 const profileData = {
@@ -21,18 +22,19 @@ const profileData = {
   phone: "+91 1234567890",
   about:
     "I am a passionate and detail-oriented Product designer with a strong focus on creating user-centric designs that enhance usability and deliver seamless digital experiences.",
-  avatar: "https://via.placeholder.com/100",
+  avatar: "https://randomuser.me/api/portraits/men/41.jpg",
   inviteMessage:
     "Invite friends and peers to join HubbleMeet and grow the community",
 };
 
 export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+    const [MyInviteModalVisible, setMyInviteModalVisible] = useState(false);
   const router = useRouter();
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
+
       <View style={styles.header}>
         <Text style={styles.headerText}>Profile</Text>
         <TouchableOpacity style={{ left: 150 }} onPress={() => router.push('(profile)/Setting')}>
@@ -40,14 +42,14 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Profile */}
+
       <View style={styles.profileContainer}>
         <Image source={{ uri: profileData.avatar }} style={styles.profileImage} />
         <Text style={styles.name}>{profileData.name}</Text>
         <Text style={styles.subtitle}>{profileData.title}</Text>
       </View>
 
-      {/* Invite Card */}
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Expand your Hubble Circle</Text>
         <Text style={styles.cardText}>{profileData.inviteMessage}</Text>
@@ -59,40 +61,40 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* About Card */}
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>About</Text>
         <Text style={styles.cardText}>{profileData.about}</Text>
       </View>
 
-      {/* Contact Card */}
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Contact</Text>
 
-        {/* Email Row */}
-        <View style={styles.contactRow}>
-          <LinearGradient
-            colors={['#BBCF8D', '#fff']}
 
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.iconGradient}
-          >
-            <Ionicons name="mail-outline" size={20} color="#1F2937" />
-          </LinearGradient>
+        <View style={styles.contactRow}>
+   <LinearGradient
+  colors={['#DCE9BA','#DCE9BA', '#DCE9BA']}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 1 }}
+  style={styles.iconGradient}
+>
+  <Ionicons name="mail-outline" size={20} color="#1F2937" />
+</LinearGradient>
+
           <View>
             <Text style={styles.contactLabel}>Email</Text>
             <Text style={styles.contactEmail}>{profileData.email}</Text>
           </View>
         </View>
 
-        {/* Phone Row */}
+ 
         <View style={styles.contactRow}>
           <LinearGradient
-            colors={['#BBCF8D', '#fff']}
+              colors={['#DCE9BA','#DCE9BA', '#DCE9BA']}
    
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.iconGradient}
           >
             <Feather name="phone" size={20} color="#1F2937" />
@@ -104,7 +106,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* Highlighted Profile Card */}
+
       <View style={[styles.card, styles.profileCard]}>
         <View style={styles.profileRow}>
           <Image source={{ uri: profileData.avatar }} style={styles.profileImageSmall} />
@@ -113,7 +115,7 @@ export default function ProfileScreen() {
             <Text style={styles.subtitle}>{profileData.title}</Text>
             <Text style={styles.location}>{profileData.location}</Text>
           </View>
-          <TouchableOpacity style={styles.pitchButton}>
+          <TouchableOpacity onPress={()=>router.push('/(pitch)/pitch')} style={styles.pitchButton}>
             <Image
               style={{ height: 25, width: 25 }}
               source={require("../../../../assets/icons/pitch2.png")}
@@ -121,18 +123,26 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.shareIcon}>
+        <TouchableOpacity onPress={() => setMyInviteModalVisible(true)} style={styles.shareIcon}>
           <Entypo name="share" size={20} color="#000" />
         </TouchableOpacity>
       </View>
 
-      {/* Modal */}
       <InviteModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+
+       <MyInviteModal
+  visible={MyInviteModalVisible} 
+  onClose={() => setMyInviteModalVisible(false)}
+  profileImage="https://randomuser.me/api/portraits/men/41.jpg"
+  name="Robin Gupta"
+  qrValue="https://example.com/invite-link"
+  
+/>
     </ScrollView>
   );
 }
 
-// Styles
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F8F8F8',
@@ -203,7 +213,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   inviteButtonText: {
-    color: '#fff',
+    color: '#000',
     fontFamily: 'InterBold',
   },
   contactRow: {
@@ -243,7 +253,7 @@ const styles = StyleSheet.create({
   profileImageSmall: {
     width: 120,
     height: 150,
-    borderRadius: 32,
+    borderRadius: 12,
     marginRight: 12,
   },
   profileInfo: {

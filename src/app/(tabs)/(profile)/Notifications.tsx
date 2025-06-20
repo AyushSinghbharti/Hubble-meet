@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, StyleSheet, TouchableOpacity, Platform, Switch, Modal } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
-import DropDownPicker from 'react-native-dropdown-picker';
 import NavHeader from '../../../components/NavHeader';
 
 export default function SettingsScreen() {
@@ -41,14 +40,17 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-      <NavHeader title="Notifications" />
+      <NavHeader title="Notifications"  />
 
 
       <View style={{ flex: 1,
-  paddingHorizontal: 16,
+  paddingHorizontal: 15,
   backgroundColor: '#fff',
-  borderRadius: 16,
-  margin: 16,
+  marginVertical:20,
+  marginHorizontal:20,
+  borderRadius:20,
+ 
+
   paddingTop: 16,}} >
 
     <Text style={styles.sectionHeader}>Notifications</Text>
@@ -86,9 +88,9 @@ const SettingItem = ({ label, value, onValueChange, subLabel }: any) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-
     backgroundColor: '#f4f5f7',
+            paddingTop: Platform.OS === 'ios' ? 30 : 40,
+
   },
   sectionHeader: {
     fontSize: 18,

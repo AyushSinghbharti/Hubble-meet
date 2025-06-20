@@ -2,10 +2,12 @@ import { SafeAreaView, StyleSheet, Text, View, ScrollView } from "react-native";
 import React from "react";
 import SearchBar from "../../../components/SearchBar";
 import VbcCard from "../../../components/VbcCard";
+import NavHeader from "../../../components/NavHeader";
 
 const HubbleCircleViewAll = () => {
   return (
     <SafeAreaView style={styles.container}>
+      <NavHeader/>
       <SearchBar placeholder="Enter name or location" />
 
       <Text style={styles.title}>Your Hubble Circle</Text>

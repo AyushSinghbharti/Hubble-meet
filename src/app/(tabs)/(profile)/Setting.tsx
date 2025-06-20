@@ -6,6 +6,7 @@ import {
   Modal,
   Pressable,
   Image,
+  Platform,
 } from 'react-native';
 import React, { useState } from 'react';
 import NavHeader from '../../../components/NavHeader';
@@ -114,6 +115,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F8F8',
+        paddingTop: Platform.OS === 'ios' ? 30 : 40,
   },
   content: {
     padding: 16,

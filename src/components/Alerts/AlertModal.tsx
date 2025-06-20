@@ -27,7 +27,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
 }) => {
   useEffect(() => {
     if (visible) {
-      const timer = setTimeout(onClose, 2000); // Auto-close after 2s
+      const timer = setTimeout(onClose, 2000);
       return () => clearTimeout(timer);
     }
   }, [visible, onClose]);

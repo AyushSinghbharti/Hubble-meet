@@ -20,6 +20,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
@@ -50,6 +51,8 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
   const [thumbImageAlertVisible, setThumbImageAlertVisible] = useState(false);
 
   const undoTimeoutRef = useRef(null);
+
+  const route = useRouter()
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
@@ -140,13 +143,15 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
     [handleButtonPress, showBlockAlert]
   );
 
-  const handleThumbImagePress = useCallback(
-    (event) => {
-      event.stopPropagation();
-      showThumbImageAlert();
-    },
-    [showThumbImageAlert]
-  );
+const handleThumbImagePress = useCallback(
+  (event) => {
+    event.stopPropagation();
+    showThumbImageAlert();
+    route.push('/(pitch)/pitch'); // ✅ placed correctly
+  },
+  [showThumbImageAlert, route] // ✅ dependency array
+);
+
 
   const handleImageTap = useCallback(() => {
     onToggleDetails(profile.id);
@@ -396,15 +401,10 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
         userName={profile?.name || "This user"}
       />
 
-      <AlertModal
-        visible={thumbImageAlertVisible}
-        onClose={() => setThumbImageAlertVisible(false)}
-        imageSource={profile.image}
-        label="Thumbnail Image Clicked"
-        buttonText="OK"
-        onButtonPress={() => setThumbImageAlertVisible(false)}
-        positionBottom
-      />
+
+
+
+   
     </>
   );
 };
