@@ -31,19 +31,20 @@ const MatchModal = ({
   <>
     {/* Profile Images (zIndex: 2 for front layer) */}
     <Image
-      source={{ uri: user1Image }}
-      style={[
-        styles.profileImage,
-        { top: 0, left: 30, position: 'absolute', zIndex: 2 },
-      ]}
-    />
-    <Image
-      source={{ uri: user2Image }}
-      style={[
-        styles.profileImage,
-        { bottom: 0, right: 30, position: 'absolute', zIndex: 2 },
-      ]}
-    />
+  source={typeof user1Image === "string" ? { uri: user1Image } : user1Image}
+  style={[
+    styles.profileImage,
+    { top: 0, left: 30, position: 'absolute', zIndex: 2 },
+  ]}
+/>
+<Image
+  source={typeof user2Image === "string" ? { uri: user2Image } : user2Image}
+  style={[
+    styles.profileImage,
+    { bottom: 0, right: 30, position: 'absolute', zIndex: 2 },
+  ]}
+/>
+
   </>
 
 

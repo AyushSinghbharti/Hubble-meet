@@ -5,6 +5,7 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  FlatList,
   TouchableOpacity,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -16,8 +17,10 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
+import Toast from "react-native-toast-message";
 import MatchModal from "../../../components/Alerts/RequestModalAlert";
 import AlertModal from "../../../components/Alerts/AlertModal";
+import profileData from "../../../dummyData/profileData";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -30,6 +33,7 @@ interface Profile {
   title: string;
   location: string;
 }
+
 
 interface ProfileCardProps {
   profile: Profile;
@@ -60,36 +64,39 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onSwipeComplete }) =
       setTimeout(() => {
         setIsSwiped(true);
         onSwipeComplete(profile.id);
-      }, 1000);
+      }, 1000); // delay swipe completion
     } else if (direction === "right") {
       setModalVisible(true);
     }
   }, [profile.id, onSwipeComplete]);
 
-  const panGesture = Gesture.Pan()
-    .activeOffsetX([-10, 10])
-    .activeOffsetY([-1000, 1000])
-    .onUpdate((event) => {
-      if (!isSwiped) {
-        translateX.value = event.translationX;
-        rotate.value = (event.translationX / width) * 15;
-      }
-    })
-    .onEnd(() => {
-      if (isSwiped) return;
-      if (translateX.value < -SWIPE_THRESHOLD) {
-        translateX.value = withSpring(-width * 2);
-        rotate.value = withSpring(-30);
-        runOnJS(handleSwipe)("left");
-      } else if (translateX.value > SWIPE_THRESHOLD) {
-        translateX.value = withSpring(width * 2);
-        rotate.value = withSpring(30);
-        runOnJS(handleSwipe)("right");
-      } else {
-        translateX.value = withSpring(0);
-        rotate.value = withSpring(0);
-      }
-    });
+const panGesture = Gesture.Pan()
+  .activeOffsetX([-10, 10])       // Enable horizontal pan
+  .activeOffsetY([-1000, 1000])   // Disable vertical pan
+.onUpdate((event) => {
+  if (!isSwiped) {
+    translateX.value = event.translationX;
+    // Lock vertical movement by not updating translateY
+    rotate.value = (event.translationX / width) * 15;
+  }
+})
+
+  .onEnd(() => {
+    if (isSwiped) return;
+    if (translateX.value < -SWIPE_THRESHOLD) {
+      translateX.value = withSpring(-width * 2);
+      rotate.value = withSpring(-30);
+      runOnJS(handleSwipe)("left");
+    } else if (translateX.value > SWIPE_THRESHOLD) {
+      translateX.value = withSpring(width * 2);
+      rotate.value = withSpring(30);
+      runOnJS(handleSwipe)("right");
+    } else {
+      translateX.value = withSpring(0);
+      rotate.value = withSpring(0);
+    }
+  });
+
 
   const handleSendMessage = () => {
     setModalVisible(false);
@@ -109,23 +116,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onSwipeComplete }) =
     <>
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.card, cardStyle]}>
-          {/* Orbit Background Circles */}
-          <View style={styles.orbitContainer}>
-            <View style={styles.orbitCircleLarge} />
-            <View style={styles.orbitCircleMedium} />
-            <View style={styles.orbitCircleSmall} />
-          </View>
-
-          {/* Profile Image */}
           <Image source={profile.image} style={styles.image} resizeMode="cover" />
-
-          {/* Thumbnail with Expand Icon */}
           <TouchableOpacity style={styles.expandThumb}>
             <Image source={profile.image} style={styles.thumbImage} />
             <AntDesign name="arrowsalt" size={16} color="#fff" style={styles.expandIcon} />
           </TouchableOpacity>
-
-          {/* Gradient with Info */}
           <LinearGradient
             colors={["transparent", "rgba(255,255,255,0.9)", "#fff"]}
             style={styles.gradient}
@@ -137,8 +132,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onSwipeComplete }) =
         </Animated.View>
       </GestureDetector>
 
-      {/* Alert Modal */}
-      <AlertModal
+
+      <View>
+            <AlertModal
         visible={alertVisible}
         onClose={() => setAlertVisible(false)}
         imageSource={require("../../../../assets/icons/Cross.png")}
@@ -146,21 +142,76 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onSwipeComplete }) =
         positionBottom
       />
 
-      {/* Match Modal */}
-      <MatchModal
+      </View>
+
+
+      <View>
+           <MatchModal
         visible={modalVisible}
         onClose={handleBackToRequest}
         onSendMessage={handleSendMessage}
         user1Image={Image.resolveAssetSource(profile.image).uri}
         user2Image={Image.resolveAssetSource(profile.image).uri}
       />
+
+      </View>
+
+  
+   
     </>
   );
 };
 
-export default ProfileCard;
+const ProfileList: React.FC = () => {
+  const [swipedIds, setSwipedIds] = useState<string[]>([]);
+
+  const handleSwipeComplete = useCallback((id: string) => {
+    setSwipedIds((prev) => [...prev, id]);
+  }, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: Profile }) => {
+      if (swipedIds.includes(item.id)) return null;
+      return <ProfileCard profile={item} onSwipeComplete={handleSwipeComplete} />;
+    },
+    [swipedIds, handleSwipeComplete]
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={profileData}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.flatListContent}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>You have no Request yet</Text>
+          </View>
+        }
+      />
+      <Toast />
+    </View>
+  );
+};
+
+export default ProfileList;
+
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  flatList: {
+    flex: 1,
+  },
+  flatListContent: {
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    paddingBottom: 20, 
+  },
   card: {
     width: width * 0.9,
     height: CARD_HEIGHT * 1.9,
@@ -223,36 +274,50 @@ const styles = StyleSheet.create({
     color: "#666",
     marginTop: 2,
   },
-
-  // 🌌 Orbit Circles
-  orbitContainer: {
-    ...StyleSheet.absoluteFillObject,
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#00000099",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 0,
   },
-  orbitCircleLarge: {
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    borderWidth: 1,
-    borderColor: "#d0d0d0",
-    position: "absolute",
+  modalContent: {
+    width: width * 0.8,
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    alignItems: "center",
   },
-  orbitCircleMedium: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    borderWidth: 1,
-    borderColor: "#c0c0c0",
-    position: "absolute",
+  modalText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#596C2D",
+    marginBottom: 20,
   },
-  orbitCircleSmall: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 1,
-    borderColor: "#b0b0b0",
-    position: "absolute",
+  modalButton: {
+    marginVertical: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    backgroundColor: "#BBCF8D",
+    borderRadius: 10,
+  },
+  backButton: {
+    backgroundColor: "#fff",
+    borderWidth:1,
+    borderColor:"#BBCF8D"
+  },
+  modalButtonText: {
+    color: "#191919",
+    fontSize: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    height: height * 0.5,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#666",
   },
 });
