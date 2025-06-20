@@ -1,64 +1,3 @@
-// import React from "react";
-// import { Image } from "expo-image";
-// import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-// import { useRouter } from "expo-router";
-
-// const MyPitch = () => {
-//   const router = useRouter();
-//   return (
-//     <View style={styles.container}>
-//       <View style={[styles.headerContainer]}>
-//         <View></View>
-//         <Image
-//           source={require("../../../../assets/images/logo.png")}
-//           style={{ height: 24, width: 148 }}
-//         />
-//         <TouchableOpacity
-//           onPress={() => router.push("/pitchStack/createPitch")}
-//         >
-//           <View style={[styles.iconContainer]}>
-//             <Image
-//               source={require("../../../../assets/icons/pitch2.png")}
-//               style={{ height: 24, aspectRatio: 1 }}
-//             />
-//             <Text style={[styles.headerText]}>My Pitch</Text>
-//           </View>
-//         </TouchableOpacity>
-//       </View>
-
-//       {/* Body */}
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#fff",
-//     paddingHorizontal: 18,
-//     paddingTop: 32,
-//   },
-//   headerContainer: {
-//     width: "100%",
-//     flexDirection: "row",
-//     marginTop: 2,
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//   },
-//   iconContainer: {
-//     justifyContent: "center",
-//     alignItems: "center",
-//     gap: 2,
-//   },
-//   headerText: {
-//     fontSize: 10,
-//     color: "#64748B",
-//   },
-// });
-
-// export default MyPitch;
-
-// MyPitchScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -80,7 +19,7 @@ export default function MyPitchScreen() {
       <StatusBar barStyle="dark-content" />
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation?.goBack()}>
+        <TouchableOpacity onPress={() => {}}>
           <Ionicons name="chevron-back" size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Pitch</Text>

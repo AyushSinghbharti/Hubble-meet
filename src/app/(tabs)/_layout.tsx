@@ -28,7 +28,7 @@ export default function StackLayout() {
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: "#BBCF8D",
-          tabBarStyle: { paddingTop: 7 },
+          tabBarStyle: { height: 85 },
         }}
       >
         <Tabs.Screen

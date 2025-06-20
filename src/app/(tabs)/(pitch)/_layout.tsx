@@ -6,7 +6,7 @@ export default function StackLayout() {
     <Stack screenOptions={{headerShown: false}}>
       <Stack.Screen 
         name="pitch" 
-        options={{ title: "Pitch" }} 
+        options={{ title: "Pitch", headerShown: false }} 
       />
     </Stack>
   );
