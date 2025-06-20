@@ -5,12 +5,15 @@ const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   flatListContent: {
     paddingVertical: 10,
     paddingHorizontal: 10,
     paddingBottom: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   card: {
     width: width * 0.9,
@@ -24,10 +27,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     marginVertical: 10,
     alignSelf: "center",
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
-  image: { width: "100%", height: "100%", position: "absolute" },
+  image: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+  },
   expandThumb: {
     position: "absolute",
     top: 10,
@@ -46,7 +53,11 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 10,
   },
-  expandIcon: { position: "absolute", top: 4, right: 4 },
+  expandIcon: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+  },
   gradient: {
     position: "absolute",
     bottom: 0,
@@ -54,13 +65,24 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "flex-start",
   },
-  name: { fontSize: 24, fontWeight: "bold", color: "#fff" },
-  title: { fontSize: 16, color: "#f0f0f0", marginTop: 4 },
-  location: { fontSize: 14, color: "#e0e0e0", marginTop: 2 },
+  name: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  title: {
+    fontSize: 16,
+    color: "#f0f0f0",
+    marginTop: 4,
+  },
+  location: {
+    fontSize: 14,
+    color: "#e0e0e0",
+    marginTop: 2,
+  },
   backCardScroll: {
     flex: 1,
-    width: '100%',
-
+    width: "100%",
   },
   emptyContainer: {
     flex: 1,
@@ -68,7 +90,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: height * 0.5,
   },
-  emptyText: { fontSize: 18, fontWeight: "bold", color: "#666" },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#666",
+  },
   bottomActions: {
     position: "absolute",
     bottom: 20,
@@ -97,7 +123,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 8,
     marginTop: 8,
-
   },
   tagBox: {
     backgroundColor: "#f0f0f0",
@@ -106,8 +131,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginRight: 8,
     marginBottom: 8,
-        borderWidth:1,
-        borderColor:"#ccc"
+    borderWidth: 1,
+    borderColor: "#ccc",
   },
   tagText: {
     fontSize: 14,
@@ -124,22 +149,22 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   backCardContent: {
-    width: '100%',
+    width: "100%",
     height: CARD_HEIGHT * 1.9,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   gradientOverlay: {
     paddingVertical: 24,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    width: '100%',
-    top: 100,
+    width: "100%",
+
   },
   detailContent: {
-    paddingBottom: 70,
+    paddingBottom: 0,
   },
   section: {
     marginTop: 16,
@@ -152,18 +177,16 @@ const styles = StyleSheet.create({
     fontFamily: FONT.REGULAR,
   },
   cardContainer: {
-  backgroundColor: '#fff',
-  borderRadius: 20,
-  padding: 16,
-  shadowColor: '#000',
-  shadowOpacity: 0.1,
-  shadowOffset: { width: 0, height: 2 },
-  shadowRadius: 8,
-  elevation: 4,
-  marginTop: 16,
-},
-
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 4,
+    marginTop: 16,
+  },
 });
 
-
-export default styles
+export default styles;

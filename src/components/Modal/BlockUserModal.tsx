@@ -51,10 +51,11 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
       <Modal visible={visible} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.overlay}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.keyboardAvoidingView}
-            >
+             <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+        keyboardVerticalOffset={Platform.OS === "android" ? 0 : 40}
+      >
               <View style={styles.modalBox}>
                 <Text style={styles.title}>Block {userName}</Text>
                 <Text style={styles.label}>
@@ -129,6 +130,7 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
       </Modal>
 
       <AlertModal
+
         visible={blockedModalVisible}
         onClose={() => setBlockedModalVisible(false)}
         label="Connection Blocked"
@@ -146,6 +148,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#00000099",
     padding: 16,
+
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -158,7 +161,7 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingVertical: 32,
     paddingHorizontal: 24,
-    maxHeight: "90%",
+
   },
   title: {
     fontSize: 22,
@@ -209,13 +212,12 @@ const styles = StyleSheet.create({
   warning: {
     fontSize: 12,
     color: "red",
-    marginBottom: 24,
+    marginBottom: 15,
     textAlign: "center",
   },
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
   },
   cancelBtn: {
     flex: 1,

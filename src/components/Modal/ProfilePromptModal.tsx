@@ -1,101 +1,101 @@
-import React from "react";
+import React from 'react';
 import {
   Modal,
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
-  ImageSourcePropType,
-} from "react-native";
+} from 'react-native';
 
-interface ProfilePromptModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onAction: () => void;
-  title?: string;
-  description?: string;
-  buttonText?: string;
-  imageSource?: ImageSourcePropType;
-}
-
-const ProfilePromptModal: React.FC<ProfilePromptModalProps> = ({
+const ProfilePrompt = ({
   visible,
-  onClose,
-  onAction,
-  title = "One Step Away!",
-  description = "We need a bit more info before you can swipe further. Finish your profile to continue.",
-  buttonText = "Complete profile",
-  imageSource = require("../../../assets/icons/Alert.png"), // 🔧 replace with your asset path
+  onCancel,
+  onProceed,
 }) => {
   return (
     <Modal
       transparent
       visible={visible}
       animationType="fade"
-      onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          <Image source={imageSource} style={styles.image} resizeMode="contain" />
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
-
-          <TouchableOpacity style={styles.button} onPress={onAction}>
-            <Text style={styles.buttonText}>{buttonText}</Text>
-          </TouchableOpacity>
+        <View style={styles.container}>
+          <Text style={styles.emoji}>🚧</Text>
+          <Text style={styles.title}>Complete Profile</Text>
+          <Text style={styles.subtitle}>
+            You need to complete the profile{"\n"}
+            to swipe on more profiles
+          </Text>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.proceedButton} onPress={onProceed}>
+              <Text style={styles.proceedText}>Proceed</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
   );
 };
 
-export default ProfilePromptModal;
+export default ProfilePrompt;
+
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "#00000066",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  modalContainer: {
-    width: "85%",
-    backgroundColor: "#fff",
+  container: {
+    width: 320,
+    backgroundColor: '#fff',
     borderRadius: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 20,
-    alignItems: "center",
+    padding: 24,
+    alignItems: 'center',
   },
-  image: {
-    width: 56,
-    height: 56,
-    marginBottom: 16,
+  emoji: {
+    fontSize: 40,
+    marginBottom: 12,
   },
   title: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 8,
-    textAlign: "center",
+    fontWeight: '600',
+    color: '#111',
+    marginBottom: 6,
   },
-  description: {
-    fontSize: 14,
-    color: "#4B5563",
-    textAlign: "center",
-    marginBottom: 24,
+  subtitle: {
+    fontSize: 15,
+    color: '#444',
+    textAlign: 'center',
+    marginBottom: 20,
   },
-  button: {
-    backgroundColor: "#111827",
-    paddingVertical: 14,
-    paddingHorizontal: 32,
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  cancelButton: {
+    backgroundColor: '#f0f4fa',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 12,
-    alignSelf: "stretch",
-    alignItems: "center",
   },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
+  cancelText: {
+    color: '#8b97a8',
+    fontWeight: '600',
+  },
+  proceedButton: {
+    backgroundColor: '#111',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+  },
+  proceedText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });

@@ -8,6 +8,7 @@ import {
   StyleSheet,
   LayoutChangeEvent,
 } from 'react-native';
+import { Entypo } from '@expo/vector-icons';
 
 type TagDropdownProps = {
   options: string[];
@@ -58,9 +59,11 @@ export default function TagDropdown({
         <View style={styles.tagRow}>
           {selected.map((tag) => (
             <View key={tag} style={styles.tag}>
-              <Text style={styles.tagText}>{tag}</Text>
+              <Text style={styles.tagText} numberOfLines={1} ellipsizeMode="tail">
+                {tag}
+              </Text>
               <TouchableOpacity onPress={() => handleRemoveTag(tag)}>
-                <Text style={styles.remove}>×</Text>
+                <Entypo name='cross' style={styles.remove} />
               </TouchableOpacity>
             </View>
           ))}
@@ -72,7 +75,6 @@ export default function TagDropdown({
           />
         </View>
       </View>
-
       {input.length > 0 && filteredOptions.length > 0 && (
         <View
           style={[
@@ -116,33 +118,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
+    gap: 8, // Adds a gap between tags for better spacing
   },
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#B2CD82',
     borderRadius: 16,
-    paddingHorizontal: 10,
+    paddingHorizontal: 10, // Reduced padding to give more space for text
     paddingVertical: 4,
-    marginRight: 8,
-    marginBottom: 8,
+    alignSelf: 'flex-start',
+    // Removed maxWidth: '100%' to allow the tag to expand
   },
   tagText: {
     color: '#000',
     fontStyle: 'italic',
     fontWeight: '600',
+    flexShrink: 1, // Allows text to shrink if necessary
+    // Removed maxWidth: '90%' to allow text to take up more available space
   },
   remove: {
-    marginLeft: 6,
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+    paddingHorizontal: 5,
   },
   input: {
     minWidth: 60,
     padding: 4,
     fontSize: 16,
     flexGrow: 1,
+    flexShrink: 1,
   },
   dropdown: {
     backgroundColor: '#fff',

@@ -8,6 +8,7 @@ import {
   Image,
   Modal,
   Switch,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TextInput } from 'react-native-paper';
@@ -119,6 +120,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f9fafb',
+    
   },
   content: {
     padding: 16,

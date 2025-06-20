@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import NavHeader from '../../../components/NavHeader';
+import { Platform } from 'react-native';
 
 export default function PrivacySettingsScreen() {
   return (
@@ -68,6 +69,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#f4f5f7',
+        paddingTop: Platform.OS === 'ios' ? 10 : 30,
   },
   sectionTitle: {
     fontSize: 16,

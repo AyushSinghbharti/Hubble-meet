@@ -17,7 +17,7 @@ const SearchBar: React.FC<CustomSearchBarProps> = ({
 }) => {
   return (
     <View style={styles.row}>
-      {/* Search Input */}
+
       <View style={styles.container}>
         <Ionicons name="search" size={20} color="#6B7280" style={styles.icon} />
         <TextInput
@@ -29,7 +29,7 @@ const SearchBar: React.FC<CustomSearchBarProps> = ({
         />
       </View>
 
-      {/* Filter Icon outside the input */}
+
       <TouchableOpacity style={styles.filterButton} onPress={onFilterPress}>
         <Ionicons name="options-outline" size={32} color="#000" />
       </TouchableOpacity>

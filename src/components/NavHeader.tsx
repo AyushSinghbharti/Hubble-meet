@@ -42,7 +42,7 @@ export default function NavHeader({ title, showBackButton = true, onBackPress }:
 
 const styles = StyleSheet.create({
   wrapper: {
-     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 1,
+     paddingTop: Platform.OS === 'android' ? 0:30,
      width:"100%"
   },
   container: {

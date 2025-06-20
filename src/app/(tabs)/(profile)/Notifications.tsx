@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f4f5f7',
-            paddingTop: Platform.OS === 'ios' ? 30 : 40,
+        paddingTop: Platform.OS === 'ios' ? 10 : 30,
 
   },
   sectionHeader: {

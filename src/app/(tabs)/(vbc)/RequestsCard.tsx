@@ -132,20 +132,31 @@ const panGesture = Gesture.Pan()
         </Animated.View>
       </GestureDetector>
 
-      <AlertModal
+      <View>
+         <AlertModal
         visible={alertVisible}
         onClose={() => setAlertVisible(false)}
         imageSource={require("../../../../assets/icons/Cross.png")}
         label="Request Rejected"
         positionBottom
       />
-      <MatchModal
+
+      </View>
+
+
+      <View>
+           <MatchModal
         visible={modalVisible}
         onClose={handleBackToRequest}
         onSendMessage={handleSendMessage}
         user1Image={Image.resolveAssetSource(profile.image).uri}
         user2Image={Image.resolveAssetSource(profile.image).uri}
       />
+
+      </View>
+
+     
+   
     </>
   );
 };

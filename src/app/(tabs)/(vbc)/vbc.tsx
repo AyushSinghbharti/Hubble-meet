@@ -71,7 +71,7 @@ export default function VBCScreen() {
       <View
         style={[{ flex: 1 }, selectedTab === "Requests" && { marginTop: 20 }]}
       >
-        {selectedTab === "VBC" && <VBCCard />}
+        {selectedTab === "VBC" && <VBCCard/>}
         {selectedTab === "Hubble Circle" && <HubbleCard />}
         {selectedTab === "Requests" && <RequestsCard />}
       </View>

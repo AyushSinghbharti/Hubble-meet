@@ -29,6 +29,8 @@ import profileData from "../../../dummyData/profileData";
 import { FONT } from "../../../../assets/constants/fonts";
 import styles from "./Styles/Styles";
 import BlockUserModal from "../../../components/Modal/BlockUserModal";
+import ProfilePromptModal from "../../../components/Modal/ProfilePromptModal";
+import ProfilePrompt from "../../../components/Modal/ProfilePromptModal";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -143,14 +145,14 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
     [handleButtonPress, showBlockAlert]
   );
 
-const handleThumbImagePress = useCallback(
-  (event) => {
-    event.stopPropagation();
-    showThumbImageAlert();
-    route.push('/(pitch)/pitch'); // ✅ placed correctly
-  },
-  [showThumbImageAlert, route] // ✅ dependency array
-);
+  const handleThumbImagePress = useCallback(
+    (event) => {
+      event.stopPropagation();
+      showThumbImageAlert();
+      route.push('/(pitch)/pitch'); // ✅ placed correctly
+    },
+    [showThumbImageAlert, route] // ✅ dependency array
+  );
 
 
   const handleImageTap = useCallback(() => {
@@ -209,151 +211,133 @@ const handleThumbImagePress = useCallback(
 
   return (
     <>
-      <GestureDetector gesture={cardGesture}>
-        <Animated.View style={[styles.card, cardStyle]}>
-          {!isExpanded ? (
-            <>
-              <GestureDetector gesture={imageTapGesture}>
-                <Image
-                  source={profile.image}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
-              </GestureDetector>
-              <TouchableOpacity
-                style={styles.expandThumb}
-                onPress={handleThumbImagePress}
-                activeOpacity={0.7}
-              >
-                <Image source={profile.image} style={styles.thumbImage} />
-                <AntDesign
-                  name="arrowsalt"
-                  size={16}
-                  color="#fff"
-                  style={styles.expandIcon}
-                />
-              </TouchableOpacity>
-              <LinearGradient
-                colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,0.9)"]}
-                style={styles.gradient}
-              >
-                <Text style={styles.name}>{profile.name}</Text>
-                <Text style={styles.title}>{profile.title}</Text>
-                <Text style={styles.location}>{profile.location}</Text>
-              </LinearGradient>
-              <View style={styles.bottomActions}>
-                <TouchableOpacity
-                  onPress={handleShareButtonPress}
-                  activeOpacity={0.7}
-                >
-                  <Animated.View style={[styles.actionButton, buttonStyle]}>
-                    <Image
-                      source={require("../../../../assets/icons/share1.png")}
-                      style={{ width: 18, height: 18 }}
-                    />
-                  </Animated.View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleRestartButtonPress}
-                  activeOpacity={0.7}
-                >
-                  <Animated.View style={[styles.actionButton, buttonStyle]}>
-                    <Image
-                      source={require("../../../../assets/icons/block.png")}
-                      style={{ width: 18, height: 18 }}
-                    />
-                  </Animated.View>
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            <GestureDetector gesture={detailGesture}>
-              <ScrollView
-                style={styles.backCardScroll}
-                contentContainerStyle={styles.backCardScrollContent}
-              >
-                <ImageBackground
-                  source={profile.image}
-                  style={styles.backCardContent}
-                  resizeMode="cover"
-                >
-                  <LinearGradient
-                    colors={[
-                      "rgba(255, 255, 255, 0.03)",
-                      "#fff",
-                      "#fff",
-                      "#fff",
-                      "#fff",
-                      "#fff",
-                      "#fff",
-                      "#fff",
-                    ]}
-                    style={styles.gradientOverlay}
-                  >
-                    <View style={styles.detailContent}>
-                      <Text
-                        style={[
-                          styles.name,
-                          { color: "#000", fontFamily: FONT.BOLD },
-                        ]}
-                      >
-                        {profile.name}
-                      </Text>
-                    <Text
-  style={[
-    styles.title,
-    { color: "#000", fontFamily: FONT.SEMIBOLD },
-  ]}
->
-  {profile.title}
-</Text>
-<Text
-  style={[
-    styles.location,
-    { color: "#000", fontFamily: FONT.BOLD },
-  ]}
->
-  {profile.location}
-</Text>
-
-                      <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>About</Text>
-                        <Text
-                          style={[styles.backText, { fontFamily: FONT.MEDIUM }]}
-                        >
-                          {profile.about}
-                        </Text>
-                      </View>
-                      <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Industries</Text>
-                        <View style={styles.tagsContainer}>
-                          {profile.industries?.map((industry, index) => (
-                            <View key={index} style={styles.tagBox}>
-                              <Text style={styles.tagText}>{industry}</Text>
-                            </View>
-                          ))}
-                        </View>
-                      </View>
-                      <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Areas of Interest</Text>
-                        <View style={styles.tagsContainer}>
-                          {profile.areasOfInterest?.map((interest, index) => (
-                            <View key={index} style={styles.tagBox}>
-                              <Text style={styles.tagText}>{interest}</Text>
-                            </View>
-                          ))}
-                        </View>
-                      </View>
-                    </View>
-                  </LinearGradient>
-                </ImageBackground>
-              </ScrollView>
-            </GestureDetector>
-          )}
-        </Animated.View>
+      {!isExpanded ? (
+  <GestureDetector gesture={cardGesture}>
+    <Animated.View style={[styles.card, cardStyle]}>
+      <GestureDetector gesture={imageTapGesture}>
+        <Image
+          source={profile.image}
+          style={styles.image}
+          resizeMode="cover"
+        />
       </GestureDetector>
 
-      <AlertModal
+      <TouchableOpacity
+        style={styles.expandThumb}
+        onPress={handleThumbImagePress}
+        activeOpacity={0.7}
+      >
+        <Image source={profile.image} style={styles.thumbImage} />
+        <AntDesign
+          name="arrowsalt"
+          size={16}
+          color="#fff"
+          style={styles.expandIcon}
+        />
+      </TouchableOpacity>
+
+      <LinearGradient
+        colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,0.9)"]}
+        style={styles.gradient}
+      >
+        <Text style={styles.name}>{profile.name}</Text>
+        <Text style={styles.title}>{profile.title}</Text>
+        <Text style={styles.location}>{profile.location}</Text>
+      </LinearGradient>
+
+      <View style={styles.bottomActions}>
+        <TouchableOpacity onPress={handleShareButtonPress} activeOpacity={0.7}>
+          <Animated.View style={[styles.actionButton, buttonStyle]}>
+            <Image
+              source={require("../../../../assets/icons/share1.png")}
+              style={{ width: 18, height: 18 }}
+            />
+          </Animated.View>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleRestartButtonPress} activeOpacity={0.7}>
+          <Animated.View style={[styles.actionButton, buttonStyle]}>
+            <Image
+              source={require("../../../../assets/icons/block.png")}
+              style={{ width: 18, height: 18 }}
+            />
+          </Animated.View>
+        </TouchableOpacity>
+      </View>
+    </Animated.View>
+  </GestureDetector>
+) : (
+  <GestureDetector gesture={detailGesture}>
+    <Animated.View style={[styles.detailContent, ]}>
+      <ScrollView
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        style={styles.backCardScroll}
+        contentContainerStyle={styles.backCardScrollContent}
+      >
+        <ImageBackground source={profile.image} style={styles.backCardContent}>
+          <LinearGradient
+            colors={[
+              "rgba(255, 255, 255, 0.03)",
+              "#fff",
+              "#fff",
+              "#fff",
+              "#fff",
+            ]}
+            style={styles.gradientOverlay}
+          >
+            <View style={styles.detailContent}>
+              <Text style={[styles.name, { color: "#000", fontFamily: FONT.BOLD }]}>
+                {profile.name}
+              </Text>
+              <Text style={[styles.title, { color: "#000", fontFamily: FONT.SEMIBOLD }]}>
+                {profile.title}
+              </Text>
+              <Text
+                style={[styles.location, { color: "#000", fontFamily: FONT.BOLD }]}
+              >
+                {profile.location}
+              </Text>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>About</Text>
+                <Text style={[styles.backText, { fontFamily: FONT.MEDIUM }]}>
+                  {profile.about}
+                </Text>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Industries</Text>
+                <View style={styles.tagsContainer}>
+                  {profile.industries?.map((industry, index) => (
+                    <View key={index} style={styles.tagBox}>
+                      <Text style={styles.tagText}>{industry}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Areas of Interest</Text>
+                <View style={styles.tagsContainer}>
+                  {profile.areasOfInterest?.map((interest, index) => (
+                    <View key={index} style={styles.tagBox}>
+                      <Text style={styles.tagText}>{interest}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
+        </ImageBackground>
+      </ScrollView>
+    </Animated.View>
+  </GestureDetector>
+)}
+
+
+      <View>
+          <AlertModal
         visible={undoVisible}
         onClose={handleUndo}
         imageSource={require("../../../../assets/icons/undo.png")}
@@ -363,7 +347,11 @@ const handleThumbImagePress = useCallback(
         positionBottom
       />
 
-      <AlertModal
+        </View>
+
+
+    <View>
+         <AlertModal
         visible={rightSwipeAlertVisible}
         onClose={() => setRightSwipeAlertVisible(false)}
         imageSource={require("../../../../assets/icons/Vfc/vbcactive.png")}
@@ -373,7 +361,13 @@ const handleThumbImagePress = useCallback(
         positionBottom
       />
 
-      <AlertModal
+
+    </View>
+
+
+
+<View>
+    <AlertModal
         visible={requestSentVisible}
         onClose={() => setRequestSentVisible(false)}
         imageSource={require("../../../../assets/icons/tick1.png")}
@@ -382,7 +376,12 @@ const handleThumbImagePress = useCallback(
         positionBottom
       />
 
-      <AlertModal
+</View>
+   
+    
+
+    <View>
+       <AlertModal
         visible={shareAlertVisible}
         onClose={() => setShareAlertVisible(false)}
         imageSource={require("../../../../assets/icons/share1.png")}
@@ -391,6 +390,11 @@ const handleThumbImagePress = useCallback(
         onButtonPress={() => setShareAlertVisible(false)}
         positionBottom
       />
+
+    </View>
+
+
+<View>
 
       <BlockUserModal
         visible={blockAlertVisible}
@@ -401,10 +405,15 @@ const handleThumbImagePress = useCallback(
         userName={profile?.name || "This user"}
       />
 
+</View>
+
+     
 
 
 
-   
+
+
+
     </>
   );
 };
@@ -475,14 +484,25 @@ const Connect = () => {
           </View>
         }
       />
-      <AlertModal
+      {/* <AlertModal
         visible={showLimitModal}
         onClose={() => setShowLimitModal(false)}
         imageSource={require("../../../../assets/icons/Vfc/vbcactive.png")}
         label="We need a bit more info before you can swipe further. Finish your profile to continue."
         buttonText="Complete Profile"
         onButtonPress={() => setShowLimitModal(false)}
+      /> */}
+
+      <View>
+           <ProfilePrompt
+       visible={showLimitModal}
+       onCancel={() => setShowLimitModal(false)}
+       onProceed={() => setShowLimitModal(false)}
       />
+      </View>
+      
+
+   
     </View>
   );
 };

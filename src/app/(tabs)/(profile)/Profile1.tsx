@@ -194,7 +194,13 @@ const Input = ({
 }) => (
   <View style={[styles.inputContainer, containerStyle]}>
     <TextInput
-      style={[styles.input, multiline && styles.textArea, { color: '#000' }]}
+      style={[
+        styles.input,
+        multiline && styles.textArea,
+        // Platform specific adjustments for line height
+        Platform.OS === 'ios' && { lineHeight: 20 }, // Adjust for iOS if needed
+        Platform.OS === 'android' && { textAlignVertical: multiline ? 'top' : 'center' }, // Ensure vertical alignment
+      ]}
       placeholder={placeholder}
       placeholderTextColor="#000"
       multiline={multiline}
@@ -203,6 +209,7 @@ const Input = ({
       value={value}
       onChangeText={onChangeText}
       editable={editable}
+      // 'none' prevents interaction with the TextInput when editable is false
       pointerEvents={editable ? 'auto' : 'none'}
     />
     {icon && <Ionicons name={icon} size={20} color="gray" />}
@@ -213,7 +220,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 30 : 40,
+    paddingTop: Platform.OS === 'ios' ? 10 : 30,
     backgroundColor: '#fff',
   },
   profileContainer: {
@@ -240,19 +247,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#cfd4dc',
     borderRadius: 8,
-    padding: 12,
+    // Unified padding for better consistency
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 10, // Slight adjustment for iOS vs Android
     backgroundColor: '#F8FBFF',
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 48, // Set a minimum height for single-line inputs
   },
   input: {
     flex: 1,
     fontSize: 16,
     fontFamily: 'InterMedium',
+    // Remove padding here as it's handled by inputContainer
+    padding: 0, // Important: remove default TextInput padding
   },
   textArea: {
-    height: 80,
-    textAlignVertical: 'top',
+    minHeight: 80, // Minimum height for multiline inputs
+    height: 'auto', // Allow height to adjust based on content
+    textAlignVertical: 'top', // Ensures text starts from the top on Android
+    paddingVertical: Platform.OS === 'ios' ? 12 : 10, // Maintain vertical padding for multiline
   },
   phoneContainer: {
     flexDirection: 'row',

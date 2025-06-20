@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { Ionicons, Entypo, Feather } from '@expo/vector-icons';
 import InviteModal from '../../../components/Modal/InviteModal';
@@ -37,7 +38,7 @@ export default function ProfileScreen() {
 
       <View style={styles.header}>
         <Text style={styles.headerText}>Profile</Text>
-        <TouchableOpacity style={{ left: 150 }} onPress={() => router.push('(profile)/Setting')}>
+        <TouchableOpacity style={{ left: Platform.OS === "ios" ? 150 : 140 }} onPress={() => router.push('(profile)/Setting')}>
           <Ionicons name="settings-outline" size={24} color="black" />
         </TouchableOpacity>
       </View>
@@ -123,7 +124,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={() => setMyInviteModalVisible(true)} style={styles.shareIcon}>
+        <TouchableOpacity   onPress={() => setMyInviteModalVisible(true)} style={styles.shareIcon}>
           <Entypo name="share" size={20} color="#000" />
         </TouchableOpacity>
       </View>
@@ -242,8 +243,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFE07B',
     padding: 16,
     borderRadius: 16,
-    marginBottom: 16,
+    marginBottom: Platform.OS === "ios" ? 20 : 40,
     position: 'relative',
+    
   },
   profileRow: {
     flexDirection: 'row',
@@ -273,7 +275,7 @@ const styles = StyleSheet.create({
   shareIcon: {
     position: 'absolute',
     bottom: 12,
-    right: 190,
+    right: Platform.OS === "ios" ? 193:170,
     backgroundColor: "#fff",
     height: 35,
     width: 35,

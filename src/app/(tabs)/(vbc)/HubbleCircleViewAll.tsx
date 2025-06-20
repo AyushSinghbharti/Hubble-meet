@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, ScrollView } from "react-native";
+import { SafeAreaView, StyleSheet, Text, View, ScrollView, Platform } from "react-native";
 import React from "react";
 import SearchBar from "../../../components/SearchBar";
 import VbcCard from "../../../components/VbcCard";
@@ -6,16 +6,27 @@ import NavHeader from "../../../components/NavHeader";
 
 const HubbleCircleViewAll = () => {
   return (
-    <SafeAreaView style={styles.container}>
-      <NavHeader/>
-      <SearchBar placeholder="Enter name or location" />
+    <View style={styles.container}>
+      <View style={{ paddingTop: Platform.OS === "ios" ? 10 : 20 }}>
+        <NavHeader />
+      </View>
 
-      <Text style={styles.title}>Your Hubble Circle</Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.innerContainer}>
+          <SearchBar placeholder="Enter name or location" />
 
-      <>
-        <VbcCard spacing={12} />
-      </>
-    </SafeAreaView>
+          <Text style={styles.title}>Your Hubble Circle</Text>
+
+          <View style={styles.cardContainer}>
+            <VbcCard />
+            {/* Add more <VbcCard /> components if needed */}
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -25,7 +36,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    marginHorizontal:10
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  innerContainer: {
+    paddingHorizontal: 16,
   },
   title: {
     fontSize: 20,

@@ -9,6 +9,7 @@ import {
   Modal,
   Pressable,
   ImageBackground,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -125,7 +126,7 @@ const ProfileOrbit = () => {
     <View style={styles.container}>
       {/* Orbit Gradients */}
       <LinearGradient
-        colors={['#fff', '#BBCF8D']}
+        colors={['#fff', '#B3C778']}
         start={{ x: 0.1, y: 0 }}
         end={{ x: 0.1, y: 3 }}
         style={[styles.gradientCircle, styles.outerGradient]}
@@ -134,7 +135,7 @@ const ProfileOrbit = () => {
       </LinearGradient>
 
       <LinearGradient
-        colors={['#BBCF8D', '#FFFFFF']}
+        colors={['#B3C778', '#FFFFFF']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={[styles.gradientCircle, styles.innerGradient]}
@@ -143,8 +144,8 @@ const ProfileOrbit = () => {
       </LinearGradient>
 
       {/* Orbit Avatars */}
-      {renderOrbitAvatars(180, outerAvatars)}
-      {renderOrbitAvatars(130, innerAvatars)}
+      {renderOrbitAvatars(165, outerAvatars)}
+      {renderOrbitAvatars(115, innerAvatars)}
 
       {/* Center Avatar */}
       <Image
@@ -157,8 +158,8 @@ const ProfileOrbit = () => {
         <Text style={styles.buttonText}>View All</Text>
       </TouchableOpacity>
 
-      {/* Profile Modal */}
-     {selectedProfile && (
+
+      {selectedProfile && (
         <Modal
           visible={modalVisible}
           animationType="slide"
@@ -176,12 +177,10 @@ const ProfileOrbit = () => {
                   <Ionicons name="chatbubble-ellipses" size={24} color="#4CAF50" />
                   <Ionicons name="chatbubble-ellipses" size={24} color="#4CAF50" />
                 </View>
-<View style={[styles.profileDetails, { backgroundColor: selectedProfile.borderColor }]}>
-
+                <View style={[styles.profileDetails, { backgroundColor: selectedProfile.borderColor }]}>
                   <Text style={styles.name}>{selectedProfile.name}</Text>
                   <Text style={styles.title}>{selectedProfile.title}</Text>
                   <Text style={styles.location}>{selectedProfile.location}</Text>
-
                   <View style={styles.iconRow}>
                     <View style={styles.iconCircle}>
                       <Ionicons name="chatbubble-ellipses" size={24} color="#4CAF50" />
@@ -222,30 +221,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   outerGradient: {
-    width: 360,
-    height: 360,
-    top: CENTER - 180,
-    left: CENTER - 180,
+    width: 330,
+    height: 330,
+    top: CENTER - 165,
+    left: CENTER - 165,
   },
   innerGradient: {
-    width: 260,
-    height: 260,
-    top: CENTER - 130,
-    left: CENTER - 130,
+    width: 230,
+    height: 230,
+    top: CENTER - 115,
+    left: CENTER - 115,
   },
   dashedBorderOuter: {
-    width: 360,
-    height: 360,
-    borderRadius: 180,
+    width: 330,
+    height: 330,
+    borderRadius: 165,
     borderWidth: 2,
     borderColor: '#a8d69f',
     borderStyle: 'dashed',
     position: 'absolute',
   },
   dashedBorderInner: {
-    width: 260,
-    height: 260,
-    borderRadius: 130,
+    width: 230,
+    height: 230,
+    borderRadius: 115,
     borderWidth: 2,
     borderColor: '#a8d69f',
     borderStyle: 'dashed',
@@ -286,7 +285,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-overlay: {
+  overlay: {
     flex: 1,
     backgroundColor: "#00000099",
     justifyContent: "center",
@@ -303,7 +302,7 @@ overlay: {
     width: "100%",
     height: "80%",
     borderRadius: 20,
-    marginBottom: 15,
+    marginBottom:Platform.OS === "ios" ? 10:55,
   },
   modalTopIcons: {
     flexDirection: "row",
@@ -311,7 +310,6 @@ overlay: {
     margin: 10,
   },
   profileDetails: {
-
     marginTop: 370,
     borderRadius: 10,
     padding: 16,
@@ -352,8 +350,7 @@ overlay: {
     borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
-    position: "absolute",
-    bottom: 10,
+    top:Platform.OS === "ios" ? 110:55,
     alignSelf: "center",
   },
 });

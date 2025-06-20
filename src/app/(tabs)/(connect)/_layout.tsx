@@ -8,6 +8,10 @@ export default function StackLayout() {
         name="connect" 
         options={{ title: "Connect" }} 
       />
+      <Stack.Screen 
+        name="notification" 
+        options={{ title: "notification" }} 
+      />
     </Stack>
   );
 }
