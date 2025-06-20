@@ -44,19 +44,19 @@ function RootLayoutNav() {
          <GestureHandlerRootView>
             <StatusBar style="dark" />
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(splash)" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         
         {/* For extra screens, that will be render outside of the tab bars */}
-        {/* <Stack.Screen name="(subScreen)" options={{ headerShown: false }} />  */}
+        <Stack.Screen name="(subScreen)" options={{ headerShown: false }} /> 
 
-      </Stack>
-      
-    </GestureHandlerRootView>
+          </Stack>
 
-    </PaperProvider>
- 
+        </GestureHandlerRootView>
+
+      </PaperProvider>
+
 
     </>
   );

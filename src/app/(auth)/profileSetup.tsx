@@ -9,51 +9,43 @@ import {
   Image,
   Switch,
   Animated,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import SplashScreenSecond from "../(splash)/second";
 import { useRouter } from "expo-router";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import ProfileCard from "../../components/profileSetupComps/profileCard";
 import InitialScreen from "../../components/profileSetupComps/initialScreen";
 import FinalSetupPage from "../../components/profileSetupComps/finalScreen";
+import TagDropdown from "../../components/TagDropdown";
 
-const ChipInput = ({ label, placeholder, items, setItems, subtitle }) => {
-  const [text, setText] = useState("");
-
-  const addItem = () => {
-    if (text.trim() && !items.includes(text.trim())) {
-      setItems([...items, text.trim()]);
-    }
-    setText("");
-  };
-
-  const removeItem = (value) =>
-    setItems(items.filter((item) => item !== value));
-
+const ChipInput = ({
+  label,
+  placeholder,
+  items,
+  setItems,
+  subtitle,
+  options = [""],
+}) => {
   return (
-    <>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ marginBottom: 20 }}
+    >
       <Text style={styles.label}>
         {label}
         {subtitle && <Text style={styles.subLabel}>{subtitle}</Text>}
       </Text>
-      <View style={[styles.chipContainer, styles.input, chipInputPadding]}>
-        {items.map((item) => (
-          <View key={item} style={styles.chip}>
-            <Text style={styles.chipText}>{item}</Text>
-            <TouchableOpacity onPress={() => removeItem(item)}>
-              <Text style={styles.removeText}>✕</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-        <TextInput
-          value={text}
-          placeholder={placeholder}
-          onChangeText={setText}
-          onSubmitEditing={addItem}
-        />
-      </View>
-    </>
+      <TagDropdown
+        options={options}
+        selected={items}
+        onChange={setItems}
+        placeholder={placeholder}
+      />
+    </KeyboardAvoidingView>
   );
 };
 
@@ -66,7 +58,7 @@ export default function ProfileSetup() {
   const [image, setImage] = useState(null);
 
   const [name, setName] = useState("");
-  const [dob, setDOB] = useState("");
+  const [dob, setDOB] = useState();
   const [gender, setGender] = useState("");
   const [bio, setBio] = useState("");
   const [email, setEmail] = useState("");
@@ -82,6 +74,18 @@ export default function ProfileSetup() {
     "Marketing",
     "Mentor",
   ]); // founders / roles
+
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const hideDatePicker = () => setDatePickerVisibility(false);
+  const handleConfirm = (date: any) => {
+    const formattedDate = `${date.getDate().toString().padStart(2, "0")}/${(
+      date.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}/${date.getFullYear()}`;
+    setDOB(formattedDate);
+    hideDatePicker();
+  };
 
   const progress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -139,7 +143,19 @@ export default function ProfileSetup() {
             value={dob}
             onChangeText={setDOB}
           />
-          <FontAwesome5 name="calendar-alt" size={24} color="#BDBDBD" />
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible}
+            mode="date"
+            date={new Date(1990, 0, 1)}
+            onConfirm={handleConfirm}
+            onCancel={hideDatePicker}
+          />
+          <FontAwesome5
+            name="calendar-alt"
+            size={24}
+            color="#BDBDBD"
+            onPress={() => setDatePickerVisibility(!isDatePickerVisible)}
+          />
         </View>
 
         <Text style={styles.label}>How do you identify?</Text>
@@ -208,6 +224,7 @@ export default function ProfileSetup() {
     () => (
       <>
         <ChipInput
+          options={["Google", "Amazon", "Apple", "Microsoft", "Netflix"]}
           label="Where are you working these days?"
           subtitle={"Startup? MNC? Freelancing? We’re cool with all "}
           placeholder="e.g., Google, Amazon"
@@ -229,6 +246,7 @@ export default function ProfileSetup() {
         />
 
         <ChipInput
+          options={["Finance", "AI", "Retail", "Hospitality", "Engineers"]}
           label={"What space do you belong to?\n"}
           subtitle={
             "Finance 💸, AI 🤖, Retail 🧵, Hospitality 🌱... No limits. Add what vibes with you."
@@ -256,6 +274,16 @@ export default function ProfileSetup() {
         />
 
         <ChipInput
+          options={[
+            "fintech",
+            "fashion",
+            "healthcare",
+            "education",
+            "art & design",
+            "gaming",
+            "sustainability",
+            "travel & hospitality"
+          ]}
           label="What kind of people are you looking to connect with?"
           placeholder="Add type"
           items={connectPeople}
@@ -263,6 +291,16 @@ export default function ProfileSetup() {
         />
 
         <ChipInput
+          options={[
+            "New York",
+            "London",
+            "San Francisco",
+            "Berlin",
+            "Tokyo",
+            "Paris",
+            "Dubai",
+            "Singapore"
+          ]}
           label="Any cities on your radar?"
           placeholder="Add City"
           items={radarCities}
@@ -270,6 +308,16 @@ export default function ProfileSetup() {
         />
 
         <ChipInput
+          options={[
+            "Founders",
+            "Designers",
+            "Product Managers",
+            "Developers",
+            "Marketers",
+            "Investors",
+            "Growth Hackers",
+            "Content Creators"
+          ]}
           label="Looking for founders? Designers? Product?"
           placeholder="Add Role"
           items={rolesLookingFor}
@@ -321,20 +369,15 @@ export default function ProfileSetup() {
   // splash first‑time screen ---------------------------------------------------
   // ----------------------------------------------------------------------------
   if (step === 0 && initScreen) {
-    return (
-      <InitialScreen onPress={() => setInitScreen(false)} />
-    );
+    return <InitialScreen onPress={() => setInitScreen(false)} />;
   }
-  if(step === 4 && finalScreen){
+  if (step === 4 && finalScreen) {
     setTimeout(() => {
       router.replace("/connect");
       setFinalScreen(!finalScreen);
-    }, 3000)
+    }, 3000);
 
-    return(
-      <FinalSetupPage />
-    )
-
+    return <FinalSetupPage />;
   }
 
   // ----------------------------------------------------------------------------
