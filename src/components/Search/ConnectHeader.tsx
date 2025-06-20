@@ -14,7 +14,7 @@ import {
 import { Ionicons, Feather } from '@expo/vector-icons';
 
 const { width: screenWidth } = Dimensions.get('window');
-const MAX_WIDTH = 330;
+const MAX_WIDTH = 360;
 const MIN_WIDTH = 40;
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -79,13 +79,13 @@ const Header = ({ logoSource, onSearch, onBagPress }) => {
             name={searchActive ? 'x' : 'search'}
             size={20}
             style={{ marginRight: 10 ,right:6}}
-            color="#000"
+            color="#94A3B8"
           />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={onBagPress} style={styles.bagBtn}>
+        {/* <TouchableOpacity onPress={onBagPress} style={styles.bagBtn}>
           <Ionicons name="bag-outline" size={24} color="#000" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: '#fff',
     position: 'relative',
+    
   },
   logoWrapper: {
     position: 'absolute',
@@ -123,7 +124,6 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#eee',
     borderRadius: 20,
     marginRight: 10,
     borderWidth: 2,
@@ -132,9 +132,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: 40,
+    height: 35,
     paddingHorizontal: 8,
-    color: '#000',
+    color: '#CBD5E1',
         zIndex:0,
   },
   bagBtn: {

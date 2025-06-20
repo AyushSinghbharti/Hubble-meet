@@ -116,12 +116,12 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Confirmation Modal */}
       <AlertModal
   visible={blockedModalVisible}
   onClose={() => setBlockedModalVisible(false)}
   label="Connection Blocked"
   imageSource={require("../../../assets/icons/tick1.png")}
+  positionBottom
 />
 
     </>
