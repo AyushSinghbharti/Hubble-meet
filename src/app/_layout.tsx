@@ -9,9 +9,9 @@ import { PaperProvider } from 'react-native-paper';
 
 export { ErrorBoundary } from "expo-router";
 
-export const unstable_settings = {
-  initialRouteName: "(splash)",
-};
+// export const unstable_settings = {
+//   initialRouteName: "(splash)",
+// };
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -43,12 +43,10 @@ function RootLayoutNav() {
       <PaperProvider>
         <GestureHandlerRootView>
           <StatusBar style="dark" />
-          <Stack>
+          <Stack initialRouteName='(splash)'>
             <Stack.Screen name="(splash)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-
-            {/* For extra screens, that will be render outside of the tab bars */}
             <Stack.Screen name="(subScreen)" options={{ headerShown: false }} />
 
           </Stack>

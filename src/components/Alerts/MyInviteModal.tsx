@@ -1,8 +1,18 @@
 import React from 'react';
-import { Modal, View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
 const MyInviteModal = ({ visible, onClose, profileImage, name, qrValue }) => {
+  const safeQrValue = qrValue || "https://default-link.com";
+
   return (
     <Modal animationType="slide" transparent visible={visible} onRequestClose={onClose}>
       <View style={styles.overlay}>
@@ -11,25 +21,38 @@ const MyInviteModal = ({ visible, onClose, profileImage, name, qrValue }) => {
             <Text style={{ fontSize: 18 }}>✕</Text>
           </TouchableOpacity>
 
-          <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          ) : (
+            <View style={[styles.profileImage, { backgroundColor: '#ccc' }]} />
+          )}
 
-          {/* QR Code Container with Green Corners */}
           <View style={styles.qrContainer}>
-            <QRCode
-              value={qrValue}
-              size={200}
-              logoSize={40}
-              logo={require("../../../assets/logo/Logo1.png")}
-              logoBackgroundColor="transparent"
-            />
-            {/* Green corner borders */}
+            {/* QR Code with safe logo usage */}
+            {Platform.OS === 'ios' ? (
+              <QRCode
+                value={safeQrValue}
+                size={200}
+                logo={require('../../../assets/logo/Logo1.png')}
+                logoSize={40}
+                logoBackgroundColor="transparent"
+              />
+            ) : (
+              <QRCode
+                value={safeQrValue}
+                size={200}
+                 logo={require('../../../assets/logo/Logo1.png')}
+              />
+            )}
+
+            {/* QR border corners */}
             <View style={[styles.corner, styles.topLeft]} />
             <View style={[styles.corner, styles.topRight]} />
             <View style={[styles.corner, styles.bottomLeft]} />
             <View style={[styles.corner, styles.bottomRight]} />
           </View>
 
-          <Text style={styles.name}>{name}</Text>
+          <Text style={styles.name}>{name || "Unknown User"}</Text>
         </View>
       </View>
     </Modal>
@@ -37,7 +60,6 @@ const MyInviteModal = ({ visible, onClose, profileImage, name, qrValue }) => {
 };
 
 export default MyInviteModal;
-
 
 const styles = StyleSheet.create({
   overlay: {
@@ -51,9 +73,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
-        justifyContent: 'center',
+    justifyContent: 'center',
     width: '90%',
-    height:"55%"
+    height: '55%',
   },
   profileImage: {
     width: 80,
@@ -72,7 +94,7 @@ const styles = StyleSheet.create({
     right: 14,
     zIndex: 10,
   },
-    qrContainer: {
+  qrContainer: {
     marginTop: 10,
     marginBottom: 20,
     width: 220,
@@ -86,8 +108,6 @@ const styles = StyleSheet.create({
     height: 30,
     borderColor: '#B2CD82',
     borderWidth: 4,
-    marginHorizontal:-15,
-    marginVertical:-10
   },
   topLeft: {
     top: 0,
@@ -95,7 +115,6 @@ const styles = StyleSheet.create({
     borderRightWidth: 0,
     borderBottomWidth: 0,
     borderTopLeftRadius: 8,
-    padding:30
   },
   topRight: {
     top: 0,
@@ -103,8 +122,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 0,
     borderBottomWidth: 0,
     borderTopRightRadius: 8,
-        padding:30
-    
   },
   bottomLeft: {
     bottom: 0,
@@ -112,16 +129,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderRightWidth: 0,
     borderBottomLeftRadius: 8,
-        padding:30
   },
   bottomRight: {
     bottom: 0,
     right: 0,
-
     borderTopWidth: 0,
     borderLeftWidth: 0,
     borderBottomRightRadius: 8,
-        padding:30
   },
-
 });

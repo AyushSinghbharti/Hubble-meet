@@ -16,6 +16,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import NavHeader from '../../../components/NavHeader';
 import SelectCountryModal from '../../../components/selectCountryModal';
 import TagDropdown from '../../../components/TagDropdown';
+import { FONT } from '../../../../assets/constants/fonts';
 
 export default function SettingsScreen() {
   const [name, setName] = useState('');
@@ -84,10 +85,21 @@ export default function SettingsScreen() {
         <Text style={styles.profileName}>Dennis Callis</Text>
       </View>
 
-      <FormLabel label="User Name *" />
+   {/* <FormLabel label={"User Name"}> 
+
+ 
+
+
+</FormLabel> */}
+
+<Text style={styles.label}>
+  User Name <Text style={{ color: 'red' }}>*</Text>
+</Text>
       <Input placeholder="Enter name" value={name} onChangeText={setName} />
 
-      <FormLabel label="DOB *" />
+   <Text style={styles.label}>
+  DOB <Text style={{ color: 'red' }}>*</Text>
+</Text>
       <TouchableOpacity onPress={showDatePicker}>
         <Input
           placeholder="Select date"
@@ -105,7 +117,9 @@ export default function SettingsScreen() {
         onCancel={hideDatePicker}
       />
 
-      <FormLabel label="Phone Number *" />
+     <Text style={styles.label}>
+  Phone Number <Text style={{ color: 'red' }}>*</Text>
+</Text>
       <View style={styles.phoneContainer}>
         <TouchableOpacity
           style={styles.countryCode}
@@ -238,10 +252,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   label: {
-    fontWeight: 'bold',
-    marginBottom: 4,
+  fontSize: 16,
     marginTop: 16,
     color: '#111',
+    fontFamily:FONT.SEMIBOLD
   },
   inputContainer: {
     borderWidth: 1,
@@ -288,6 +302,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'right',
     marginTop: 4,
+    fontFamily:FONT.BOLD
   },
   counter: {
     alignSelf: 'flex-end',
@@ -306,4 +321,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
+
+
 });

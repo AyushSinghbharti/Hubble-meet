@@ -22,7 +22,7 @@ const HubbleCircleViewAll = () => {
 
           <View style={styles.cardContainer}>
             <VbcCard />
-            {/* Add more <VbcCard /> components if needed */}
+
           </View>
         </View>
       </ScrollView>

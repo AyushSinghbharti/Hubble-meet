@@ -131,14 +131,14 @@ export default function ProfileScreen() {
 
       <InviteModal visible={modalVisible} onClose={() => setModalVisible(false)} />
 
-       <MyInviteModal
+  <MyInviteModal
   visible={MyInviteModalVisible} 
   onClose={() => setMyInviteModalVisible(false)}
   profileImage="https://randomuser.me/api/portraits/men/41.jpg"
   name="Robin Gupta"
   qrValue="https://example.com/invite-link"
-  
 />
+
     </ScrollView>
   );
 }
