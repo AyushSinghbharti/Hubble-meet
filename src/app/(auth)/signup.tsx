@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import SelectCountryModal from "../../components/selectCountryModal";
 import ErrorAlert from "../../components/errorAlert";
 import { useRouter } from "expo-router";
+import TermDetailModal from "../../components/termDetailModal";
 
 type Country = {
   name: string;
@@ -34,12 +35,21 @@ export default function SignUp() {
     dial_code: "+91",
     flag: "https://flagcdn.com/w2560/in.png",
   });
+  const [termModalVisible, setTermModalVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef<View>(null);
-  const [error, setError] = useState<String>("invalid email address");
+  const [emailError, setEmailError] = useState("Invalid email address");
+  const [phoneError, setPhoneError] = useState("Invalid phone number");
+  const [acceptTermError, setAcceptTermError] = useState("Please accept the Terms & Conditions to proceed");
+  const [showTermError, setShowTermError] = useState(false);
 
   const handleSignUp = () => {
+    if (!termAccept) {
+      setShowTermError(true);
+      return;
+    }
+
     router.push("/otpVerify");
   }
 
@@ -49,17 +59,16 @@ export default function SignUp() {
         source={require("../../../assets/images/logo.png")}
         style={styles.logo}
       />
-      {termAccept ? (
-        <ErrorAlert message="Please accept the Terms & Conditions to proceed" onClose={() => toogleTerm(!termAccept)} />
+      {showTermError ? (
+        <ErrorAlert message={acceptTermError} onClose={() => setShowTermError(!showTermError)} />
       ) : (
         <Text style={styles.title}>Sign Up</Text>
       )}
-
       <View style={styles.form}>
         <View>
           <Text style={styles.label}>Email</Text>
           <View
-            style={[styles.emailContainer, { marginBottom: error ? 0 : 8 }]}
+            style={[styles.emailContainer, { marginBottom: emailError ? 0 : 8 }]}
           >
             <TextInput
               value={email}
@@ -69,19 +78,19 @@ export default function SignUp() {
               keyboardType="email-address"
               style={[
                 styles.phoneInput,
-                { borderColor: error ? "red" : "black" },
+                { borderColor: emailError ? "red" : "black" },
               ]}
             />
           </View>
-          {error && (
+          {emailError && (
             <Text style={[styles.error, { marginBottom: 8, marginTop: 2 }]}>
-              {error}
+              {emailError}
             </Text>
           )}
         </View>
 
         <Text style={styles.label}>Phone number</Text>
-        <View style={[styles.phoneContainer, { marginBottom: error ? 0 : 9 }]}>
+        <View style={[styles.phoneContainer, { marginBottom: phoneError ? 0 : 9 }]}>
           <TouchableOpacity
             onPress={() => {
               flagBoxRef.current?.measureInWindow((x, y, width, height) => {
@@ -115,20 +124,19 @@ export default function SignUp() {
             keyboardType="phone-pad"
             style={[
               styles.phoneInput,
-              { borderColor: error ? "red" : "black" },
+              { borderColor: phoneError ? "red" : "black" },
             ]}
           />
         </View>
-        {error && (
+        {phoneError && (
           <Text style={[styles.error, { marginBottom: 9, marginTop: 2 }]}>
-            {error}
+            {phoneError}
           </Text>
         )}
 
         <View
           style={{
             flexDirection: "row",
-            // alignItems: "center",
             paddingTop: 8,
             marginBottom: 20,
           }}
@@ -149,7 +157,7 @@ export default function SignUp() {
           >
             {termAccept && <FontAwesome name="check" size={16} color="#fff" />}
           </TouchableOpacity>
-          <Text style={{ color: "#000", fontSize: 14, width: "90%" }}>
+          <Text style={{ color: "#000", fontSize: 14, width: "90%" }} onPress={() => setTermModalVisible(!termModalVisible)}>
             I agree with{" "}
             <Text style={{ textDecorationLine: "underline" }}>
               Private Policy{" "}
@@ -206,6 +214,8 @@ export default function SignUp() {
         }}
         position={flagBoxPosition}
       />
+
+      <TermDetailModal visible={termModalVisible} onClose={() => setTermModalVisible(!termModalVisible)} />
     </View>
   );
 }
