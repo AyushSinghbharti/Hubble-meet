@@ -214,7 +214,7 @@ export default function SignUp() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.signupText}>
+      <Text style={styles.signupText} onPress={() => router.replace("/loginPage")}>
         Don’t have an account? <Text style={styles.signupLink}>Log In</Text>
       </Text>
 

@@ -10,7 +10,8 @@ import {
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
+import colourPalette from "../../theme/darkPaletter";
 
 const FLAG_ICON = "https://flagcdn.com/w40/in.png";
 const GOOGLE_ICON =
@@ -60,15 +61,9 @@ export default function Login() {
                 <FontAwesome name="chevron-down" size={12} color="#656565" />
               </View>
 
-              {/* <TextInput
-                placeholder="Phone number"
-                placeholderTextColor="#aaa"
-                keyboardType="phone-pad"
-                style={styles.phoneInput}
-              /> */}
               <Text style={styles.phoneInput}>Phone number</Text>
             </View>
-            <TouchableOpacity style={styles.loginBtn}>
+            <TouchableOpacity style={styles.loginBtn} onPress={() => useRouter().push("/loginPage")}>
               <Text style={styles.loginText}>Log in</Text>
             </TouchableOpacity>
           </View>
@@ -116,7 +111,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     color: "white",
-    fontWeight: "bold",
+    fontFamily: "InterBold",
     marginBottom: 40,
   },
   inputWrapper: {
@@ -125,8 +120,8 @@ const styles = StyleSheet.create({
   },
   label: {
     color: "#fff",
+    fontFamily: "InterSemiBold",
     fontSize: 18,
-    fontWeight: "bold",
     marginBottom: 8,
   },
   phoneContainer: {
@@ -137,11 +132,16 @@ const styles = StyleSheet.create({
   flagBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
+    backgroundColor: colourPalette.inputBackground,
     marginRight: 12,
     paddingHorizontal: 8,
     paddingVertical: 10,
     borderRadius: 8,
+    elevation: 5,
+    shadowColor: "white",
+    borderWidth: 1,
+    borderColor: colourPalette.inputBorder,
   },
   flag: {
     width: 20,
@@ -149,20 +149,34 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   countryCode: {
-    fontWeight: "600",
+    fontFamily: "InterSemiBold",
+    color: colourPalette.textPrimary,
+    marginLeft: 3,
+    // fontWeight: "600",
     marginRight: 8,
   },
   phoneInput: {
     flex: 1,
     verticalAlign: "middle",
-    fontSize: 16,
+    // color: "grey",
+    color: colourPalette.textPrimary,
+    fontSize: 15,
+    fontFamily: "InterMedium",
     paddingHorizontal: 12,
-    color: "grey",
     borderRadius: 8,
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
+    elevation: 5,
+    shadowColor: "white",
+    backgroundColor: colourPalette.inputBackground,
+    borderWidth: 1,
+    borderColor: colourPalette.inputBorder,
   },
   loginBtn: {
-    backgroundColor: "#BBCF8D",
+    // backgroundColor: "#BBCF8D",
+    backgroundColor: colourPalette.buttonPrimary,
+    elevation: 5,
+    shadowColor: "white",
+    borderWidth: 1,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
@@ -170,7 +184,7 @@ const styles = StyleSheet.create({
   },
   loginText: {
     color: "#000",
-    fontWeight: "800",
+    fontFamily: "InterBold",
     fontSize: 18,
   },
   signupText: {
