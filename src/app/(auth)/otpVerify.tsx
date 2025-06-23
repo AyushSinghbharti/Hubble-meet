@@ -79,6 +79,7 @@ const OtpVerificationUI = () => {
       {error && (
         <View style={styles.resendView}>
           <Text
+            onPress={() => alert("OTP has resent on your mail ID")}
             style={[
               styles.resendText,
               {
@@ -89,7 +90,7 @@ const OtpVerificationUI = () => {
           >
             Didn't receive code?
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => alert("OTP has resent on your mail ID")}>
             <Text
               style={[
                 styles.resendText,
