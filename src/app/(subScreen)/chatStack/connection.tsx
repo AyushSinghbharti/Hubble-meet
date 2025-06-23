@@ -55,9 +55,10 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 50,
+    backgroundColor: "#F7F7F7",
+    elevation: 5,
     paddingHorizontal: 16,
     paddingBottom: 12,
-    backgroundColor: "#fff",
     flexDirection: "row",
   },
   title: {
