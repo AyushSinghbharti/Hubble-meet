@@ -96,7 +96,7 @@ export default function ChatScreen() {
             style={styles.searchInput}
           />
         </View>
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push("/(vbc)/")}>
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push("/chatStack/connection")}>
           <Ionicons name="add" size={24} />
         </TouchableOpacity>
       </View>
