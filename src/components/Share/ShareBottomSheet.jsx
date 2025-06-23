@@ -138,7 +138,7 @@ const ShareModal = ({ visible, onClose }) => {
         visible={requestSentVisible}
         onClose={() => setRequestSentVisible(false)}
         imageSource={require('../../../assets/icons/tick1.png')}
-        label="Request Sent"
+        label="Profile Shared"
         onButtonPress={() => setRequestSentVisible(false)}
         positionBottom
       />
