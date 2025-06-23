@@ -492,7 +492,8 @@ const selectedGenderStyle = { borderColor: "#BBCF8D", borderWidth: 2 };
 const splashButton = {
   position: "absolute",
   bottom: 50,
-  backgroundColor: "#000",
+  // backgroundColor: "#000",
+  backgroundColor: colourPalette.buttonPrimary,
   alignSelf: "center",
   width: "90%",
   height: 50,
@@ -502,7 +503,8 @@ const splashButton = {
 };
 
 const splashButtonText = {
-  color: "#fff",
+  // color: "#fff",
+  color: "#000",
   fontFamily: "InterSemiBold",
   fontSize: 16,
 };
