@@ -39,7 +39,7 @@ const ROTATION_DEGREE = 30;
 const MAX_RIGHT_SWIPES = 10;
 const UNDO_DURATION = 2000; // 2 seconds for undo window
 
-const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, onToggleDetails }) => {
+const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, onToggleDetails ,  hasFlipped}) => {
   const translateX = useSharedValue(0);
   const rotate = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -51,6 +51,8 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
   const [shareAlertVisible, setShareAlertVisible] = useState(false);
   const [blockAlertVisible, setBlockAlertVisible] = useState(false);
   const [thumbImageAlertVisible, setThumbImageAlertVisible] = useState(false);
+  const [flippedProfiles, setFlippedProfiles] = useState({});
+
 
   const undoTimeoutRef = useRef(null);
 
@@ -63,6 +65,8 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
     ],
     opacity: opacity.value,
   }));
+
+  
 
   const buttonStyle = useAnimatedStyle(() => ({
     opacity: buttonOpacity.value,
@@ -161,43 +165,45 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
 
   // Pan gesture for swiping
   const panGesture = Gesture.Pan()
-    .activeOffsetX([-10, 10])
-    .onUpdate((e) => {
-      "worklet";
-      translateX.value = e.translationX;
-      rotate.value = (e.translationX / width) * ROTATION_DEGREE;
-    })
-    .onEnd(() => {
-      "worklet";
-      const swipedLeft = translateX.value < -SWIPE_THRESHOLD;
-      const swipedRight = translateX.value > SWIPE_THRESHOLD;
+  .enabled(hasFlipped) // only allow swipe after flip
+  .activeOffsetX([-10, 10])
+  .onUpdate((e) => {
+    "worklet";
+    translateX.value = e.translationX;
+    rotate.value = (e.translationX / width) * ROTATION_DEGREE;
+  })
+  .onEnd(() => {
+    "worklet";
+    const swipedLeft = translateX.value < -SWIPE_THRESHOLD;
+    const swipedRight = translateX.value > SWIPE_THRESHOLD;
 
-      if (swipedLeft) {
-        translateX.value = withSpring(-width);
-        rotate.value = withSpring(-ROTATION_DEGREE);
-        runOnJS(showUndoModal)();
-        runOnJS(startUndoTimer)(profile.id);
-      } else if (swipedRight) {
-        if (rightSwipeCount >= MAX_RIGHT_SWIPES) {
-          runOnJS(showRightSwipeAlert)();
-          translateX.value = withSpring(0);
-          rotate.value = withSpring(0);
-          return;
-        }
-        runOnJS(showRequestSentModal)();
-        translateX.value = withSpring(width);
-        rotate.value = withSpring(ROTATION_DEGREE);
-        opacity.value = withTiming(0, { duration: 300 }, (finished) => {
-          "worklet";
-          if (finished) {
-            runOnJS(completeSwipe)(profile.id, "right");
-          }
-        });
-      } else {
+    if (swipedLeft) {
+      translateX.value = withSpring(-width);
+      rotate.value = withSpring(-ROTATION_DEGREE);
+      runOnJS(showUndoModal)();
+      runOnJS(startUndoTimer)(profile.id);
+    } else if (swipedRight) {
+      if (rightSwipeCount >= MAX_RIGHT_SWIPES) {
+        runOnJS(showRightSwipeAlert)();
         translateX.value = withSpring(0);
         rotate.value = withSpring(0);
+        return;
       }
-    });
+      runOnJS(showRequestSentModal)();
+      translateX.value = withSpring(width);
+      rotate.value = withSpring(ROTATION_DEGREE);
+      opacity.value = withTiming(0, { duration: 300 }, (finished) => {
+        "worklet";
+        if (finished) {
+          runOnJS(completeSwipe)(profile.id, "right");
+        }
+      });
+    } else {
+      translateX.value = withSpring(0);
+      rotate.value = withSpring(0);
+    }
+  });
+
 
   // Tap gesture for the image in compact view and detailed view
   const imageTapGesture = Gesture.Tap().onEnd(() => {
@@ -423,26 +429,38 @@ const Connect = () => {
   const [rightSwipeCount, setRightSwipeCount] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [expandedProfileId, setExpandedProfileId] = useState(null);
+  const [hasFlipped, setHasFlipped] = useState(false);
 
-  const handleSwipeComplete = useCallback(
-    (id, direction) => {
-      setSwipedIds((prev) => {
-        const updated = [...prev, id];
-        if (updated.length >= 5 && !showLimitModal) {
-          setShowLimitModal(true);
-        }
-        return updated;
-      });
-      if (direction === "right") {
-        setRightSwipeCount((prev) => prev + 1);
+
+const handleSwipeComplete = useCallback(
+  (id, direction) => {
+    setSwipedIds((prev) => {
+      const updated = [...prev, id];
+      if (updated.length >= 5 && !showLimitModal) {
+        setShowLimitModal(true);
       }
-    },
-    [showLimitModal]
-  );
+      return updated;
+    });
 
-  const handleToggleDetails = useCallback((profileId) => {
-    setExpandedProfileId((prev) => (prev === profileId ? null : profileId));
-  }, []);
+    if (direction === "right") {
+      setRightSwipeCount((prev) => prev + 1);
+    }
+
+    setHasFlipped(false); // reset for next profile
+    setExpandedProfileId(null); // collapse after swipe
+  },
+  [showLimitModal]
+);
+
+
+ const handleToggleDetails = useCallback((profileId) => {
+  setExpandedProfileId((prev) => {
+    const newId = prev === profileId ? null : profileId;
+    if (newId) setHasFlipped(true); // set flipped only when expanding
+    return newId;
+  });
+}, []);
+
 
   const renderItem = useCallback(
     ({ item }) => {
@@ -453,15 +471,17 @@ const Connect = () => {
           rightSwipeCount={rightSwipeCount}
           isExpanded={expandedProfileId === item.id}
           onToggleDetails={handleToggleDetails}
+            hasFlipped={hasFlipped}
         />
       );
     },
     [rightSwipeCount, handleSwipeComplete, expandedProfileId]
   );
 
-  const visibleProfileData = profileData.filter(
-    (item) => !swipedIds.includes(item.id) && (expandedProfileId === null || expandedProfileId === item.id)
-  );
+ const visibleProfileData = expandedProfileId
+  ? profileData.filter((item) => item.id === expandedProfileId)
+  : profileData.filter((item) => !swipedIds.includes(item.id)).slice(0, 1);
+
 
   return (
     <View style={styles.container}>
