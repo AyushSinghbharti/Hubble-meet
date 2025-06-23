@@ -31,6 +31,7 @@ import styles from "./Styles/Styles";
 import BlockUserModal from "../../../components/Modal/BlockUserModal";
 import ProfilePromptModal from "../../../components/Modal/ProfilePromptModal";
 import ProfilePrompt from "../../../components/Modal/ProfilePromptModal";
+import ShareModal from "../../../components/Share/ShareBottomSheet";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -45,6 +46,7 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
   const opacity = useSharedValue(1);
   const buttonOpacity = useSharedValue(1);
 
+
   const [undoVisible, setUndoVisible] = useState(false);
   const [requestSentVisible, setRequestSentVisible] = useState(false);
   const [rightSwipeAlertVisible, setRightSwipeAlertVisible] = useState(false);
@@ -52,6 +54,7 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
   const [blockAlertVisible, setBlockAlertVisible] = useState(false);
   const [thumbImageAlertVisible, setThumbImageAlertVisible] = useState(false);
   const [flippedProfiles, setFlippedProfiles] = useState({});
+   const [showShare, setShowShare] = useState(false);
 
 
   const undoTimeoutRef = useRef(null);
@@ -136,8 +139,10 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
       event.stopPropagation();
       handleButtonPress();
       showShareAlert();
+  setShowShare(true)
+
     },
-    [handleButtonPress, showShareAlert]
+    [handleButtonPress, showShareAlert,]
   );
 
   const handleRestartButtonPress = useCallback(
@@ -387,15 +392,8 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
     
 
     <View>
-       <AlertModal
-        visible={shareAlertVisible}
-        onClose={() => setShareAlertVisible(false)}
-        imageSource={require("../../../../assets/icons/share1.png")}
-        label="Profile Shared"
-        buttonText="OK"
-        onButtonPress={() => setShareAlertVisible(false)}
-        positionBottom
-      />
+  
+        <ShareModal visible={shareAlertVisible} onClose={() => setShareAlertVisible(false)} />
 
     </View>
 
@@ -413,11 +411,7 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
 
 </View>
 
-     
-
-
-
-
+    
 
 
     </>
@@ -430,7 +424,7 @@ const Connect = () => {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [expandedProfileId, setExpandedProfileId] = useState(null);
   const [hasFlipped, setHasFlipped] = useState(false);
-
+   const [showShare, setShowShare] = useState(false);
 
 const handleSwipeComplete = useCallback(
   (id, direction) => {
@@ -504,14 +498,8 @@ const handleSwipeComplete = useCallback(
           </View>
         }
       />
-      {/* <AlertModal
-        visible={showLimitModal}
-        onClose={() => setShowLimitModal(false)}
-        imageSource={require("../../../../assets/icons/Vfc/vbcactive.png")}
-        label="We need a bit more info before you can swipe further. Finish your profile to continue."
-        buttonText="Complete Profile"
-        onButtonPress={() => setShowLimitModal(false)}
-      /> */}
+         
+
 
       <View>
            <ProfilePrompt
