@@ -50,6 +50,7 @@ export default function SignUp() {
   const handleSignUp = () => {
     if (!termAccept) {
       setShowTermError(true);
+      setTermModalVisible(!modalVisible);
       return;
     }
     if (!email) {
@@ -63,6 +64,12 @@ export default function SignUp() {
 
     router.push("/otpVerify");
   };
+
+  const handleAgreeTerm = () => {
+    setTermModalVisible(false);
+    toogleTerm(true);
+    setShowTermError(false);
+  }
 
   return (
     <View style={styles.container}>
@@ -263,6 +270,7 @@ export default function SignUp() {
       <TermDetailModal
         visible={termModalVisible}
         onClose={() => setTermModalVisible(!termModalVisible)}
+        onAgree={handleAgreeTerm}
       />
     </View>
   );
