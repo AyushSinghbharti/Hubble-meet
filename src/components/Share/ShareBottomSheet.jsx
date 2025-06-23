@@ -13,9 +13,10 @@ import {
   Platform,
   Pressable,
   Linking,
-  Alert,
 } from 'react-native';
 import { AntDesign, Feather } from '@expo/vector-icons';
+import AlertModal from '../Alerts/AlertModal';
+
 
 const USERS = [
   { id: '1', name: 'Alice', avatar: 'https://i.pravatar.cc/150?img=1' },
@@ -31,6 +32,7 @@ const USERS = [
 const ShareModal = ({ visible, onClose }) => {
   const [search, setSearch] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [requestSentVisible, setRequestSentVisible] = useState(false);
 
   const handleUserSelect = (user) => {
     const exists = selectedUsers.some((u) => u.id === user.id);
@@ -42,7 +44,8 @@ const ShareModal = ({ visible, onClose }) => {
   };
 
   const handleSend = () => {
-    alert(`Sent to: ${selectedUsers.map((u) => u.name).join(', ')}`);
+    if (selectedUsers.length === 0) return;
+    setRequestSentVisible(true);
     setSelectedUsers([]);
     onClose();
   };
@@ -87,47 +90,59 @@ const ShareModal = ({ visible, onClose }) => {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.modalWrap}
-      >
-        <Pressable style={styles.overlay} onPress={onClose} />
+    <>
+      <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalWrap}
+        >
+          <Pressable style={styles.overlay} onPress={onClose} />
 
-        <View style={styles.modalContainer}>
-          <View style={styles.handleBar} />
-          <TextInput
-            placeholder="Search users..."
-            style={styles.searchInput}
-            value={search}
-            onChangeText={setSearch}
-            placeholderTextColor="#888"
-          />
+          <View style={styles.modalContainer}>
+            <View style={styles.handleBar} />
+            <TextInput
+              placeholder="Search users..."
+              style={styles.searchInput}
+              value={search}
+              onChangeText={setSearch}
+              placeholderTextColor="#888"
+            />
 
-          <Text style={styles.title}>Share with</Text>
-          <FlatList
-            data={filteredUsers}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            numColumns={4}
-            contentContainerStyle={styles.flatListContent}
-            columnWrapperStyle={styles.row}
-            keyboardShouldPersistTaps="handled"
-          />
+            <Text style={styles.title}>Share with</Text>
+            <FlatList
+              data={filteredUsers}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              numColumns={4}
+              contentContainerStyle={styles.flatListContent}
+              columnWrapperStyle={styles.row}
+              keyboardShouldPersistTaps="handled"
+            />
 
-          <TouchableOpacity style={styles.externalShareButton} onPress={handleWhatsAppShare}>
-            <Feather name="send" size={20} color="#25D366" />
-            <Text style={styles.externalShareText}>Share on WhatsApp</Text>
-          </TouchableOpacity>
-
-          {selectedUsers.length > 0 && (
-            <TouchableOpacity style={styles.sendBar} onPress={handleSend}>
-              <Text style={styles.sendText}>Send</Text>
+            <TouchableOpacity style={styles.externalShareButton} onPress={handleWhatsAppShare}>
+              <Feather name="send" size={20} color="#25D366" />
+              <Text style={styles.externalShareText}>Share on WhatsApp</Text>
             </TouchableOpacity>
-          )}
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+
+            {selectedUsers.length > 0 && (
+              <TouchableOpacity style={styles.sendBar} onPress={handleSend}>
+                <Text style={styles.sendText}>Send</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Custom Alert Modal */}
+      <AlertModal
+        visible={requestSentVisible}
+        onClose={() => setRequestSentVisible(false)}
+        imageSource={require('../../../assets/icons/tick1.png')}
+        label="Request Sent"
+        onButtonPress={() => setRequestSentVisible(false)}
+        positionBottom
+      />
+    </>
   );
 };
 

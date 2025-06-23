@@ -389,7 +389,18 @@ const ProfileCard = ({ profile, onSwipeComplete, rightSwipeCount, isExpanded, on
 
 </View>
    
-    
+    <View>
+
+      {/* <AlertModal
+        visible={requestSentVisible}
+        onClose={() => setRequestSentVisible(false)}
+        imageSource={require('../../../../assets/icons/tick1.png')}
+        label="Request Sent"
+        onButtonPress={() => setRequestSentVisible(false)}
+        positionBottom
+      /> */}
+
+    </View>
 
     <View>
   
