@@ -3,18 +3,29 @@ import { StyleSheet, View, Text, TouchableOpacity, Image } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 import { SimpleLineIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import colourPalette from "../../theme/darkPaletter";
 
 const OtpVerificationUI = () => {
   const router = useRouter();
   const [error, setError] = useState<String>(
     "Incorrect OTP. Try again or request a new code"
   );
+  const [otp, setOTP] = useState<string>();
+
+  const handleVerify = () => {
+    if (!otp || otp?.length < 4) {
+      setError("Please Enter valid OTP");
+      return;
+    }
+    router.replace("/profileSetup");
+  };
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          {/* <Ionicons name="arrow-back" size={24} color="black" /> */}
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Image
           source={require("../../../assets/images/logo.png")}
@@ -30,6 +41,7 @@ const OtpVerificationUI = () => {
       </Text>
 
       <OtpInput
+        secureTextEntry={false}
         numberOfDigits={4}
         focusColor="gray"
         focusStickBlinkingDuration={500}
@@ -38,6 +50,7 @@ const OtpVerificationUI = () => {
           pinCodeContainerStyle: styles.pinCodeContainer,
           pinCodeTextStyle: styles.pinCodeText,
         }}
+        onTextChange={(text) => setOTP(text)}
       />
 
       {error && (
@@ -48,25 +61,43 @@ const OtpVerificationUI = () => {
             width: "100%",
           }}
         >
-          <Text style={{ color: "red", fontSize: 14, fontFamily: "Inter" }}>
+          <Text
+            style={{
+              color: colourPalette.errorText,
+              fontSize: 14,
+              fontFamily: "Inter",
+            }}
+          >
             {error}
           </Text>
         </View>
       )}
 
-      <TouchableOpacity style={styles.continueBtn} onPress={() => useRouter().replace("/profileSetup")}>
+      <TouchableOpacity style={styles.continueBtn} onPress={handleVerify}>
         <Text style={styles.continueText}>Verify</Text>
       </TouchableOpacity>
       {error && (
         <View style={styles.resendView}>
-          <Text style={[styles.resendText, { color: "#878787" }]}>
+          <Text
+            style={[
+              styles.resendText,
+              {
+                // color: "#878787",
+                color: colourPalette.textSecondary,
+              },
+            ]}
+          >
             Didn't receive code?
           </Text>
           <TouchableOpacity>
             <Text
               style={[
                 styles.resendText,
-                { color: "Black", fontFamily: "InterBold" },
+                {
+                  // color: "Black",
+                  color: colourPalette.textPrimary,
+                  fontFamily: "InterBold",
+                },
               ]}
             >
               Resend
@@ -85,7 +116,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 80,
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
+    backgroundColor: colourPalette.backgroundPrimary,
   },
   header: {
     flexDirection: "row",
@@ -94,6 +126,7 @@ const styles = StyleSheet.create({
     marginBottom: 64,
   },
   emailText: {
+    color: colourPalette.textPrimary,
     fontSize: 32,
     // fontWeight: 'bold',
     fontFamily: "InterBold",
@@ -101,6 +134,7 @@ const styles = StyleSheet.create({
     marginBottom: 34,
   },
   mailText: {
+    color: colourPalette.textSecondary,
     textAlign: "center",
     fontSize: 14,
     fontFamily: "Inter",
@@ -110,12 +144,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   pinCodeContainer: {
-    backgroundColor: "#EAEAEA",
+    // backgroundColor: "#EAEAEA",
+    backgroundColor: colourPalette.inputBackground,
     width: "18%",
     aspectRatio: 1,
   },
   pinCodeText: {
-    color: "#101010",
+    // color: "#101010",
+    color: colourPalette.inputText,
     fontSize: 32,
     fontFamily: "InterBold",
   },
@@ -126,20 +162,23 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   resendText: {
+    color: colourPalette.inputText,
     fontSize: 14,
     fontFamily: "Inter",
     marginLeft: 5,
   },
   continueBtn: {
     marginTop: 30,
-    backgroundColor: "black",
+    // backgroundColor: "black",
+    backgroundColor: colourPalette.buttonPrimary,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",
   },
   continueText: {
-    color: "#fff",
-    fontWeight: "600",
+    // color: "#fff",
+    color: "#000",
+    fontFamily: "InterBold",
     fontSize: 16,
   },
 });

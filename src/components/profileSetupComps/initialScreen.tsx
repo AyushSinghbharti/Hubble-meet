@@ -1,13 +1,21 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import colourPalette from "../../theme/darkPaletter";
 
 const InitialScreen: React.FC = ({ onPress }) => {
   return (
-    <View style={{ flex: 1, alignItems: "center", backgroundColor: "#9CE89D33" }}>
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        // backgroundColor: "#9CE89D33",
+        backgroundColor: colourPalette.backgroundSecondary,
+      }}
+    >
       {/* <SplashScreenSecond /> */}
       <Image
         source={require("../../../assets/images/logo.png")}
-        style={{ width: 248, height: 40, marginTop: 50, marginBottom: 125 }}
+        style={{ width: 248, height: 40, marginTop: 55, marginBottom: 125 }}
       />
       <Image
         source={require("../../../assets/images/splash-screen-1.png")}
@@ -16,7 +24,8 @@ const InitialScreen: React.FC = ({ onPress }) => {
       <Text
         style={{
           fontFamily: "InterMediumItalic",
-          color: "#596C2D",
+          // color: "#596C2D",
+          color: "#A3C25B",
           textAlign: "center",
         }}
       >
@@ -32,7 +41,8 @@ const InitialScreen: React.FC = ({ onPress }) => {
 const splashButton = {
   position: "absolute",
   bottom: 50,
-  backgroundColor: "#000",
+  // backgroundColor: "#000",
+  backgroundColor: colourPalette.buttonPrimary,
   alignSelf: "center",
   width: "90%",
   height: 50,
@@ -42,17 +52,10 @@ const splashButton = {
 };
 
 const splashButtonText = {
-  color: "#fff",
+  // color: "#fff",
+  color: "#000",
   fontFamily: "InterSemiBold",
   fontSize: 16,
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
 
 export default InitialScreen;

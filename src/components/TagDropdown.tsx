@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -7,31 +7,39 @@ import {
   FlatList,
   StyleSheet,
   LayoutChangeEvent,
-} from 'react-native';
-import { Entypo } from '@expo/vector-icons';
+} from "react-native";
+import { Entypo } from "@expo/vector-icons";
+import colourPalette from "../theme/darkPaletter";
 
 type TagDropdownProps = {
   options: string[];
   selected: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
+  darkMode?: boolean;
 };
 
 export default function TagDropdown({
   options,
   selected,
   onChange,
-  placeholder = 'Add',
+  placeholder = "Add",
+  darkMode = false,
 }: TagDropdownProps) {
-  const [input, setInput] = useState('');
-  const [inputLayout, setInputLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [input, setInput] = useState("");
+  const [inputLayout, setInputLayout] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  });
   const containerRef = useRef<View>(null);
 
   const handleAddTag = (tag: string) => {
     if (!selected.includes(tag)) {
       onChange([...selected, tag]);
     }
-    setInput('');
+    setInput("");
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
@@ -52,18 +60,28 @@ export default function TagDropdown({
   return (
     <View>
       <View
-        style={styles.container}
+        style={[
+          styles.container,
+          {
+            backgroundColor: darkMode ? colourPalette.inputBackground : "#fff",
+            borderColor: darkMode ? colourPalette.inputBorder : "#cfd4dc",
+          },
+        ]}
         onLayout={onLayoutInput}
         ref={containerRef}
       >
         <View style={styles.tagRow}>
           {selected.map((tag) => (
             <View key={tag} style={styles.tag}>
-              <Text style={styles.tagText} numberOfLines={1} ellipsizeMode="tail">
+              <Text
+                style={styles.tagText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {tag}
               </Text>
               <TouchableOpacity onPress={() => handleRemoveTag(tag)}>
-                <Entypo name='cross' style={styles.remove} />
+                <Entypo name="cross" style={styles.remove} />
               </TouchableOpacity>
             </View>
           ))}
@@ -71,7 +89,14 @@ export default function TagDropdown({
             value={input}
             onChangeText={setInput}
             placeholder={placeholder}
-            style={styles.input}
+            placeholderTextColor="#aaa"
+            style={[
+              styles.input,
+              {
+                color: darkMode ? colourPalette.textPrimary : "#000",
+                fontFamily: "InterMedium",
+              },
+            ]}
           />
         </View>
       </View>
@@ -83,7 +108,7 @@ export default function TagDropdown({
               top: inputLayout.y + inputLayout.height + 4,
               left: inputLayout.x,
               width: inputLayout.width,
-              position: 'absolute',
+              position: "absolute",
               zIndex: 999,
             },
           ]}
@@ -109,61 +134,62 @@ export default function TagDropdown({
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: '#cfd4dc',
+    borderColor: "#cfd4dc",
     borderRadius: 8,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 8,
   },
   tagRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
     gap: 8, // Adds a gap between tags for better spacing
   },
   tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#B2CD82',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#B2CD82",
     borderRadius: 16,
     paddingHorizontal: 10, // Reduced padding to give more space for text
     paddingVertical: 4,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     // Removed maxWidth: '100%' to allow the tag to expand
   },
   tagText: {
-    color: '#000',
-    fontStyle: 'italic',
-    fontWeight: '600',
+    color: "#000",
+    fontStyle: "italic",
+    fontWeight: "600",
     flexShrink: 1, // Allows text to shrink if necessary
     // Removed maxWidth: '90%' to allow text to take up more available space
   },
   remove: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     paddingHorizontal: 5,
   },
   input: {
     minWidth: 60,
+    fontFamily: "InterMedium",
     padding: 4,
     fontSize: 16,
     flexGrow: 1,
     flexShrink: 1,
   },
   dropdown: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 8,
     maxHeight: 120,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowOffset: { width: 0, height: 2 },
   },
   dropdownItem: {
     padding: 10,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
     borderBottomWidth: 1,
   },
 });
