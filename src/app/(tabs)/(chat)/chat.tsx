@@ -41,8 +41,9 @@ const dummyChats = [
   },
 ];
 
+const router = useRouter();
+
 const RenderCard = ({ item }: { item: any }) => {
-  const router = useRouter();
   return (
     <TouchableOpacity
       style={styles.chatCard}
@@ -95,7 +96,7 @@ export default function ChatScreen() {
             style={styles.searchInput}
           />
         </View>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push("/chatStack/connection")}>
           <Ionicons name="add" size={24} />
         </TouchableOpacity>
       </View>

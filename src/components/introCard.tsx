@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import colourPalette from "../theme/darkPaletter";
 
 type IntroCardProps = {
   backgroundImage: any; // should be the imported image module, not a string path
@@ -62,6 +63,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
     elevation: 5,
+    shadowColor: "white",
   },
   card: {
     width: "90%",
@@ -69,19 +71,25 @@ const styles = StyleSheet.create({
     margin: 20,
     marginBottom: 45,
     padding: 20,
-    backgroundColor: "white",
+    // backgroundColor: "white",
+    backgroundColor: "#1E1E1E",
+    // backgroundColor: colourPalette.backgroundSecondary,
     borderRadius: 20,
+    elevation: 15,
+    shadowColor: "white",
   },
   heading: {
     fontSize: 25,
     fontFamily: "InterBold",
-    color: "#000",
+    // color: "#000",
+    color: colourPalette.textPrimary,
     marginBottom: 10,
   },
   description: {
     fontFamily: "Inter",
     fontSize: 12,
-    color: "#3C3C3C80",
+    // color: "#3C3C3C80",
+    color: colourPalette.textSecondary,
   },
   nextButton: {
     backgroundColor: "#BBCF8D",

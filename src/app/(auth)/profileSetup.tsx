@@ -114,6 +114,7 @@ export default function ProfileSetup() {
 
   const next = () => setStep((s) => Math.min(4, s + 1));
   const prev = () => setStep((s) => Math.max(0, s - 1));
+  const skip = () => {setStep(4); setFinalScreen(!finalScreen);};
   const submit = () => router.push("/connect");
 
   const genderOptions = [
@@ -255,7 +256,7 @@ export default function ProfileSetup() {
         />
 
         <Text style={styles.label}>
-          What do you call yourself at work?{" "}
+          What’s your role?{"\n"}
           <Text style={styles.subLabel}>
             Founder, Product Designer, Sales Ninja... you name it.
           </Text>
@@ -270,7 +271,7 @@ export default function ProfileSetup() {
 
         <ChipInput
           options={["Finance", "AI", "Retail", "Hospitality", "Engineers"]}
-          label={"What space do you belong to?\n"}
+          label={"What industry/sector are you in?\n"}
           subtitle={
             "Finance 💸, AI 🤖, Retail 🧵, Hospitality 🌱... No limits. Add what vibes with you."
           }
@@ -287,7 +288,7 @@ export default function ProfileSetup() {
     () => (
       <>
         <Text style={styles.label}>
-          Where in the world are you building your story?
+          Where in the world are you?
         </Text>
         <TextInput
           style={styles.input}
@@ -407,7 +408,7 @@ export default function ProfileSetup() {
       setFinalScreen(!finalScreen);
     }, 3000);
 
-    return <FinalSetupPage />
+    return <FinalSetupPage />;
   }
 
   // ----------------------------------------------------------------------------
@@ -459,6 +460,17 @@ export default function ProfileSetup() {
           <Text style={splashButtonText}>You are all set</Text>
         </TouchableOpacity>
       )}
+
+      {step >= 2 && (
+        <TouchableOpacity
+          style={styles.skip}
+          onPress={skip}
+          // onPress={() => setFinalScreen(!finalScreen)}
+        >
+          {/* <Entypo name="chevron-left" size={28} color="#fff" /> */}
+          <Text style={styles.skipText}>Skip for now</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -492,7 +504,8 @@ const selectedGenderStyle = { borderColor: "#BBCF8D", borderWidth: 2 };
 const splashButton = {
   position: "absolute",
   bottom: 50,
-  backgroundColor: "#000",
+  // backgroundColor: "#000",
+  backgroundColor: colourPalette.buttonPrimary,
   alignSelf: "center",
   width: "90%",
   height: 50,
@@ -502,7 +515,8 @@ const splashButton = {
 };
 
 const splashButtonText = {
-  color: "#fff",
+  // color: "#fff",
+  color: "#000",
   fontFamily: "InterSemiBold",
   fontSize: 16,
 };
@@ -673,4 +687,21 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
   },
+  skip: {
+    position: "absolute",
+    bottom: 50,
+    left: 30,
+    height: 56,
+    justifyContent: "flex-end",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  skipText: {
+    color: colourPalette.textThird,
+    fontFamily: "InterSemiBold",
+    fontSize: 14,
+  }
 });

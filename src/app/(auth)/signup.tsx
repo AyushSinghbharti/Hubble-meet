@@ -40,8 +40,8 @@ export default function SignUp() {
   const [modalVisible, setModalVisible] = useState(false);
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef<View>(null);
-  const [emailError, setEmailError] = useState("Invalid email address");
-  const [phoneError, setPhoneError] = useState("Invalid phone number");
+  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [acceptTermError, setAcceptTermError] = useState(
     "Please accept the Terms & Conditions to proceed"
   );
@@ -50,11 +50,26 @@ export default function SignUp() {
   const handleSignUp = () => {
     if (!termAccept) {
       setShowTermError(true);
+      setTermModalVisible(!modalVisible);
+      return;
+    }
+    if (!email) {
+      setEmailError("Email is required");
+      return;
+    }
+    if (!phoneNumber) {
+      setPhoneError("Phone number is required");
       return;
     }
 
     router.push("/otpVerify");
   };
+
+  const handleAgreeTerm = () => {
+    setTermModalVisible(false);
+    toogleTerm(true);
+    setShowTermError(false);
+  }
 
   return (
     <View style={styles.container}>
@@ -76,7 +91,7 @@ export default function SignUp() {
           <View
             style={[
               styles.emailContainer,
-              { marginBottom: emailError ? 0 : 8 },
+              { marginBottom: emailError ? 0 : 16 },
             ]}
           >
             <TextInput
@@ -104,7 +119,7 @@ export default function SignUp() {
 
         <Text style={styles.label}>Phone number</Text>
         <View
-          style={[styles.phoneContainer, { marginBottom: phoneError ? 0 : 9 }]}
+          style={[styles.phoneContainer, { marginBottom: phoneError ? 0 : 16 }]}
         >
           <TouchableOpacity
             onPress={() => {
@@ -214,7 +229,10 @@ export default function SignUp() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.signupText}>
+      <Text
+        style={styles.signupText}
+        onPress={() => router.replace("/loginPage")}
+      >
         Don’t have an account? <Text style={styles.signupLink}>Log In</Text>
       </Text>
 
@@ -252,6 +270,7 @@ export default function SignUp() {
       <TermDetailModal
         visible={termModalVisible}
         onClose={() => setTermModalVisible(!termModalVisible)}
+        onAgree={handleAgreeTerm}
       />
     </View>
   );

@@ -16,6 +16,7 @@ const colourPalette = {
   textPrimary: "#FFFFFF",
   textSecondary: "#D1D5DB",
   textDescription: "#9CA3AF",
+  textThird: "#60A5FA",
 
   errorText: "#F87171",
   errorButton: "#B91C1C",

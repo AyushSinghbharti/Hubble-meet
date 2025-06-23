@@ -1,14 +1,9 @@
 import React, { useState } from "react";
-import {
-  View,
-  FlatList,
-  Alert,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
+import { View, FlatList, Alert, StyleSheet, Dimensions } from "react-native";
 import CustomModal from "./Modal/CustomModal";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomCard from "./Cards/vbcCard";
+import { useRouter } from "expo-router";
 
 interface User {
   id: string;
@@ -16,19 +11,17 @@ interface User {
   role: string;
   location: string;
   avatar: any;
-
 }
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
 const CARD_WIDTH = (width - CARD_GAP * 2 - 8) / 2.1; // 8px total horizontal margin (4 + 4)
 
-
-const VbcCard = ({spacing}) => {
+const VbcCard = ({ spacing }) => {
   const [addModal, setAddModal] = useState(false);
   const [blockModal, setBlockModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-
+  const router = useRouter();
   const users: User[] = [
     {
       id: "1",
@@ -74,10 +67,17 @@ const VbcCard = ({spacing}) => {
     },
   ];
 
-  const handleChatPress = (user: User) => Alert.alert("Chat", `Chat with ${user.name}`);
-  const handleSharePress = (user: User) => Alert.alert("Share", `Share ${user.name}`);
+  const handleChatPress = (user: User) => {
+    router.push({
+      pathname: `chatStack/${user.id}`,
+      params: { item: JSON.stringify(user) },
+    });
+  };
+  const handleSharePress = (user: User) =>
+    Alert.alert("Share", `Share ${user.name}`);
   const handleAddPress = (user: User) => setBlockModal(true);
-  const handleProfilePress = (user: User) => Alert.alert("Profile", `Viewing ${user.name}`);
+  const handleProfilePress = (user: User) =>
+    Alert.alert("Profile", `Viewing ${user.name}`);
   const handleBagPress = (user: User) => {
     setSelectedUser(user);
     setAddModal(true);
@@ -91,38 +91,36 @@ const VbcCard = ({spacing}) => {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.listContainer,,{spacing}]}
+        contentContainerStyle={[styles.listContainer, , { spacing }]}
         columnWrapperStyle={styles.row}
-       renderItem={({ item, index }) => (
-  <View
-    style={[
-      styles.cardWrapper,
-      index % 2 !== 0 && { marginTop: 30 }, // add marginTop to every right column
-    ]}
-  >
-    <CustomCard
-      {...item}
-      onChatPress={() => handleChatPress(item)}
-      onSharePress={() => handleSharePress(item)}
-      onAddPress={() => handleAddPress(item)}
-      onBagPress={() => handleBagPress(item)}
-      onProfilePress={() => handleProfilePress(item)}
-    />
-  </View>
-)}
-
+        renderItem={({ item, index }) => (
+          <View
+            style={[
+              styles.cardWrapper,
+              index % 2 !== 0 && { marginTop: 30 }, // add marginTop to every right column
+            ]}
+          >
+            <CustomCard
+              {...item}
+              onChatPress={() => handleChatPress(item)}
+              onSharePress={() => handleSharePress(item)}
+              onAddPress={() => handleAddPress(item)}
+              onBagPress={() => handleBagPress(item)}
+              onProfilePress={() => handleProfilePress(item)}
+            />
+          </View>
+        )}
       />
 
-     <BlockUserModal
-  visible={blockModal}
-  userName="Geetha Reddy"
-  onClose={() => setBlockModal(false)}
-  onSubmit={(reason) => {
-    console.log("Blocked with reason:", reason);
-    setBlockModal(false);
-  }}
-/>
-
+      <BlockUserModal
+        visible={blockModal}
+        userName="Geetha Reddy"
+        onClose={() => setBlockModal(false)}
+        onSubmit={(reason) => {
+          console.log("Blocked with reason:", reason);
+          setBlockModal(false);
+        }}
+      />
 
       {selectedUser && (
         <CustomModal
@@ -144,17 +142,17 @@ const VbcCard = ({spacing}) => {
 export default VbcCard;
 
 const styles = StyleSheet.create({
-listContainer: {
-paddingHorizontal:10,
-  paddingTop: 16,
-},
+  listContainer: {
+    paddingHorizontal: 10,
+    paddingTop: 16,
+    paddingBottom: 130,
+  },
 
   row: {
     justifyContent: "space-between",
-  
   },
   cardWrapper: {
     width: CARD_WIDTH,
-    marginLeft:-10
+    marginLeft: -10,
   },
 });
