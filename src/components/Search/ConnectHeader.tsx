@@ -85,7 +85,7 @@ const Header = ({ logoSource, onSearch }) => {
             <Feather
               name={searchActive ? 'x' : 'search'}
               size={20}
-              style={{right:6}}
+              style={{right:Platform.OS === "ios"? 0 :6}}
               color="#94A3B8"
             />
           </TouchableOpacity>
