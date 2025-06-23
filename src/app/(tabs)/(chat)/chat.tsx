@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import Swipeable, {
+  SwipeableMethods,
+  SwipeableRef,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
+import PopUpOption from "../../../components/chatScreenComps/popUpOption";
 
 const dummyChats = [
   {
@@ -41,42 +46,81 @@ const dummyChats = [
   },
 ];
 
-const router = useRouter();
-
-const RenderCard = ({ item }: { item: any }) => {
-  return (
-    <TouchableOpacity
-      style={styles.chatCard}
-      onPress={() =>
-        router.push({
-          pathname: `chatStack/${item.id}`,
-          params: { item: JSON.stringify(item) },
-        })
-      }
-    >
-      <View style={styles.leftSection}>
-        <View style={styles.imageWrapper}>
-          <Image source={item.image} style={styles.avatar} />
-          {item.online && <View style={styles.onlineDot} />}
-        </View>
-        <View style={styles.chatText}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.message}>{item.lastMessage}</Text>
-        </View>
-      </View>
-      <View style={styles.rightSection}>
-        <Text style={styles.time}>{item.time}</Text>
-        {item.unread > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.unread}</Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-};
-
 export default function ChatScreen() {
+  const router = useRouter();
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showdeleteModal, setDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const SwipeActionBar = () => {
+    return (
+      <View style={styles.swipeActionBar}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => setShowBlockModal(!showBlockModal)}
+        >
+          <Image
+            source={require("../../../../assets/icons/block.png")}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => setDeleteModal(!showdeleteModal)}
+        >
+          <Image
+            source={require("../../../../assets/icons/delete.png")}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const RenderCard = ({ item }: { item: any }) => {
+    const swipeRowRef = useRef<SwipeableMethods | null>(null);
+    return (
+      <Swipeable
+        ref={swipeRowRef}
+        renderRightActions={() => <SwipeActionBar />}
+        overshootRight={false}
+        friction={2}
+        enableTrackpadTwoFingerGesture={true}
+        onSwipeableOpen={() => setSelectedUser(item)}
+        // containerStyle={{ width: "50%" }}
+      >
+        <TouchableOpacity
+          style={styles.chatCard}
+          onPress={() =>
+            router.push({
+              pathname: `chatStack/${item.id}`,
+              params: { item: JSON.stringify(item) },
+            })
+          }
+        >
+          <View style={styles.leftSection}>
+            <View style={styles.imageWrapper}>
+              <Image source={item.image} style={styles.avatar} />
+              {item.online && <View style={styles.onlineDot} />}
+            </View>
+            <View style={styles.chatText}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.message}>{item.lastMessage}</Text>
+            </View>
+          </View>
+          <View style={styles.rightSection}>
+            <Text style={styles.time}>{item.time}</Text>
+            {item.unread > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{item.unread}</Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Chats</Text>
@@ -96,7 +140,10 @@ export default function ChatScreen() {
             style={styles.searchInput}
           />
         </View>
-        <TouchableOpacity style={styles.addButton} onPress={() => router.push("/chatStack/connection")}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => router.push("/chatStack/connection")}
+        >
           <Ionicons name="add" size={24} />
         </TouchableOpacity>
       </View>
@@ -107,6 +154,37 @@ export default function ChatScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingTop: 10 }}
         renderItem={({ item }) => <RenderCard item={item} />}
+      />
+
+      {/* Modals */}
+      <PopUpOption
+        visible={showBlockModal}
+        onClose={() => setShowBlockModal(!showBlockModal)}
+        onSelect={() => {
+          setShowBlockModal(!showBlockModal);
+          alert("User Blocked");
+        }}
+        message={`Block ${selectedUser?.name} user?`}
+        description={
+          "Blocked contacts cannot send you message.This contact will not be notified"
+        }
+        acceptButtonName={"Block User"}
+        cancelButtonName={"Cancel"}
+      />
+
+      <PopUpOption
+        visible={showdeleteModal}
+        onClose={() => setDeleteModal(!setDeleteModal)}
+        onSelect={() => {
+          setDeleteModal(!setDeleteModal);
+          alert("Chat Cleared");
+        }}
+        message={`Clear ${selectedUser?.name}'s chat?`}
+        description={
+          "Also delete media received in this chat from the device gallery"
+        }
+        acceptButtonName={"Block User"}
+        cancelButtonName={"Cancel"}
       />
     </View>
   );
@@ -161,6 +239,8 @@ const styles = StyleSheet.create({
     elevation: 1,
     borderBottomColor: "#E2E8F0",
     borderBottomWidth: 1,
+
+    minHeight: 72,
   },
   leftSection: { flexDirection: "row", alignItems: "center" },
   imageWrapper: {
@@ -216,5 +296,34 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 12,
     fontWeight: "bold",
+  },
+
+  //Icon
+  swipeActionBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    // Match height and spacing exactly with chatCard
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+    marginVertical: 6,
+    paddingRight: 12,
+    minHeight: 72,
+    // minWidth: 100,
+    minWidth: "40%",
+  },
+
+  actionBtn: {
+    backgroundColor: "transparent",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  icon: {
+    width: 28,
+    height: 28,
+    resizeMode: "contain",
   },
 });

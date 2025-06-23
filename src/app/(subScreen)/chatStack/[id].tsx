@@ -4,16 +4,13 @@ import {
   KeyboardAvoidingView,
   StyleSheet,
   Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-  TextInput,
   Modal,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import ChatHeader from "../../../components/chatScreenComps/chatHeader";
 import ChatBody from "../../../components/chatScreenComps/chatBody";
 import ChatFooter from "../../../components/chatScreenComps/chatFooter";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AttachmentSheet from "../../../components/chatScreenComps/attachmentSheet";
 import HeaderPopupMenu from "../../../components/chatScreenComps/headerPopup";
 import PopUpOption from "../../../components/chatScreenComps/popUpOption";
