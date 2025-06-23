@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   icon: {
+    zIndex: 2,
     padding: 20,
     position: "absolute",
     justifyContent: "center",
