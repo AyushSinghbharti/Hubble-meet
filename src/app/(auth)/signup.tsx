@@ -12,6 +12,7 @@ import SelectCountryModal from "../../components/selectCountryModal";
 import ErrorAlert from "../../components/errorAlert";
 import { useRouter } from "expo-router";
 import TermDetailModal from "../../components/termDetailModal";
+import colourPalette from "../../theme/darkPaletter";
 
 type Country = {
   name: string;
@@ -41,7 +42,9 @@ export default function SignUp() {
   const flagBoxRef = useRef<View>(null);
   const [emailError, setEmailError] = useState("Invalid email address");
   const [phoneError, setPhoneError] = useState("Invalid phone number");
-  const [acceptTermError, setAcceptTermError] = useState("Please accept the Terms & Conditions to proceed");
+  const [acceptTermError, setAcceptTermError] = useState(
+    "Please accept the Terms & Conditions to proceed"
+  );
   const [showTermError, setShowTermError] = useState(false);
 
   const handleSignUp = () => {
@@ -51,7 +54,7 @@ export default function SignUp() {
     }
 
     router.push("/otpVerify");
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -60,7 +63,10 @@ export default function SignUp() {
         style={styles.logo}
       />
       {showTermError ? (
-        <ErrorAlert message={acceptTermError} onClose={() => setShowTermError(!showTermError)} />
+        <ErrorAlert
+          message={acceptTermError}
+          onClose={() => setShowTermError(!showTermError)}
+        />
       ) : (
         <Text style={styles.title}>Sign Up</Text>
       )}
@@ -68,7 +74,10 @@ export default function SignUp() {
         <View>
           <Text style={styles.label}>Email</Text>
           <View
-            style={[styles.emailContainer, { marginBottom: emailError ? 0 : 8 }]}
+            style={[
+              styles.emailContainer,
+              { marginBottom: emailError ? 0 : 8 },
+            ]}
           >
             <TextInput
               value={email}
@@ -78,7 +87,11 @@ export default function SignUp() {
               keyboardType="email-address"
               style={[
                 styles.phoneInput,
-                { borderColor: emailError ? "red" : "black" },
+                {
+                  borderColor: emailError
+                    ? colourPalette.errorButton
+                    : colourPalette.inputBorder,
+                },
               ]}
             />
           </View>
@@ -90,7 +103,9 @@ export default function SignUp() {
         </View>
 
         <Text style={styles.label}>Phone number</Text>
-        <View style={[styles.phoneContainer, { marginBottom: phoneError ? 0 : 9 }]}>
+        <View
+          style={[styles.phoneContainer, { marginBottom: phoneError ? 0 : 9 }]}
+        >
           <TouchableOpacity
             onPress={() => {
               flagBoxRef.current?.measureInWindow((x, y, width, height) => {
@@ -143,27 +158,36 @@ export default function SignUp() {
         >
           <TouchableOpacity
             onPress={() => toogleTerm(!termAccept)}
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: 6,
-              borderWidth: 1,
-              borderColor: "#CBD5E1",
-              alignItems: "center",
-              justifyContent: "center",
-              marginRight: 10,
-              backgroundColor: !termAccept ? "#fff" : "#000",
-            }}
+            style={[
+              styles.termCheckBox,
+              {
+                // backgroundColor: !termAccept ? "#fff" : "#000",
+                backgroundColor: !termAccept ? colourPalette.surface : "#000",
+              },
+            ]}
           >
             {termAccept && <FontAwesome name="check" size={16} color="#fff" />}
           </TouchableOpacity>
-          <Text style={{ color: "#000", fontSize: 14, width: "90%" }} onPress={() => setTermModalVisible(!termModalVisible)}>
+          <Text
+            style={styles.termFont}
+            onPress={() => setTermModalVisible(!termModalVisible)}
+          >
             I agree with{" "}
-            <Text style={{ textDecorationLine: "underline" }}>
+            <Text
+              style={{
+                textDecorationLine: "underline",
+                fontFamily: "InterBold",
+              }}
+            >
               Private Policy{" "}
             </Text>
             and{" "}
-            <Text style={{ textDecorationLine: "underline" }}>
+            <Text
+              style={{
+                textDecorationLine: "underline",
+                fontFamily: "InterBold",
+              }}
+            >
               Terms and Conditions
             </Text>
           </Text>
@@ -172,7 +196,17 @@ export default function SignUp() {
         <TouchableOpacity
           style={[
             styles.loginBtn,
-            { backgroundColor: phoneNumber ? "#000" : "#CBD5E1" },
+            {
+              //  backgroundColor: phoneNumber ? "#000" : "#CBD5E1",
+              backgroundColor:
+                phoneNumber && termAccept && email
+                  ? colourPalette.buttonSecondary
+                  : colourPalette.buttonSecondaryDisabled,
+              borderColor:
+                phoneNumber && termAccept && email
+                  ? colourPalette.buttonSecondaryBorder
+                  : colourPalette.buttonSecondaryBorderDisabled,
+            },
           ]}
           onPress={handleSignUp}
         >
@@ -215,7 +249,10 @@ export default function SignUp() {
         position={flagBoxPosition}
       />
 
-      <TermDetailModal visible={termModalVisible} onClose={() => setTermModalVisible(!termModalVisible)} />
+      <TermDetailModal
+        visible={termModalVisible}
+        onClose={() => setTermModalVisible(!termModalVisible)}
+      />
     </View>
   );
 }
@@ -223,7 +260,8 @@ export default function SignUp() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    // backgroundColor: "white",
+    backgroundColor: colourPalette.backgroundPrimary,
     alignItems: "center",
     width: "100%",
   },
@@ -236,8 +274,8 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "InterBold",
     fontSize: 22,
-    color: "black",
-    // fontWeight: "bold",
+    // color: "black",
+    color: colourPalette.textPrimary,
     marginBottom: 36,
   },
   form: {
@@ -245,7 +283,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   label: {
-    color: "#000",
+    // color: "#000",
+    color: colourPalette.textPrimary,
     fontSize: 18,
     fontWeight: "900",
     marginBottom: 8,
@@ -254,8 +293,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   error: {
+    color: colourPalette.errorText,
     fontFamily: "Inter",
-    color: "red",
   },
   phoneContainer: {
     flexDirection: "row",
@@ -263,8 +302,10 @@ const styles = StyleSheet.create({
   flagBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderColor: "#CBD5E1",
+    // backgroundColor: "#fff",
+    // borderColor: "#CBD5E1",
+    backgroundColor: colourPalette.inputBackground,
+    borderColor: colourPalette.inputBorder,
     borderWidth: 1,
     borderRadius: 8,
     marginRight: 12,
@@ -277,20 +318,41 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   countryCode: {
-    fontWeight: "600",
+    fontFamily: "Inter",
+    color: colourPalette.textPrimary,
     marginRight: 8,
+    marginLeft: 3,
   },
   phoneInput: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderColor: "#CBD5E1",
+    backgroundColor: colourPalette.inputBackground,
+    borderColor: colourPalette.inputBorder,
+    // backgroundColor: "#fff",
+    // borderColor: "#CBD5E1",
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
     fontSize: 16,
-    color: "#000",
+    color: colourPalette.textPrimary,
+  },
+  termCheckBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  termFont: {
+    color: colourPalette.textPrimary,
+    fontSize: 14,
+    width: "90%",
+    fontFamily: "Inter",
   },
   loginBtn: {
+    borderWidth: 1,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
@@ -302,7 +364,7 @@ const styles = StyleSheet.create({
     fontFamily: "InterBold",
   },
   signupText: {
-    color: "#000",
+    color: colourPalette.textPrimary,
     textAlign: "center",
     fontSize: 16,
     marginBottom: 35,
@@ -316,17 +378,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   orText: {
-    color: "black",
+    color: colourPalette.textPrimary,
     fontSize: 14,
+    fontFamily: "Inter",
   },
   orBold: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "InterBold",
   },
   line: {
     flex: 1,
     height: 1,
-    backgroundColor: "black",
+    backgroundColor: colourPalette.divider,
     marginHorizontal: 16,
   },
   socialContainer: {

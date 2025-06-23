@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import SelectCountryModal from "../../components/selectCountryModal";
 import { StatusBar } from "expo-status-bar";
 import { Link } from "expo-router";
+import colourPalette from "../../theme/darkPaletter";
 
 type Country = {
   name: string;
@@ -19,8 +20,7 @@ type Country = {
   dial_code: string;
 };
 
-const GOOGLE_ICON =
-  "https://img.icons8.com/color/512/google-logo.png";
+const GOOGLE_ICON = "https://img.icons8.com/color/512/google-logo.png";
 const FACEBOOK_ICON =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSy0dDdi3KJgMq_87aJt9us_0yh69ewaKgUzg&s";
 
@@ -82,20 +82,29 @@ export default function Login() {
           />
         </View>
 
-        <Link href={"/connect"}
+        <Link
+          href={"/connect"}
           style={[
             styles.loginBtn,
-            { backgroundColor: phoneNumber ? "#000" : "#CBD5E1", textAlign: "center" },
+            {
+              backgroundColor: phoneNumber
+                ? colourPalette.buttonSecondary
+                : colourPalette.buttonSecondaryDisabled,
+              borderColor: phoneNumber
+                ? colourPalette.buttonSecondaryBorder
+                : colourPalette.buttonSecondaryBorderDisabled,
+              textAlign: "center",
+            },
           ]}
         >
           <Text style={styles.loginText}>Log in</Text>
         </Link>
       </View>
-      
+
       <Link href={"/signup"} style={styles.signupText}>
-      <Text style={styles.signupText}>
-        Don’t have an account? <Text style={styles.signupLink}>Sign Up</Text>
-      </Text>
+        <Text style={styles.signupText}>
+          Don’t have an account? <Text style={styles.signupLink}>Sign Up</Text>
+        </Text>
       </Link>
 
       <View style={styles.orContainer}>
@@ -135,7 +144,8 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    // backgroundColor: "white",
+    backgroundColor: colourPalette.backgroundPrimary,
     alignItems: "center",
     width: "100%",
   },
@@ -147,8 +157,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    color: "black",
-    fontWeight: "bold",
+    color: colourPalette.textPrimary,
+    fontFamily: "InterBold",
     marginBottom: 36,
   },
   form: {
@@ -156,9 +166,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   label: {
-    color: "#000",
+    // color: "#000",
+    color: colourPalette.textPrimary,
     fontSize: 18,
-    fontWeight: "900",
+    fontFamily: "InterMedium",
     marginBottom: 8,
   },
   phoneContainer: {
@@ -168,8 +179,8 @@ const styles = StyleSheet.create({
   flagBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderColor: "#CBD5E1",
+    backgroundColor: colourPalette.inputBackground,
+    borderColor: colourPalette.inputBorder,
     borderWidth: 1,
     borderRadius: 8,
     marginRight: 12,
@@ -182,38 +193,45 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   countryCode: {
+    color: colourPalette.textSecondary,
+    fontFamily: "Inter",
+    marginLeft: 3,
     fontWeight: "600",
     marginRight: 8,
   },
   phoneInput: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderColor: "#CBD5E1",
+    color: colourPalette.textSecondary,
+    backgroundColor: colourPalette.inputBackground,
+    borderColor: colourPalette.inputBorder,
+    // borderColor: "#CBD5E1",
+    fontFamily: "Inter",
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
     fontSize: 16,
-    color: "#000",
   },
   loginBtn: {
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
     marginBottom: 35,
+    borderWidth: 1,
   },
   loginText: {
-    color: "#FFF",
+    color: colourPalette.textPrimary,
     fontSize: 18,
-    fontFamily: "InterBold"
+    fontFamily: "InterBold",
   },
   signupText: {
-    color: "#000",
+    color: colourPalette.textPrimary,
+    fontFamily: "Inter",
     textAlign: "center",
     fontSize: 16,
     marginBottom: 35,
   },
   signupLink: {
-    fontFamily: "InterBold"
+    fontFamily: "InterBold",
   },
   orContainer: {
     flexDirection: "row",
@@ -221,17 +239,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   orText: {
-    color: "black",
+    color: colourPalette.textPrimary,
+    fontFamily: "Inter",
     fontSize: 14,
   },
   orBold: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "InterBold",
   },
   line: {
     flex: 1,
     height: 1,
-    backgroundColor: "black",
+    backgroundColor: colourPalette.divider,
     marginHorizontal: 16,
   },
   socialContainer: {

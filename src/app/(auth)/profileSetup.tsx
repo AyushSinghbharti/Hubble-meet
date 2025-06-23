@@ -12,28 +12,28 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { Entypo, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import SplashScreenSecond from "../(splash)/second";
 import { useRouter } from "expo-router";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import ProfileCard from "../../components/profileSetupComps/profileCard";
 import InitialScreen from "../../components/profileSetupComps/initialScreen";
 import FinalSetupPage from "../../components/profileSetupComps/finalScreen";
 import TagDropdown from "../../components/TagDropdown";
+import colourPalette from "../../theme/darkPaletter";
 
 const ChipInput = ({
   label,
   placeholder,
   items,
   setItems,
-  subtitle,
+  subtitle = "",
   options = [""],
 }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ marginBottom: 20 }}
+      style={styles.chipContainer}
     >
       <Text style={styles.label}>
         {label}
@@ -44,6 +44,7 @@ const ChipInput = ({
         selected={items}
         onChange={setItems}
         placeholder={placeholder}
+        darkMode={true}
       />
     </KeyboardAvoidingView>
   );
@@ -65,6 +66,7 @@ export default function ProfileSetup() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [address, setAddress] = useState("");
+  const [shareVBC, setShareVBC] = useState(false);
 
   const [worklist, setWorklist] = useState([]); // companies / workplaces
   const [spaces, setSpaces] = useState(["Fintech", "Fashion", "AI"]);
@@ -131,6 +133,7 @@ export default function ProfileSetup() {
         <TextInput
           style={styles.input}
           placeholder="Enter Name"
+          placeholderTextColor="#aaa"
           value={name}
           onChangeText={setName}
         />
@@ -138,8 +141,9 @@ export default function ProfileSetup() {
         <Text style={styles.label}>When were you born?</Text>
         <View style={[styles.input, centerRow]}>
           <TextInput
-            style={{ flex: 1 }}
+            style={{ flex: 1, color: colourPalette.textPrimary }}
             placeholder="DD/MM/YYYY"
+            placeholderTextColor="#aaa"
             value={dob}
             onChangeText={setDOB}
           />
@@ -166,7 +170,14 @@ export default function ProfileSetup() {
               style={[styles.genderBtn, gender === g && selectedGenderStyle]}
               onPress={() => setGender(g)}
             >
-              <Text>{g}</Text>
+              <Text
+                style={{
+                  fontFamily: "InterMedium",
+                  color: colourPalette.textPrimary,
+                }}
+              >
+                {g}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -184,14 +195,21 @@ export default function ProfileSetup() {
         </Text>
         <View style={[styles.input, bioBox]}>
           <TextInput
-            style={{ flex: 1 }}
+            style={{
+              flex: 1,
+              color: colourPalette.textPrimary,
+              fontFamily: "InterMedium",
+            }}
             placeholder="A Short Bio..."
             multiline
+            placeholderTextColor="#aaa"
             maxLength={160}
             value={bio}
             onChangeText={setBio}
           />
-          <Text style={{ alignSelf: "flex-end", marginBottom: 8 }}>
+          <Text
+            style={{ alignSelf: "flex-end", marginBottom: 8, color: "#aaa" }}
+          >
             {bio.length}/160
           </Text>
         </View>
@@ -202,6 +220,7 @@ export default function ProfileSetup() {
         <TextInput
           style={[styles.input, noMargin]}
           placeholder="Enter email"
+          placeholderTextColor="#aaa"
           value={email}
           onChangeText={setEmail}
         />
@@ -211,7 +230,10 @@ export default function ProfileSetup() {
         <TextInput
           style={[styles.input, noMargin]}
           placeholder="Enter mobile number"
+          placeholderTextColor="#aaa"
           value={phoneNumber}
+          keyboardType="phone-pad"
+          maxLength={10}
           onChangeText={setPhoneNumber}
         />
         <Text style={styles.otpText}>Verify with OTP</Text>
@@ -241,6 +263,7 @@ export default function ProfileSetup() {
         <TextInput
           style={styles.input}
           placeholder="Enter Job Title"
+          placeholderTextColor="#aaa"
           value={jobTitle}
           onChangeText={setJobTitle}
         />
@@ -270,6 +293,7 @@ export default function ProfileSetup() {
           style={styles.input}
           placeholder="Enter City"
           value={address}
+          placeholderTextColor="#aaa"
           onChangeText={setAddress}
         />
 
@@ -282,7 +306,7 @@ export default function ProfileSetup() {
             "art & design",
             "gaming",
             "sustainability",
-            "travel & hospitality"
+            "travel & hospitality",
           ]}
           label="What kind of people are you looking to connect with?"
           placeholder="Add type"
@@ -299,7 +323,7 @@ export default function ProfileSetup() {
             "Tokyo",
             "Paris",
             "Dubai",
-            "Singapore"
+            "Singapore",
           ]}
           label="Any cities on your radar?"
           placeholder="Add City"
@@ -316,7 +340,7 @@ export default function ProfileSetup() {
             "Marketers",
             "Investors",
             "Growth Hackers",
-            "Content Creators"
+            "Content Creators",
           ]}
           label="Looking for founders? Designers? Product?"
           placeholder="Add Role"
@@ -350,7 +374,13 @@ export default function ProfileSetup() {
               Allow Matched Users to Share Your VBCs to their Connections in the
               App
             </Text>
-            <Switch />
+            <Switch
+              trackColor={{ false: "#3F3F46", true: "#6366F1" }} // muted gray → indigo
+              thumbColor={shareVBC ? "#E5E7EB" : "#9CA3AF"} // light thumb when on, soft gray when off
+              ios_backgroundColor="#3F3F46" // for iOS fallback
+              onValueChange={setShareVBC}
+              value={shareVBC}
+            />
           </View>
         </View>
 
@@ -377,7 +407,7 @@ export default function ProfileSetup() {
       setFinalScreen(!finalScreen);
     }, 3000);
 
-    return <FinalSetupPage />;
+    return <FinalSetupPage />
   }
 
   // ----------------------------------------------------------------------------
@@ -389,7 +419,7 @@ export default function ProfileSetup() {
       <View style={styles.header}>
         {step !== 0 ? (
           <TouchableOpacity onPress={prev} style={styles.iconBtn}>
-            <Ionicons name="chevron-back" size={22} />
+            <Ionicons name="chevron-back" size={22} color="white" />
           </TouchableOpacity>
         ) : (
           <View style={{ width: 22 }} />
@@ -419,7 +449,7 @@ export default function ProfileSetup() {
           style={styles.fab}
           onPress={step === 4 ? submit : next}
         >
-          <Ionicons name="checkmark" size={28} color="#fff" />
+          <Entypo name="chevron-right" size={28} color="#fff" />
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
@@ -478,7 +508,11 @@ const splashButtonText = {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F1FCE9" },
+  container: {
+    flex: 1,
+    // backgroundColor: "#F1FCE9",
+    backgroundColor: colourPalette.backgroundSecondary,
+  },
 
   /* header */
   header: {
@@ -489,38 +523,56 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 10,
   },
-  headerText: { fontSize: 14, fontFamily: "InterItalicBold" },
-  headerCount: { fontSize: 14, fontFamily: "InterBold" },
+  headerText: {
+    fontSize: 14,
+    fontFamily: "InterItalicBold",
+    color: colourPalette.textPrimary,
+  },
+  headerCount: {
+    fontSize: 14,
+    fontFamily: "InterBold",
+    color: colourPalette.textPrimary,
+  },
   iconBtn: { padding: 4 },
 
   /* progress */
   progressBg: {
     height: 8,
-    backgroundColor: "#DFDFDF",
+    // backgroundColor: "#DFDFDF",
+    backgroundColor: colourPalette.progressBackground,
     marginHorizontal: 16,
     borderRadius: 8,
   },
   progressFill: {
     height: 8,
     borderRadius: 8,
-    backgroundColor: "#BBCF8D",
+    backgroundColor: colourPalette.progressActive,
   },
 
   /* form generic */
   scroll: { padding: 20 },
-  label: { fontSize: 18, fontFamily: "InterBold", marginBottom: 10 },
+  label: {
+    fontSize: 18,
+    fontFamily: "InterBold",
+    marginBottom: 10,
+    color: colourPalette.textPrimary,
+  },
   subLabel: {
     fontSize: 15,
     fontFamily: "InterMediumItalic",
-    color: "#606060",
+    // color: "#606060",
+    color: colourPalette.textSecondary,
   },
   input: {
-    backgroundColor: "white",
+    // backgroundColor: "white",
+    backgroundColor: colourPalette.inputBackground,
     minHeight: 55,
     paddingHorizontal: 12,
     borderRadius: 10,
     marginBottom: 20,
-    borderColor: "#ccc",
+    // borderColor: "#ccc",
+    borderColor: colourPalette.inputBorder,
+    color: colourPalette.textPrimary,
     fontFamily: "InterSemiBold",
     fontSize: 14,
     borderWidth: 1,
@@ -537,7 +589,8 @@ const styles = StyleSheet.create({
   },
   rowWrap: { flexDirection: "row", flexWrap: "wrap", marginBottom: 20 },
   genderBtn: {
-    borderColor: "#645E7033",
+    // borderColor: "#645E7033",
+    borderColor: colourPalette.inputBorder,
     borderWidth: 1,
     width: "45%",
     minHeight: 45,
@@ -549,12 +602,7 @@ const styles = StyleSheet.create({
   },
 
   /* chip */
-  chipContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    alignItems: "center",
-  },
+  chipContainer: { marginBottom: 20 },
   chip: {
     flexDirection: "row",
     backgroundColor: "#BBCF8D",
@@ -580,14 +628,22 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderStyle: "dashed",
-    borderColor: "#BBCF8D",
+    // borderColor: "#BBCF8D",
+    // backgroundColor: "#fff",
+    backgroundColor: colourPalette.inputBackground,
+    borderColor: colourPalette.inputBorder,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
-    backgroundColor: "#fff",
     alignSelf: "center",
   },
-  image: { width: "100%", height: "100%", borderRadius: 12 },
+  image: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 12,
+    // backgroundColor: "#F1FCE9",
+    backgroundColor: colourPalette.inputBackground,
+  },
   switchRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -604,7 +660,7 @@ const styles = StyleSheet.create({
   /* fab */
   fab: {
     position: "absolute",
-    bottom: 30,
+    bottom: 50,
     right: 30,
     backgroundColor: "#A2BF71",
     width: 56,

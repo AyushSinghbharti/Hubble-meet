@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, StatusBar } from "react-native";
+import colourPalette from "../../theme/darkPaletter";
 
 const FinalSetupPage: React.FC = () => {
   return (
@@ -7,10 +8,12 @@ const FinalSetupPage: React.FC = () => {
       style={{
         flex: 1,
         alignItems: "center",
-        backgroundColor: "#9CE89D33",
+        // backgroundColor: "#9CE89D33",
+        backgroundColor: colourPalette.backgroundSecondary,
         marginTop: 40,
       }}
     >
+      <StatusBar barStyle="dark-content" />
       {/* <SplashScreenSecond /> */}
       <Image
         source={require("../../../assets/images/logo.png")}
@@ -20,7 +23,8 @@ const FinalSetupPage: React.FC = () => {
         style={{
           fontSize: 16,
           fontFamily: "InterMediumItalic",
-          color: "#000",
+          // color: "#000",
+          color: colourPalette.textPrimary,
           textAlign: "center",
           marginBottom: 21,
         }}
@@ -31,7 +35,7 @@ const FinalSetupPage: React.FC = () => {
         style={{
           fontSize: 30,
           fontFamily: "InterMediumItalic",
-          color: "#596C2D",
+          color: "#A3C25B",
           textAlign: "center",
         }}
       >
