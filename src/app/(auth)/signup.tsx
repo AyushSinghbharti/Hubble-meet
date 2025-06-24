@@ -177,7 +177,7 @@ export default function SignUp() {
               keyboardType="phone-pad"
               style={[
                 styles.phoneInput,
-                { borderColor: phoneError ? "red" : "black" },
+                { borderColor: phoneError ? "red" : colourPalette.inputBorder },
               ]}
             />
           </View>
