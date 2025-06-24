@@ -13,13 +13,13 @@ const MessageAction = ({
   isVisible = false,
   topOffset = 150,
   leftOffset = 10,
-  onAction = () => {},
+  onAction = (action: string) => {},
 }) => {
   if (!isVisible) return null;
 
   const [viewDelete, setViewDelete] = useState(false);
 
-  if (viewDelete) {
+  const DeleteOptionModal = () => {
     return (
       <TouchableOpacity
         style={{
@@ -43,22 +43,52 @@ const MessageAction = ({
           style={[
             {
               width: "90%",
-              height: 127,
+              minHeight: 127,
               backgroundColor: "white",
               alignItems: "center",
               // justifyContent: "space-evenly",
               justifyContent: "center",
               gap: 13,
-              borderRadius: 20
+              borderRadius: 20,
             },
           ]}
         >
-          <Text style={{fontSize: 16, fontFamily: "Inter"}}>Delete For everyone</Text>
-          <View style={{borderWidth: 0.5, width: "90%", borderColor: "#E3E3E3"}} />
-          <Text style={{fontSize: 16, fontFamily: "Inter"}}>Delete For me</Text>
+          <TouchableOpacity
+            style={{
+              width: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            hitSlop={15}
+            onPress={() => {}}
+          >
+            <Text style={{ fontSize: 16, fontFamily: "Inter" }}>
+              Delete For everyone
+            </Text>
+          </TouchableOpacity>
+          <View
+            style={{ borderWidth: 0.5, width: "90%", borderColor: "#E3E3E3" }}
+          />
+          <TouchableOpacity
+            style={{
+              width: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            hitSlop={15}
+            onPress={() => {}}
+          >
+            <Text style={{ fontSize: 16, fontFamily: "Inter" }}>
+              Delete For me
+            </Text>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
+  };
+
+  if (viewDelete) {
+    return <DeleteOptionModal />;
   }
 
   return (
@@ -77,9 +107,7 @@ const MessageAction = ({
         />
       </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => setViewDelete(!viewDelete)}
-      >
+      <TouchableOpacity onPress={() => setViewDelete(!viewDelete)}>
         <Image
           source={require("../../../assets/icons/delete.png")}
           style={styles.icon}

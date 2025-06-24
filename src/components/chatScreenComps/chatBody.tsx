@@ -35,11 +35,33 @@ function dateLabel(date: Date) {
   });
 }
 
-export default function ChatBody({ messages }: { messages: ChatMsg[] }) {
+interface ChatBodyProps {
+  messages: ChatMsg[];
+  onReply?: (message: ChatMsg | null) => void;
+  onDelete?: (messageId: string) => void;
+  onStar?: (messageId: string) => void;
+}
+
+export default function ChatBody({
+  messages,
+  onReply,
+  onDelete,
+  onStar,
+}: ChatBodyProps) {
   const [messageProps, setMessageprops] = useState({ x: 0, y: 0, h: 0, w: 0 });
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
     null
   );
+  const [selectedMessage, setSelectedMessage] = useState<ChatMsg | null>(null);
+
+  const onAction = (action: "reply" | "star" | "delete") => {
+    if (action === "reply") {
+      if (onReply) onReply(selectedMessage);
+    } else if (action === "star") {
+      alert("Star message with ID:" + selectedMessageId);
+    }
+    setSelectedMessageId(null);
+  };
 
   const renderItem = ({ item }: { item: ChatMsg }) => {
     const me = item.isMe;
@@ -47,15 +69,12 @@ export default function ChatBody({ messages }: { messages: ChatMsg[] }) {
 
     return (
       <Pressable
-        style={[
-          styles.row,
-          me && styles.rowEnd,
-          isSelected && styles.onMenu,
-        ]}
+        style={[styles.row, me && styles.rowEnd, isSelected && styles.onMenu]}
         onPress={(event) => {
           event.target.measure((fx, fy, width, height, px, py) => {
             setMessageprops({ x: px, y: py, w: width, h: height });
             setSelectedMessageId((prev) => (prev === item.id ? null : item.id));
+            setSelectedMessage((prev) => (prev === item ? null : item));
           });
         }}
       >
@@ -94,7 +113,7 @@ export default function ChatBody({ messages }: { messages: ChatMsg[] }) {
       contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
     >
       <MessageAction
-        onAction={() => {}}
+        onAction={onAction}
         isVisible={isMenuVisible}
         topOffset={
           messageProps.y > 550
@@ -147,7 +166,7 @@ const styles = StyleSheet.create({
   listContent: { paddingBottom: 9 },
 
   /* Message rows */
-  row: { flexDirection: "row", paddingHorizontal: 8},
+  row: { flexDirection: "row", paddingHorizontal: 8 },
   rowEnd: { justifyContent: "flex-end" },
   onMenu: {
     backgroundColor: "#000",

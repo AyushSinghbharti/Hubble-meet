@@ -7,47 +7,85 @@ import {
   StatusBar,
   Image,
   Modal,
-  Text
+  Text,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 interface ChatFooterProps {
   message: string;
   useMessage: (text: string) => void;
   onPress: () => void;
-  onLayout: any
+  onLayout: any;
+  selectedMessage?: any; // Assuming seletedMessage is not used in this component
+  onCancelReply?: () => void; // Optional callback for canceling reply
 }
 
-const ChatFooter = ({onLayout, message, useMessage, onPress }: ChatFooterProps) => {
-
+const ChatFooter = ({
+  onLayout,
+  message,
+  useMessage,
+  onPress,
+  selectedMessage, // Assuming seletedMessage is not used in this component
+  onCancelReply = () => {},
+}: ChatFooterProps) => {
   return (
     <View style={styles.container} onLayout={onLayout}>
-      {/* Camera icon */}
-      <TouchableOpacity style={styles.IconContainer} onPress={onPress}>
-        <Image
-          source={require("../../../assets/icons/attach.png")}
-          style={styles.attachIcon}
-        />
-      </TouchableOpacity>
+      {/* Reply Bar */}
+      {selectedMessage && (
+        <View style={styles.replyContainer}>
+          <View style={styles.replyHolder}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={styles.replyText}>{selectedMessage.name}</Text>
+              <TouchableOpacity onPress={onCancelReply}>
+                <Entypo
+                  name="cross"
+                  size={24}
+                  color="black"
+                  onPress={onCancelReply}
+                />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.replyMessage} numberOfLines={2}>
+              {selectedMessage.text}
+            </Text>
+          </View>
+        </View>
+      )}
 
-      {/* Message Input */}
-      <View style={styles.inputWrapper}>
-        <TextInput
-          value={message}
-          onChangeText={(text) => useMessage(text)}
-          style={styles.input}
-          placeholder="Type a message..."
-          placeholderTextColor="#888"
-          multiline
-        />
-
-        {/* Send button */}
-        <TouchableOpacity>
+      <View style={styles.footerContainer}>
+        {/* Camera icon */}
+        <TouchableOpacity style={styles.IconContainer} onPress={onPress}>
           <Image
-            source={require("../../../assets/icons/send.png")}
-            style={[styles.attachIcon, { tintColor: "#7A7A7A" }]}
+            source={require("../../../assets/icons/attach.png")}
+            style={styles.attachIcon}
           />
         </TouchableOpacity>
+
+        {/* Message Input */}
+        <View style={styles.inputWrapper}>
+          <TextInput
+            value={message}
+            onChangeText={(text) => useMessage(text)}
+            style={styles.input}
+            placeholder="Type a message..."
+            placeholderTextColor="#888"
+            multiline
+          />
+
+          {/* Send button */}
+          <TouchableOpacity>
+            <Image
+              source={require("../../../assets/icons/send.png")}
+              style={[styles.attachIcon, { tintColor: "#7A7A7A" }]}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -55,15 +93,19 @@ const ChatFooter = ({onLayout, message, useMessage, onPress }: ChatFooterProps) 
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderTopColor: "#e0e0e0",
     elevation: 5,
     marginBottom: 0,
+  },
+  footerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#fff",
   },
   IconContainer: {
     height: 48,
@@ -80,7 +122,7 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
     alignItems: "center",
     marginLeft: 8,
     backgroundColor: "white",
@@ -96,7 +138,7 @@ const styles = StyleSheet.create({
     color: "#000",
     maxHeight: 100,
   },
-    modal: {
+  modal: {
     justifyContent: "flex-end",
     margin: 0,
   },
@@ -116,6 +158,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 5,
     color: "#333",
+  },
+
+  //Reply Bar Styles
+  replyContainer: {
+    padding: 12,
+    backgroundColor: "#fff",
+    width: "100%",
+    minHeight: 90,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  replyHolder: {
+    borderRadius: 48,
+    padding: 12,
+    width: "100%",
+    paddingHorizontal: 26,
+    marginHorizontal: 4,
+    backgroundColor: "#D9D9D9",
+  },
+  replyText: {
+    fontSize: 14,
+    fontFamily: "InterSemiBold",
+    color: "#000",
+  },
+  replyMessage: {
+    fontSize: 14,
+    fontFamily: "InterMedium",
+    color: "#000",
   },
 });
 

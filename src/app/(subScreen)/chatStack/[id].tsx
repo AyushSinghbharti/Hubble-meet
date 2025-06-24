@@ -90,6 +90,20 @@ export default function ChatDetailsScreen() {
   const [footerHeight, setFooterHeight] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [clearChatPopUp, setClearChatPopUp] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<any>({ ...messageList[3], name: item.name });
+
+  const handleReply = (message: ChatMsg | null) => {
+    if (message) {
+      console.log(message);
+      setSelectedMessage({ ...message, name: item.name });
+    } else {
+      setSelectedMessage(null);
+    }
+  }
+
+  const onCancelReply = () => {
+    setSelectedMessage(null);
+  }
 
   const handleOptionSelect = (option: string) => {
     console.log("Selected:", option);
@@ -159,7 +173,7 @@ export default function ChatDetailsScreen() {
             showMenu={showMenu}
           />
           {messages.length > 0 ? (
-            <ChatBody messages={messages} />
+            <ChatBody messages={messages} onReply={handleReply} />
           ) : (
             <View style={{flex: 1, justifyContent: "flex-end", alignItems: "center"}}>
               <Text style={{marginBottom: 10, color: "#8B8B8BCC", fontFamily: "Inter", fontSize: 12}}>Start the Conversation</Text>
@@ -170,11 +184,13 @@ export default function ChatDetailsScreen() {
               const { height } = event.nativeEvent.layout;
               setFooterHeight(height);
             }}
+            selectedMessage={selectedMessage}
             message={message}
             useMessage={(text: string) => setMessage(text)}
             onPress={() => {
               setViewAttachment(!viewAttachment);
             }}
+            onCancelReply={onCancelReply}
           />
         </View>
       </KeyboardAvoidingView>

@@ -87,7 +87,6 @@ export default function ChatScreen() {
         friction={2}
         enableTrackpadTwoFingerGesture={true}
         onSwipeableOpen={() => setSelectedUser(item)}
-        // containerStyle={{ width: "50%" }}
       >
         <TouchableOpacity
           style={styles.chatCard}
@@ -183,7 +182,7 @@ export default function ChatScreen() {
         description={
           "Also delete media received in this chat from the device gallery"
         }
-        acceptButtonName={"Block User"}
+        acceptButtonName={"Clear Chat"}
         cancelButtonName={"Cancel"}
       />
     </View>
