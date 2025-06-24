@@ -49,7 +49,7 @@ export default function OnboardingScreen() {
         setNextIndex(null);
       });
     } else{
-      router.replace("/initialLogin");
+      router.replace("/login");
     }
   };
 
