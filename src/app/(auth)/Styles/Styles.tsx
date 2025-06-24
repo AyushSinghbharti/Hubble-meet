@@ -95,12 +95,14 @@ export const loginStyles = StyleSheet.create({
     fontSize: 18,
   },
   signupText: {
+    fontSize: 15,
     color: "#fff",
     textAlign: "center",
     marginBottom: 35,
+    fontFamily: "InterMedium",
   },
   signupLink: {
-    fontWeight: "bold",
+    fontFamily: "InterBold",
   },
   orContainer: {
     flexDirection: "row",

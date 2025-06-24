@@ -6,9 +6,10 @@ import {
   TextInput,
   TouchableOpacity,
   ImageBackground,
+  ImageSourcePropType,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SelectCountryModal from "../../components/selectCountryModal";
 import ErrorAlert from "../../components/errorAlert";
 import { useRouter } from "expo-router";
@@ -23,6 +24,16 @@ type Country = {
   code: string;
   dial_code: string;
 };
+
+const backgroundImages: ImageSourcePropType[] = [
+  require("../../../assets/images/backgrounds/bg01.jpg"),
+  require("../../../assets/images/backgrounds/bg02.jpg"),
+  require("../../../assets/images/backgrounds/bg03.jpg"),
+  require("../../../assets/images/backgrounds/bg04.jpg"),
+  require("../../../assets/images/backgrounds/bg05.jpg"),
+  require("../../../assets/images/backgrounds/bg06.jpg"),
+  require("../../../assets/images/backgrounds/bg07.png"),
+];
 
 const GOOGLE_ICON = "https://img.icons8.com/color/512/google-logo.png";
 const FACEBOOK_ICON =
@@ -49,6 +60,12 @@ export default function SignUp() {
     "Please accept the Terms & Conditions to proceed"
   );
   const [showTermError, setShowTermError] = useState(false);
+  const [backgroundImageNumber, setBackgroundImageNumber] = useState(6);
+
+  useEffect(() => {
+    const imageNumber = Math.floor(Math.random() * backgroundImages.length) + 1;
+    setBackgroundImageNumber(imageNumber);
+  }, []);
 
   const handleSignUp = () => {
     if (!termAccept) {
@@ -81,17 +98,20 @@ export default function SignUp() {
       toogleTerm(!termAccept);
       setShowTermError(false);
     }
-  }
+  };
 
   return (
     <ImageBackground
       resizeMode="cover"
-      source={require("../../../assets/images/LoginPageBG.jpg")}
+      source={backgroundImages[backgroundImageNumber - 1]}
       style={[styles.container]}
     >
       <LinearGradient
         colors={["transparent", "#000000CC", "#000"]}
-        style={[styles.container, { justifyContent: "flex-end", paddingBottom: 65 }]}
+        style={[
+          styles.container,
+          { justifyContent: "flex-end", paddingBottom: 65 },
+        ]}
       >
         <Image
           source={require("../../../assets/images/logo.png")}

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Image,
   ImageBackground,
@@ -6,6 +7,7 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  ImageSourcePropType,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -28,6 +30,16 @@ const GOOGLE_ICON =
   "https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png";
 const FACEBOOK_ICON =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSy0dDdi3KJgMq_87aJt9us_0yh69ewaKgUzg&s";
+
+const backgroundImages: ImageSourcePropType[] = [
+  require("../../../assets/images/backgrounds/bg01.jpg"),
+  require("../../../assets/images/backgrounds/bg02.jpg"),
+  require("../../../assets/images/backgrounds/bg03.jpg"),
+  require("../../../assets/images/backgrounds/bg04.jpg"),
+  require("../../../assets/images/backgrounds/bg05.jpg"),
+  require("../../../assets/images/backgrounds/bg06.jpg"),
+  require("../../../assets/images/backgrounds/bg07.png"),
+];
 
 const IconButton = ({
   children,
@@ -54,6 +66,7 @@ export default function Login() {
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef<View>(null);
   const [error, setError] = useState<string>("");
+  const [backgroundImageNumber, setBackgroundImageNumber] = useState(3);
 
   const handleLogin = () => {
     if (!phoneNumber) {
@@ -64,10 +77,15 @@ export default function Login() {
     router.push("/connect");
   };
 
+  useEffect(() => {
+    const imageNumber = Math.floor(Math.random() * backgroundImages.length) + 1;
+    setBackgroundImageNumber(imageNumber);
+  }, []);
+
   return (
     <ImageBackground
       resizeMode="cover"
-      source={require("../../../assets/images/LoginPageBG.jpg")}
+      source={backgroundImages[backgroundImageNumber - 1]}
       style={styles.container}
     >
       <StatusBar style="light" />
@@ -139,14 +157,12 @@ export default function Login() {
             style={[
               styles.loginBtn,
               {
-                backgroundColor:
-                  phoneNumber
-                    ? colourPalette.buttonPrimary
-                    : colourPalette.buttonPrimaryDisabled,
-                borderColor:
-                  phoneNumber
-                    ? colourPalette.buttonPrimaryBorder
-                    : colourPalette.buttonPrimaryBorderDisabled,
+                backgroundColor: phoneNumber
+                  ? colourPalette.buttonPrimary
+                  : colourPalette.buttonPrimaryDisabled,
+                borderColor: phoneNumber
+                  ? colourPalette.buttonPrimaryBorder
+                  : colourPalette.buttonPrimaryBorderDisabled,
               },
             ]}
             onPress={handleLogin}
@@ -192,147 +208,3 @@ export default function Login() {
     </ImageBackground>
   );
 }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     alignItems: "center",
-//     justifyContent: "center",
-//     width: "100%",
-//   },
-//   logo: {
-//     height: 40,
-//     width: 248,
-//     marginBottom: 185,
-//   },
-//   title: {
-//     fontSize: 22,
-//     color: colourPalette.textPrimary,
-//     fontFamily: "InterBold",
-//     marginBottom: 40,
-//   },
-//   inputWrapper: {
-//     width: "100%",
-//     paddingHorizontal: 16,
-//   },
-//   label: {
-//     color: colourPalette.textPrimary,
-//     fontFamily: "InterSemiBold",
-//     fontSize: 18,
-//     marginBottom: 8,
-//   },
-//   phoneContainer: {
-//     flexDirection: "row",
-//     borderRadius: 10,
-//     marginBottom: 40,
-//   },
-//   error: {
-//     color: colourPalette.errorText,
-//     fontFamily: "Inter",
-//   },
-//   flagBox: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     // backgroundColor: "#fff",
-//     backgroundColor: colourPalette.inputBackground,
-//     borderColor: colourPalette.inputBorder,
-//     borderWidth: 1,
-//     borderRadius: 8,
-//     marginRight: 12,
-//     paddingHorizontal: 8,
-//     paddingVertical: 10,
-//     elevation: 5,
-//     shadowColor: colourPalette.textDescription,
-//   },
-//   flag: {
-//     width: 20,
-//     height: 14,
-//     marginRight: 5,
-//   },
-//   countryCode: {
-//     fontFamily: "InterSemiBold",
-//     color: colourPalette.textPrimary,
-//     marginRight: 8,
-//     marginLeft: 3,
-//   },
-//   phoneInput: {
-//     flex: 1,
-//     verticalAlign: "middle",
-//     // color: "grey",
-//     color: colourPalette.textPrimary,
-//     fontSize: 15,
-//     fontFamily: "InterMedium",
-//     paddingHorizontal: 12,
-//     borderRadius: 8,
-//     // backgroundColor: "#fff",
-//     elevation: 5,
-//     shadowColor: "white",
-//     backgroundColor: colourPalette.inputBackground,
-//     borderWidth: 1,
-//     borderColor: colourPalette.inputBorder,
-//   },
-//   loginBtn: {
-//     // backgroundColor: "#BBCF8D",
-//     backgroundColor: colourPalette.buttonPrimary,
-//     elevation: 5,
-//     shadowColor: "white",
-//     borderWidth: 1,
-//     paddingVertical: 14,
-//     borderRadius: 10,
-//     alignItems: "center",
-//     marginBottom: 35,
-//   },
-//   loginText: {
-//     color: "#000",
-//     fontFamily: "InterBold",
-//     fontSize: 18,
-//   },
-//   signupText: {
-//     color: "#fff",
-//     textAlign: "center",
-//     marginBottom: 35,
-//   },
-//   signupLink: {
-//     fontWeight: "bold",
-//   },
-//   orContainer: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     marginBottom: 20,
-//   },
-//   orText: {
-//     color: "white",
-//     fontSize: 14,
-//   },
-//   bold: {
-//     fontSize: 16,
-//     fontWeight: "bold",
-//   },
-//   line: {
-//     flex: 1,
-//     height: 1,
-//     backgroundColor: "white",
-//     marginHorizontal: 16,
-//   },
-//   socialContainer: {
-//     flexDirection: "row",
-//     paddingHorizontal: 20,
-//     alignItems: "flex-start",
-//     justifyContent: "space-between",
-//     gap: 16,
-//   },
-//   iconBtn: {
-//     backgroundColor: "#fff",
-//     padding: 12,
-//     borderRadius: 50,
-//     width: 50,
-//     height: 50,
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   icon: {
-//     width: 24,
-//     height: 24,
-//     resizeMode: "contain",
-//   },
-// });
