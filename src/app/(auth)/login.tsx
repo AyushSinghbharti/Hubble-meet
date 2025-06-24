@@ -146,7 +146,7 @@ export default function Login() {
                 borderColor:
                   phoneNumber
                     ? colourPalette.buttonPrimaryBorder
-                    : colourPalette.buttonSecondaryBorderDisabled,
+                    : colourPalette.buttonPrimaryBorderDisabled,
               },
             ]}
             onPress={handleLogin}

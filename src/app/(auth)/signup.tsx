@@ -244,7 +244,7 @@ export default function SignUp() {
                 borderColor:
                   phoneNumber && termAccept && email
                     ? colourPalette.buttonPrimaryBorder
-                    : colourPalette.buttonSecondaryBorderDisabled,
+                    : colourPalette.buttonPrimaryBorderDisabled,
               },
             ]}
             onPress={handleSignUp}
