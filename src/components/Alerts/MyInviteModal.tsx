@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
+
 const MyInviteModal = ({ visible, onClose, profileImage, name, qrValue }) => {
   const safeQrValue = qrValue || "https://default-link.com";
 

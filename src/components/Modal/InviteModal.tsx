@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   View,
@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
+import AlertModal from '../Alerts/AlertModal';
+
 
 interface InviteModalProps {
   visible: boolean;
@@ -20,10 +22,13 @@ interface InviteModalProps {
 const INVITE_LINK = 'http://www.sample.org/headhatsapp';
 
 export default function InviteModal({ visible, onClose }: InviteModalProps) {
-  const handleCopy = () => {
-    Clipboard.setString(INVITE_LINK);
-    Alert.alert('Copied!', 'Link copied to clipboard');
-  };
+  const [requestSentVisible, setRequestSentVisible] = useState(false);
+
+ const handleCopy = () => {
+  Clipboard.setString(INVITE_LINK);
+  setRequestSentVisible(true);
+};
+
 
   const handleWhatsAppInvite = () => {
     const url = `https://wa.me/?text=${encodeURIComponent(INVITE_LINK)}`;
@@ -52,7 +57,7 @@ export default function InviteModal({ visible, onClose }: InviteModalProps) {
             style={styles.illustration}
           />
 
-          {/* Link Box */}
+
           <View style={styles.linkContainer}>
             <Text style={styles.linkText}>{INVITE_LINK}</Text>
             <TouchableOpacity style={styles.copyButton} onPress={handleCopy}>
@@ -60,13 +65,22 @@ export default function InviteModal({ visible, onClose }: InviteModalProps) {
             </TouchableOpacity>
           </View>
 
-          {/* WhatsApp Button */}
+   
           <TouchableOpacity style={styles.whatsappButton} onPress={handleWhatsAppInvite}>
             <FontAwesome name="whatsapp" size={20} color="#fff" />
             <Text style={styles.whatsappText}> Invite via Whatsapp</Text>
           </TouchableOpacity>
         </View>
       </View>
+      <AlertModal
+  visible={requestSentVisible}
+  onClose={() => setRequestSentVisible(false)}
+  imageSource={require('../../../assets/icons/tick1.png')}
+  label="Request Sent"
+  onButtonPress={() => setRequestSentVisible(false)}
+  positionBottom
+/>
+
     </Modal>
   );
 }

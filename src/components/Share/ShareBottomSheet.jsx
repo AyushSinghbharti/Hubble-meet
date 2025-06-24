@@ -18,6 +18,9 @@ import { AntDesign, Feather } from '@expo/vector-icons';
 import AlertModal from '../Alerts/AlertModal';
 
 
+const INVITE_LINK = 'http://www.sample.org/headhatsapp';
+
+
 const USERS = [
   { id: '1', name: 'Alice', avatar: 'https://i.pravatar.cc/150?img=1' },
   { id: '2', name: 'Bob', avatar: 'https://i.pravatar.cc/150?img=2' },
@@ -51,18 +54,10 @@ const ShareModal = ({ visible, onClose }) => {
   };
 
   const handleWhatsAppShare = () => {
-    const url = `whatsapp://send?text=${encodeURIComponent(
-      'Check this out! https://example.com'
-    )}`;
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (!supported) {
-          Alert.alert('WhatsApp not installed');
-        } else {
-          return Linking.openURL(url);
-        }
-      })
-      .catch((err) => console.error('WhatsApp error', err));
+   const url = `https://wa.me/?text=${encodeURIComponent(INVITE_LINK)}`;
+       Linking.openURL(url).catch(() => {
+         Alert.alert('Error', 'Unable to open WhatsApp');
+       });
   };
 
   const filteredUsers = useMemo(() => {
