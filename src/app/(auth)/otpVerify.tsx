@@ -1,9 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Image } from "react-native";
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  KeyboardAvoidingView,
+} from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 import { SimpleLineIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import colourPalette from "../../theme/darkPaletter";
+import RandomBackgroundImages from "../../components/RandomBGImage";
+import ErrorAlert from "../../components/errorAlert";
 
 const OtpVerificationUI = () => {
   const router = useRouter();
@@ -20,77 +29,73 @@ const OtpVerificationUI = () => {
     router.replace("/profileSetup");
   };
   return (
-    <View style={styles.container}>
+    <RandomBackgroundImages style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          {/* <Ionicons name="arrow-back" size={24} color="black" /> */}
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
+        {/* <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity> */}
         <Image
-          source={require("../../../assets/images/logo.png")}
-          style={{ aspectRatio: 31 / 5, width: 148 }}
+          source={require("../../../assets/logo/logo2.png")}
+          style={{ aspectRatio: 31 / 5, width: 248 }}
         />
-        <View style={{ width: 24 }} />
+      </View>
+      <View
+        style={{
+          position: "absolute",
+          width: "110%",
+          alignSelf: "center",
+          top: 160,
+        }}
+      >
+        {error && <ErrorAlert message={error} onClose={() => setError("")} />}
       </View>
 
       {/* Main Content */}
-      <Text style={styles.emailText}>OTP Verification</Text>
-      <Text style={styles.mailText}>
-        Enter the verification code sent to ***38
-      </Text>
-
-      <OtpInput
-        secureTextEntry={false}
-        numberOfDigits={4}
-        focusColor="gray"
-        focusStickBlinkingDuration={500}
-        theme={{
-          containerStyle: styles.otpContainer,
-          pinCodeContainerStyle: styles.pinCodeContainer,
-          pinCodeTextStyle: styles.pinCodeText,
+      <KeyboardAvoidingView
+        behavior="height"
+        style={{
+          flex: 1,
+          justifyContent: "flex-end",
+          marginBottom: 140,
         }}
-        onTextChange={(text) => setOTP(text)}
-      />
+      >
+        {/* <Text style={styles.emailText}>OTP Verification</Text> */}
+        <Text style={styles.mailText}>
+          Enter the verification code sent to ***38
+        </Text>
 
-      {error && (
-        <View
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            width: "100%",
+        <OtpInput
+          secureTextEntry={false}
+          numberOfDigits={4}
+          focusStickBlinkingDuration={500}
+          theme={{
+            containerStyle: styles.otpContainer,
+            pinCodeContainerStyle: styles.pinCodeContainer,
+            pinCodeTextStyle: styles.pinCodeText,
           }}
-        >
-          <Text
-            style={{
-              color: colourPalette.errorText,
-              fontSize: 14,
-              fontFamily: "Inter",
-            }}
-          >
-            {error}
-          </Text>
-        </View>
-      )}
+          onTextChange={(text) => setOTP(text)}
+        />
 
-      <TouchableOpacity style={styles.continueBtn} onPress={handleVerify}>
-        <Text style={styles.continueText}>Verify</Text>
-      </TouchableOpacity>
-      {error && (
+        <TouchableOpacity style={styles.continueBtn} onPress={handleVerify}>
+          <Text style={styles.continueText}>Verify</Text>
+        </TouchableOpacity>
+
         <View style={styles.resendView}>
           <Text
             onPress={() => alert("OTP has resent on your mail ID")}
             style={[
               styles.resendText,
               {
-                // color: "#878787",
                 color: colourPalette.textSecondary,
               },
             ]}
           >
-            Didn't receive code?
+            Didn't receive an OTP?
           </Text>
-          <TouchableOpacity onPress={() => alert("OTP has resent on your mail ID")}>
+          <TouchableOpacity
+            onPress={() => alert("OTP has resent on your mail ID")}
+          >
             <Text
               style={[
                 styles.resendText,
@@ -105,8 +110,8 @@ const OtpVerificationUI = () => {
             </Text>
           </TouchableOpacity>
         </View>
-      )}
-    </View>
+      </KeyboardAvoidingView>
+    </RandomBackgroundImages>
   );
 };
 
@@ -116,20 +121,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 80,
-    // backgroundColor: "#fff",
-    backgroundColor: colourPalette.backgroundPrimary,
+    paddingTop: 115,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 64,
+    justifyContent: "center",
+    marginBottom: 28,
   },
   emailText: {
     color: colourPalette.textPrimary,
     fontSize: 32,
-    // fontWeight: 'bold',
     fontFamily: "InterBold",
     textAlign: "center",
     marginBottom: 34,
@@ -145,13 +147,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   pinCodeContainer: {
-    // backgroundColor: "#EAEAEA",
-    backgroundColor: colourPalette.inputBackground,
+    backgroundColor: "#ffffff4D",
     width: "18%",
     aspectRatio: 1,
   },
   pinCodeText: {
-    // color: "#101010",
     color: colourPalette.inputText,
     fontSize: 32,
     fontFamily: "InterBold",
@@ -170,14 +170,12 @@ const styles = StyleSheet.create({
   },
   continueBtn: {
     marginTop: 30,
-    // backgroundColor: "black",
     backgroundColor: colourPalette.buttonPrimary,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",
   },
   continueText: {
-    // color: "#fff",
     color: "#000",
     fontFamily: "InterBold",
     fontSize: 16,

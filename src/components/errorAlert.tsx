@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface ErrorAlertProps {
-    message: string;
+    message: string | String;
     onClose: () => void;
 }
 
@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     margin: 10,
+    marginBottom: 40,
   },
   leftBar: {
     width: 4,

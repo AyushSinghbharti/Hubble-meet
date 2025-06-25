@@ -43,7 +43,6 @@ export const loginStyles = StyleSheet.create({
   flagBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colourPalette.inputBackground,
     borderColor: colourPalette.inputBorder,
     borderWidth: 1,
     borderRadius: 8,
@@ -51,7 +50,7 @@ export const loginStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 10,
     elevation: 5,
-    shadowColor: colourPalette.textDescription,
+    shadowColor: colourPalette.shadowColor,
   },
   flag: {
     width: 20,
@@ -66,21 +65,20 @@ export const loginStyles = StyleSheet.create({
   },
   phoneInput: {
     flex: 1,
-    verticalAlign: "middle",
-    color: colourPalette.textPrimary,
-    fontSize: 15,
-    fontFamily: "InterMedium",
+    // verticalAlign: "middle",
     paddingHorizontal: 12,
     borderRadius: 8,
     elevation: 5,
-    shadowColor: "white",
-    backgroundColor: colourPalette.inputBackground,
     borderWidth: 1,
     borderColor: colourPalette.inputBorder,
+    shadowColor: colourPalette.shadowColor,
+  },
+  phoneText:{
+    color: colourPalette.textPrimary,
+    fontSize: 15,
+    fontFamily: "InterMedium",
   },
   loginBtn: {
-    // backgroundColor: "#BBCF8D",
-    backgroundColor: colourPalette.buttonPrimary,
     elevation: 5,
     shadowColor: "white",
     borderWidth: 1,
@@ -154,11 +152,13 @@ export const loginStyles = StyleSheet.create({
   },
   emailContainer: {
     flexDirection: "row",
+    marginBottom: 16
   },
   flagIcon: {
     width: 20,
     height: 14,
     marginRight: 5,
+    borderRadius: 2,
   },
   termCheckBox: {
     width: 24,

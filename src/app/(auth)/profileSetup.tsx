@@ -21,6 +21,10 @@ import InitialScreen from "../../components/profileSetupComps/initialScreen";
 import FinalSetupPage from "../../components/profileSetupComps/finalScreen";
 import TagDropdown from "../../components/TagDropdown";
 import colourPalette from "../../theme/darkPaletter";
+import RandomBackgroundImages, {
+  RandomBGImagesRef,
+} from "../../components/RandomBGImage";
+import ManualBlur from "../../components/BlurComp";
 
 const ChipInput = ({
   label,
@@ -32,7 +36,7 @@ const ChipInput = ({
 }) => {
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      // behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.chipContainer}
     >
       <Text style={styles.label}>
@@ -44,7 +48,7 @@ const ChipInput = ({
         selected={items}
         onChange={setItems}
         placeholder={placeholder}
-        darkMode={true}
+        mode={"Transparent"}
       />
     </KeyboardAvoidingView>
   );
@@ -67,7 +71,6 @@ export default function ProfileSetup() {
   const [jobTitle, setJobTitle] = useState("");
   const [address, setAddress] = useState("");
   const [shareVBC, setShareVBC] = useState(false);
-
   const [worklist, setWorklist] = useState([]); // companies / workplaces
   const [spaces, setSpaces] = useState(["Fintech", "Fashion", "AI"]);
   const [connectPeople, setConnectPeople] = useState(["fintech", "fashion"]); // kind of people
@@ -75,10 +78,13 @@ export default function ProfileSetup() {
   const [rolesLookingFor, setRolesLookingFor] = useState([
     "Marketing",
     "Mentor",
-  ]); // founders / roles
-
+  ]); //Roles
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+  const backgroundRef = useRef<RandomBGImagesRef>(null);
+
   const hideDatePicker = () => setDatePickerVisibility(false);
+
   const handleConfirm = (date: any) => {
     const formattedDate = `${date.getDate().toString().padStart(2, "0")}/${(
       date.getMonth() + 1
@@ -96,7 +102,14 @@ export default function ProfileSetup() {
       duration: 300,
       useNativeDriver: false,
     }).start();
+
+    const handleChangeBackground = () => {
+      backgroundRef.current?.newImage();
+    };
+
+    handleChangeBackground();
   }, [step]);
+
   const progressWidth = progress.interpolate({
     inputRange: [0, 4],
     outputRange: ["0%", "100%"],
@@ -114,15 +127,13 @@ export default function ProfileSetup() {
 
   const next = () => setStep((s) => Math.min(4, s + 1));
   const prev = () => setStep((s) => Math.max(0, s - 1));
-  const skip = () => {setStep(4); setFinalScreen(!finalScreen);};
+  const skip = () => {
+    setStep(4);
+    setFinalScreen(!finalScreen);
+  };
   const submit = () => router.push("/connect");
 
-  const genderOptions = [
-    "👱‍♂️ Male",
-    "👩 Female",
-    "🦄 Non-binary",
-    "Prefer not to say",
-  ];
+  const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say"];
 
   const Steps = [
     // ------------------------------------------------------------------------
@@ -142,7 +153,11 @@ export default function ProfileSetup() {
         <Text style={styles.label}>When were you born?</Text>
         <View style={[styles.input, centerRow]}>
           <TextInput
-            style={{ flex: 1, color: colourPalette.textPrimary }}
+            style={{
+              flex: 1,
+              color: colourPalette.textPrimary,
+              fontFamily: "InterSemiBold",
+            }}
             placeholder="DD/MM/YYYY"
             placeholderTextColor="#aaa"
             value={dob}
@@ -273,7 +288,7 @@ export default function ProfileSetup() {
           options={["Finance", "AI", "Retail", "Hospitality", "Engineers"]}
           label={"What industry/sector are you in?\n"}
           subtitle={
-            "Finance 💸, AI 🤖, Retail 🧵, Hospitality 🌱... No limits. Add what vibes with you."
+            "Finance, AI, Retail, Hospitality... No limits. Add what vibes with you."
           }
           placeholder="Add Space"
           items={spaces}
@@ -287,9 +302,7 @@ export default function ProfileSetup() {
     // ------------------------------------------------------------------------
     () => (
       <>
-        <Text style={styles.label}>
-          Where in the world are you?
-        </Text>
+        <Text style={styles.label}>Where in the world are you?</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter City"
@@ -415,7 +428,11 @@ export default function ProfileSetup() {
   // main render ----------------------------------------------------------------
   // ----------------------------------------------------------------------------
   return (
-    <View style={styles.container}>
+    <RandomBackgroundImages
+      style={styles.container}
+      blur={5}
+      ref={backgroundRef}
+    >
       {/* header */}
       <View style={styles.header}>
         {step !== 0 ? (
@@ -461,7 +478,7 @@ export default function ProfileSetup() {
         </TouchableOpacity>
       )}
 
-      {step >= 2 && (
+      {step >= 2 && step < 4 && (
         <TouchableOpacity
           style={styles.skip}
           onPress={skip}
@@ -471,7 +488,7 @@ export default function ProfileSetup() {
           <Text style={styles.skipText}>Skip for now</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </RandomBackgroundImages>
   );
 }
 
@@ -499,12 +516,15 @@ const noMargin = { marginBottom: 0 };
 
 const chipInputPadding = { paddingTop: 5, paddingBottom: 5 };
 
-const selectedGenderStyle = { borderColor: "#BBCF8D", borderWidth: 2 };
+const selectedGenderStyle = {
+  borderColor: "#BBCF8D",
+  borderWidth: 2,
+  backgroundColor: "#BBCF8D",
+};
 
 const splashButton = {
   position: "absolute",
   bottom: 50,
-  // backgroundColor: "#000",
   backgroundColor: colourPalette.buttonPrimary,
   alignSelf: "center",
   width: "90%",
@@ -524,8 +544,6 @@ const splashButtonText = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: "#F1FCE9",
-    backgroundColor: colourPalette.backgroundSecondary,
   },
 
   /* header */
@@ -552,7 +570,6 @@ const styles = StyleSheet.create({
   /* progress */
   progressBg: {
     height: 8,
-    // backgroundColor: "#DFDFDF",
     backgroundColor: colourPalette.progressBackground,
     marginHorizontal: 16,
     borderRadius: 8,
@@ -578,34 +595,30 @@ const styles = StyleSheet.create({
     color: colourPalette.textSecondary,
   },
   input: {
-    // backgroundColor: "white",
-    backgroundColor: colourPalette.inputBackground,
     minHeight: 55,
     paddingHorizontal: 12,
     borderRadius: 10,
     marginBottom: 20,
-    // borderColor: "#ccc",
     borderColor: colourPalette.inputBorder,
     color: colourPalette.textPrimary,
     fontFamily: "InterSemiBold",
     fontSize: 14,
-    borderWidth: 1,
+    borderWidth: 2,
     flexDirection: "row",
     minWidth: 100,
   },
   otpText: {
     fontFamily: "InterBold",
     fontSize: 12,
-    color: "#C2185B",
+    color: "#fff",
     textAlign: "right",
     marginBottom: 20,
     marginTop: 5,
   },
   rowWrap: { flexDirection: "row", flexWrap: "wrap", marginBottom: 20 },
   genderBtn: {
-    // borderColor: "#645E7033",
     borderColor: colourPalette.inputBorder,
-    borderWidth: 1,
+    borderWidth: 2,
     width: "45%",
     minHeight: 45,
     justifyContent: "center",
@@ -619,7 +632,6 @@ const styles = StyleSheet.create({
   chipContainer: { marginBottom: 20 },
   chip: {
     flexDirection: "row",
-    backgroundColor: "#BBCF8D",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -640,11 +652,9 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 2,
     borderStyle: "dashed",
-    // borderColor: "#BBCF8D",
-    // backgroundColor: "#fff",
-    backgroundColor: colourPalette.inputBackground,
+    backgroundColor: "#FFFFFF44",
     borderColor: colourPalette.inputBorder,
     justifyContent: "center",
     alignItems: "center",
@@ -655,7 +665,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 12,
-    // backgroundColor: "#F1FCE9",
     backgroundColor: colourPalette.inputBackground,
   },
   switchRow: {
@@ -664,12 +673,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 20,
   },
-  card: {
-    backgroundColor: "#FFF2C6",
-    padding: 16,
-    borderRadius: 12,
-  },
-  cardTitle: { fontWeight: "bold", fontSize: 16, marginBottom: 4 },
 
   /* fab */
   fab: {
@@ -703,5 +706,5 @@ const styles = StyleSheet.create({
     color: colourPalette.textThird,
     fontFamily: "InterSemiBold",
     fontSize: 14,
-  }
+  },
 });

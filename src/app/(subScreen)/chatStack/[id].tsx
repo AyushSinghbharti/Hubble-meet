@@ -90,7 +90,7 @@ export default function ChatDetailsScreen() {
   const [footerHeight, setFooterHeight] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [clearChatPopUp, setClearChatPopUp] = useState(false);
-  const [selectedMessage, setSelectedMessage] = useState<any>({ ...messageList[3], name: item.name });
+  const [selectedMessage, setSelectedMessage] = useState<any>();
 
   const handleReply = (message: ChatMsg | null) => {
     if (message) {

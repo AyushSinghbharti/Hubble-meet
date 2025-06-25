@@ -8,7 +8,7 @@ const AttachmentSheet = ({ isVisible, footerHeight }: { isVisible: boolean, foot
   const options = [
     { label: "Photo", icon: require("../../../assets/icons/camera.png") },
     { label: "Document", icon: require("../../../assets/icons/document.png") },
-    { label: "VBC2", icon: require("../../../assets/icons/vbc2.png") },
+    { label: "VBC", icon: require("../../../assets/icons/vbc2.png") },
     { label: "Contact", icon: require("../../../assets/icons/contact.png") },
   ];
 

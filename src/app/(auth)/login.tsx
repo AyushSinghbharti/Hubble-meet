@@ -7,16 +7,16 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  ImageSourcePropType,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { StatusBar } from "expo-status-bar";
 import { Link, useRouter } from "expo-router";
 import colourPalette from "../../theme/darkPaletter";
 import { loginStyles as styles } from "./Styles/Styles";
 import { useRef, useState } from "react";
 import SelectCountryModal from "../../components/selectCountryModal";
+import ManualBlur from "../../components/BlurComp";
+import ErrorAlert from "../../components/errorAlert";
+import RandomBackgroundImages from "../../components/RandomBGImage";
 
 type Country = {
   name: string;
@@ -30,16 +30,6 @@ const GOOGLE_ICON =
   "https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png";
 const FACEBOOK_ICON =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSy0dDdi3KJgMq_87aJt9us_0yh69ewaKgUzg&s";
-
-const backgroundImages: ImageSourcePropType[] = [
-  require("../../../assets/images/backgrounds/bg01.jpg"),
-  require("../../../assets/images/backgrounds/bg02.jpg"),
-  require("../../../assets/images/backgrounds/bg03.jpg"),
-  require("../../../assets/images/backgrounds/bg04.jpg"),
-  require("../../../assets/images/backgrounds/bg05.jpg"),
-  require("../../../assets/images/backgrounds/bg06.jpg"),
-  require("../../../assets/images/backgrounds/bg07.png"),
-];
 
 const IconButton = ({
   children,
@@ -66,7 +56,6 @@ export default function Login() {
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef<View>(null);
   const [error, setError] = useState<string>("");
-  const [backgroundImageNumber, setBackgroundImageNumber] = useState(3);
 
   const handleLogin = () => {
     if (!phoneNumber) {
@@ -77,134 +66,118 @@ export default function Login() {
     router.push("/connect");
   };
 
-  useEffect(() => {
-    const imageNumber = Math.floor(Math.random() * backgroundImages.length) + 1;
-    setBackgroundImageNumber(imageNumber);
-  }, []);
-
   return (
-    <ImageBackground
-      resizeMode="cover"
-      source={backgroundImages[backgroundImageNumber - 1]}
-      style={styles.container}
-    >
-      <StatusBar style="light" />
-      <LinearGradient
-        colors={["transparent", "#000000CC", "#000"]}
-        style={styles.container}
-      >
-        <Image
-          source={require("../../../assets/images/logo.png")}
-          style={styles.logo}
-        />
+    <RandomBackgroundImages style={styles.container}>
+      <Image
+        source={require("../../../assets/logo/logo2.png")}
+        style={styles.logo}
+      />
 
+      {error ? (
+        <ErrorAlert message={error} onClose={() => setError("")} />
+      ) : (
         <Text style={styles.title}>Login</Text>
+      )}
 
-        <View style={styles.form}>
-          <Text style={styles.label}>Phone number</Text>
-          <View style={[{ marginBottom: error ? 20 : 40, gap: 4 }]}>
-            <View style={[styles.phoneContainer, { marginBottom: 0 }]}>
-              <TouchableOpacity
-                onPress={() => {
-                  flagBoxRef.current?.measureInWindow((x, y, width, height) => {
-                    setFlagBoxPosition({ x, y });
-                    setModalVisible(true);
-                  });
+      <View style={styles.form}>
+        <Text style={styles.label}>Phone number</Text>
+        <View style={[styles.phoneContainer]}>
+          <ManualBlur style={styles.flagBox}>
+            <TouchableOpacity
+              onPress={() => {
+                flagBoxRef.current?.measureInWindow((x, y, width, height) => {
+                  setFlagBoxPosition({ x, y });
+                  setModalVisible(true);
+                });
+              }}
+            >
+              <View
+                ref={flagBoxRef}
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-around",
+                  alignItems: "center",
                 }}
-                style={styles.flagBox}
               >
-                <View
-                  ref={flagBoxRef}
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-around",
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    source={{ uri: selectedFlag.flag }}
-                    style={styles.flagIcon}
-                  />
-                  <Text style={styles.countryCode}>
-                    {selectedFlag.dial_code}
-                  </Text>
-                  <FontAwesome name="chevron-down" size={12} color="#656565" />
-                </View>
-              </TouchableOpacity>
-              <TextInput
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                placeholder="Phone number"
-                placeholderTextColor="#aaa"
-                keyboardType="phone-pad"
-                style={[
-                  styles.phoneInput,
-                  {
-                    borderColor: error
-                      ? colourPalette.errorButton
-                      : colourPalette.inputBorder,
-                  },
-                ]}
-              />
-            </View>
-            {error && (
-              <Text style={[styles.error, { marginBottom: 9, marginTop: 2 }]}>
-                {error}
-              </Text>
-            )}
-          </View>
-          <TouchableOpacity
+                <Image
+                  source={{ uri: selectedFlag.flag }}
+                  style={styles.flagIcon}
+                />
+                <Text style={styles.countryCode}>{selectedFlag.dial_code}</Text>
+                <FontAwesome name="chevron-down" size={12} color="#656565" />
+              </View>
+            </TouchableOpacity>
+          </ManualBlur>
+          <ManualBlur
             style={[
-              styles.loginBtn,
+              styles.phoneInput,
               {
-                backgroundColor: phoneNumber
-                  ? colourPalette.buttonPrimary
-                  : colourPalette.buttonPrimaryDisabled,
-                borderColor: phoneNumber
-                  ? colourPalette.buttonPrimaryBorder
-                  : colourPalette.buttonPrimaryBorderDisabled,
+                borderColor: error
+                  ? colourPalette.errorButton
+                  : colourPalette.inputBorder,
               },
             ]}
-            onPress={handleLogin}
           >
-            <Text style={styles.loginText}>Log in</Text>
-          </TouchableOpacity>
+            <TextInput
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              placeholder="Phone number"
+              placeholderTextColor="#aaa"
+              keyboardType="phone-pad"
+              style={[styles.phoneText]}
+            />
+          </ManualBlur>
         </View>
+        <TouchableOpacity
+          style={[
+            styles.loginBtn,
+            {
+              backgroundColor: phoneNumber
+                ? colourPalette.buttonPrimary
+                : colourPalette.buttonPrimaryDisabled,
+              borderColor: phoneNumber
+                ? colourPalette.buttonPrimaryBorder
+                : colourPalette.buttonPrimaryBorderDisabled,
+            },
+          ]}
+          onPress={handleLogin}
+        >
+          <Text style={styles.loginText}>Log in</Text>
+        </TouchableOpacity>
+      </View>
 
-        <Link href={"./signup"} style={styles.signupText}>
-          <Text style={styles.signupText}>
-            Don’t have an account?{" "}
-            <Text style={styles.signupLink}>Sign up</Text>
-          </Text>
-        </Link>
+      <Link href={"/signup"} style={styles.signupText}>
+        <Text style={styles.signupText}>
+          Don’t have an account? <Text style={styles.signupLink}>Sign up</Text>
+        </Text>
+      </Link>
 
-        <View style={styles.orContainer}>
-          <View style={styles.line} />
-          <Text style={styles.orText}>
-            Or <Text style={styles.bold}>Login</Text> with
-          </Text>
-          <View style={styles.line} />
-        </View>
+      <View style={styles.orContainer}>
+        <View style={styles.line} />
+        <Text style={styles.orText}>
+          Or <Text style={styles.bold}>Login</Text> with
+        </Text>
+        <View style={styles.line} />
+      </View>
 
-        <View style={styles.socialContainer}>
-          <IconButton image={GOOGLE_ICON} />
-          <IconButton>
-            <FontAwesome name="apple" size={24} color="black" />
-          </IconButton>
-          <IconButton image={FACEBOOK_ICON} />
-        </View>
+      <View style={styles.socialContainer}>
+        <IconButton image={GOOGLE_ICON} />
+        <IconButton>
+          <FontAwesome name="apple" size={24} color="black" />
+        </IconButton>
+        <IconButton image={FACEBOOK_ICON} />
+      </View>
 
-        {/*Modal*/}
-        <SelectCountryModal
-          visible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          onSelect={(code) => {
-            setSelectedFlag(code);
-            setModalVisible(false);
-          }}
-          position={flagBoxPosition}
-        />
-      </LinearGradient>
-    </ImageBackground>
+      {/*Modal*/}
+      <SelectCountryModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSelect={(code) => {
+          setSelectedFlag(code);
+          setModalVisible(false);
+        }}
+        position={flagBoxPosition}
+      />
+    </RandomBackgroundImages>
   );
 }

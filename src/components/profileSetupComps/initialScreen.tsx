@@ -1,20 +1,27 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import colourPalette from "../../theme/darkPaletter";
+import RandomBackgroundImages from "../RandomBGImage";
 
 const InitialScreen: React.FC = ({ onPress }) => {
   return (
-    <View
+    // <View
+    //   style={{
+    //     flex: 1,
+    //     alignItems: "center",
+    //     // backgroundColor: "#9CE89D33",
+    //     backgroundColor: colourPalette.backgroundSecondary,
+    //   }}
+    // >
+    <RandomBackgroundImages
       style={{
         flex: 1,
         alignItems: "center",
-        // backgroundColor: "#9CE89D33",
-        backgroundColor: colourPalette.backgroundSecondary,
       }}
+      blur={5}
     >
-      {/* <SplashScreenSecond /> */}
       <Image
-        source={require("../../../assets/images/logo.png")}
+        source={require("../../../assets/logo/logo2.png")}
         style={{ width: 248, height: 40, marginTop: 55, marginBottom: 125 }}
       />
       <Image
@@ -24,7 +31,6 @@ const InitialScreen: React.FC = ({ onPress }) => {
       <Text
         style={{
           fontFamily: "InterMediumItalic",
-          // color: "#596C2D",
           color: "#A3C25B",
           textAlign: "center",
         }}
@@ -34,14 +40,14 @@ const InitialScreen: React.FC = ({ onPress }) => {
       <TouchableOpacity style={splashButton} onPress={onPress}>
         <Text style={splashButtonText}>Let's set up your profile</Text>
       </TouchableOpacity>
-    </View>
+    </RandomBackgroundImages>
+    // </View>
   );
 };
 
 const splashButton = {
   position: "absolute",
   bottom: 50,
-  // backgroundColor: "#000",
   backgroundColor: colourPalette.buttonPrimary,
   alignSelf: "center",
   width: "90%",
@@ -52,7 +58,6 @@ const splashButton = {
 };
 
 const splashButtonText = {
-  // color: "#fff",
   color: "#000",
   fontFamily: "InterSemiBold",
   fontSize: 16,

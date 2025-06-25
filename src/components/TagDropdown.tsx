@@ -16,7 +16,7 @@ type TagDropdownProps = {
   selected: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
-  darkMode?: boolean;
+  mode?: "Dark" | "Light" | "Transparent";
 };
 
 export default function TagDropdown({
@@ -24,7 +24,7 @@ export default function TagDropdown({
   selected,
   onChange,
   placeholder = "Add",
-  darkMode = false,
+  mode = "Light",
 }: TagDropdownProps) {
   const [input, setInput] = useState("");
   const [inputLayout, setInputLayout] = useState({
@@ -63,8 +63,17 @@ export default function TagDropdown({
         style={[
           styles.container,
           {
-            backgroundColor: darkMode ? colourPalette.inputBackground : "#fff",
-            borderColor: darkMode ? colourPalette.inputBorder : "#cfd4dc",
+            backgroundColor:
+              mode === "Dark"
+                ? colourPalette.inputBackground
+                : mode === "Light"
+                ? "#fff"
+                : "transparent",
+            borderWidth: mode && 2,
+            borderColor:
+              mode === "Dark" || mode === "Light"
+                ? colourPalette.inputBorder
+                : "#cfd4dc",
           },
         ]}
         onLayout={onLayoutInput}
@@ -93,7 +102,7 @@ export default function TagDropdown({
             style={[
               styles.input,
               {
-                color: darkMode ? colourPalette.textPrimary : "#000",
+                color: mode ? colourPalette.textPrimary : "#000",
                 fontFamily: "InterMedium",
               },
             ]}
@@ -133,6 +142,7 @@ export default function TagDropdown({
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     borderWidth: 1,
     borderColor: "#cfd4dc",
     borderRadius: 8,
