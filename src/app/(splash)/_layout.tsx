@@ -13,8 +13,8 @@ export default function StackLayout() {
   }, []);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="first" options={{ title: "First Screen" }} />
+    <Stack screenOptions={{ headerShown: false }} initialRouteName='second'>
+      <Stack.Screen name="index" options={{ title: "First Screen" }} />
       <Stack.Screen name="second" options={{ title: "Second Screen" }} />
       <Stack.Screen name="onboardingScreen" options={{ title: "Onboarding" }} /> {/* ✅ Add this */}
     </Stack>
