@@ -73,7 +73,7 @@ export default function CreatePitch() {
               source={require("../../../../assets/icons/timer.png")}
               style={styles.icon}
             />
-            <Text style={styles.label}>Pitch duration.</Text>
+            <Text style={styles.label}>Pitch duration</Text>
           </View>
 
           {/* green chip */}
@@ -135,7 +135,7 @@ export default function CreatePitch() {
             source={require("../../../../assets/icons/format.png")}
             style={styles.icon}
           />
-          <Text style={styles.label}>Pitch Format</Text>
+          <Text style={styles.label}>Pitch format</Text>
         </View>
         <View style={styles.toggleGroup}>
           <TouchableOpacity
