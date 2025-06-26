@@ -71,9 +71,7 @@ const styles = StyleSheet.create({
     margin: 20,
     marginBottom: 45,
     padding: 20,
-    // backgroundColor: "white",
     backgroundColor: "#1E1E1E",
-    // backgroundColor: colourPalette.backgroundSecondary,
     borderRadius: 20,
     elevation: 15,
     shadowColor: "white",
@@ -86,9 +84,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   description: {
-    fontFamily: "Inter",
-    fontSize: 12,
-    // color: "#3C3C3C80",
+    fontFamily: "InterMedium",
+    fontSize: 13,
     color: colourPalette.textSecondary,
   },
   nextButton: {
