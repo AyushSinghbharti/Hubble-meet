@@ -412,9 +412,9 @@ export default function ProfileSetup() {
   // ----------------------------------------------------------------------------
   // splash first‑time screen ---------------------------------------------------
   // ----------------------------------------------------------------------------
-  if (step === 0 && initScreen) {
-    return <InitialScreen onPress={() => setInitScreen(false)} />;
-  }
+  // if (step === 0 && initScreen) {
+  //   return <InitialScreen onPress={() => setInitScreen(false)} />;
+  // }
   if (step === 4 && finalScreen) {
     setTimeout(() => {
       router.replace("/connect");

@@ -70,6 +70,10 @@ export default function SignUp() {
     router.push("/otpVerify");
   };
 
+  const handleLogin = () => {
+    router.replace("/login");
+  }
+
   const handleAgreeTerm = () => {
     setTermModalVisible(false);
     toogleTerm(true);
@@ -236,7 +240,7 @@ export default function SignUp() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.signupText} onPress={() => router.replace("/login")}>
+      <Text style={styles.signupText} onPress={handleLogin}>
         Don’t have an account? <Text style={styles.signupLink}>Log In</Text>
       </Text>
 

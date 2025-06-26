@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { View, StyleSheet, ViewStyle } from "react-native";
-import { BlurView } from "expo-blur";
+import { BlurView, ExperimentalBlurMethod } from "expo-blur";
 
 interface BlurCompProps {
   children?: ReactNode;
@@ -10,11 +10,20 @@ interface BlurCompProps {
 const ManualBlur: React.FC<BlurCompProps> = ({ children, style }) => {
   return (
     <BlurView
+      // Expo BlurView Prop
       experimentalBlurMethod="dimezisBlurView"
+      // experimentalBlurMethod={"blur" as ExperimentalBlurMethod}
       tint="systemChromeMaterialDark"
-      blurReductionFactor={14}
+      blurReductionFactor={15}
       intensity={40}
-      style={[style, {overflow: "hidden"}]}
+
+      // Community Blur View Prop
+      // blurAmount = {5}
+      // blurType={'light'}
+      // blurRadius= {5}
+      // downsampleFactor={5}
+
+      style={[style, { overflow: "hidden" }]}
     >
       {children}
     </BlurView>

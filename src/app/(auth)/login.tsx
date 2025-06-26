@@ -66,6 +66,10 @@ export default function Login() {
     router.push("/connect");
   };
 
+  const handleSignup = () => {
+    router.replace("/signup")
+  }
+
   return (
     <RandomBackgroundImages style={styles.container}>
       <Image
@@ -146,11 +150,11 @@ export default function Login() {
         </TouchableOpacity>
       </View>
 
-      <Link href={"/signup"} style={styles.signupText}>
+      <TouchableOpacity onPress={handleSignup} style={styles.signupText}>
         <Text style={styles.signupText}>
           Don’t have an account? <Text style={styles.signupLink}>Sign up</Text>
         </Text>
-      </Link>
+      </TouchableOpacity>
 
       <View style={styles.orContainer}>
         <View style={styles.line} />
