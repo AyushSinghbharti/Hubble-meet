@@ -1,5 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, Animated, Dimensions } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Animated,
+  Dimensions,
+  Text,
+  Touchable,
+  TouchableOpacity,
+} from "react-native";
 import IntroCard from "../../components/introCard";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
@@ -48,9 +56,13 @@ export default function OnboardingScreen() {
         setCurrentIndex(currentIndex + 1);
         setNextIndex(null);
       });
-    } else{
+    } else {
       router.replace("/login");
     }
+  };
+
+  const handleSkip = () => {
+    router.replace("/login");
   };
 
   return (
@@ -58,6 +70,11 @@ export default function OnboardingScreen() {
       {/* Current Card */}
       <StatusBar style="light" />
       <View style={StyleSheet.absoluteFill}>
+        {currentIndex < 3 && (
+          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+            <Text style={styles.skipText}>Skip</Text>
+          </TouchableOpacity>
+        )}
         <IntroCard
           backgroundImage={screenInfo[currentIndex].backgroundImage}
           heading={screenInfo[currentIndex].heading}
@@ -91,5 +108,11 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  skipButton: { position: "absolute", top: 45, zIndex: 2, right: 24 },
+  skipText: {
+    color: "#fff",
+    fontFamily: "InterSemiBold",
+    fontSize: 16,
   },
 });
