@@ -43,7 +43,7 @@ function RootLayoutNav() {
       <PaperProvider>
         <GestureHandlerRootView>
           <StatusBar style="dark" />
-          <Stack initialRouteName='(splash)'>
+          <Stack initialRouteName='(tabs)'>
             <Stack.Screen name="(splash)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

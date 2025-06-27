@@ -1,6 +1,15 @@
 import React from "react";
-import { Image, StyleSheet, View, Text, StatusBar } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  View,
+  Text,
+  StatusBar,
+  Dimensions,
+  Platform,
+} from "react-native";
 import { Tabs } from "expo-router";
+import TabBarBackground from "../../components/TabBarBackground";
 
 const baseUrl = "../../../assets/icons";
 
@@ -10,25 +19,47 @@ const icons = {
   connect: require(`${baseUrl}/connect.png`),
   vbc: require(`${baseUrl}/vbc.png`),
   profile: require(`${baseUrl}/profile.png`),
+  chatFill: require(`${baseUrl}/chatFill.png`),
+  pitchFill: require(`${baseUrl}/pitchFill.png`),
+  vbcFill: require(`${baseUrl}/vbcFill.png`),
+  profileFill: require(`${baseUrl}/profileFill.png`),
 };
 
-const getIcon = (iconKey: keyof typeof icons, focused: boolean) => (
-  <Image
-    source={icons[iconKey]}
-    style={[styles.icon, { tintColor: focused ? "#BBCF8D" : "#000" }]}
-  />
-);
+const getIcon = (iconKey: keyof typeof icons, focused: boolean) =>
+  focused && iconKey !== "connect" ? (
+    <View style={{ borderTopWidth: 1.5, borderColor: "red", paddingTop: 5 }}>
+      <Image source={icons[`${iconKey}Fill`]} style={[styles.icon]} />
+    </View>
+  ) : (
+    <Image
+      source={icons[iconKey]}
+      style={[styles.icon, { tintColor: "#9DB2CE" }]}
+    />
+  );
 
 export default function StackLayout() {
   return (
     <>
       <StatusBar barStyle="dark-content" />
       <Tabs
-        initialRouteName="(pitch)"
+        initialRouteName="(connect)"
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: "#BBCF8D",
-          tabBarStyle: { height: 85 },
+          tabBarActiveTintColor: "#99BB66",
+          tabBarInactiveTintColor: "#9DB2CE",
+          tabBarLabelStyle: {paddingTop: 5},
+          tabBarStyle: {
+            backgroundColor: "#fff",
+            position: "absolute",
+            borderTopWidth: 0,
+            elevation: 5000,
+            height: Platform.OS === "ios" ? 80 : 85,
+          },
+          tabBarBackground: () => (
+            <View style={{ position: "relative", top: -25 }}>
+              <TabBarBackground />
+            </View>
+          ),
         }}
       >
         <Tabs.Screen
@@ -48,32 +79,30 @@ export default function StackLayout() {
         <Tabs.Screen
           name="(connect)"
           options={{
-            tabBarLabel: ({ focused }) =>
-              !focused ? (
-                <Text
-                  style={{ fontWeight: "bold", fontSize: 10, color: "#64748B" }}
-                >
-                  Connect
-                </Text>
-              ) : null,
+            title: "Connect",
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <View style={styles.circleWrapper}>
+                <View
+                  style={[
+                    styles.circleWrapper,
+                    { backgroundColor: "#99BB66", height: 60, width: 60 },
+                  ]}
+                >
                   <Image
                     source={icons.connect}
-                    style={[styles.icon, { tintColor: "#000" }]}
+                    style={[styles.icon, { tintColor: "#fff" }]}
                   />
-                  <Text
-                    style={{ fontWeight: "bold", fontSize: 10, color: "#000" }}
-                  >
-                    Connect
-                  </Text>
                 </View>
               ) : (
-                <View style={{ alignItems: "center" }}>
+                <View
+                  style={[
+                    styles.circleWrapper,
+                    { backgroundColor: "#B2D37D", height: 55, width: 55 },
+                  ]}
+                >
                   <Image
                     source={icons.connect}
-                    style={[styles.icon, { tintColor: "#000" }]}
+                    style={[styles.icon, { tintColor: "#fff" }]}
                   />
                 </View>
               ),
@@ -106,14 +135,14 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   circleWrapper: {
-    backgroundColor: "#BBCF8D",
+    backgroundColor: "#B2D37D",
     borderRadius: 40,
-    width: 75,
-    height: 75,
+    width: 55,
+    height: 55,
     justifyContent: "center",
     alignItems: "center",
     marginTop: -20,
-    shadowColor: "#BBCF8D",
+    shadowColor: "#B2D37D",
     shadowOffset: { width: 50, height: 50 },
     shadowOpacity: 0,
     shadowRadius: 10,
