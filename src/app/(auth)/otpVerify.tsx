@@ -32,9 +32,6 @@ const OtpVerificationUI = () => {
     <RandomBackgroundImages style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        {/* <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity> */}
         <Image
           source={require("../../../assets/logo/logo2.png")}
           style={{ aspectRatio: 31 / 5, width: 248 }}
@@ -45,7 +42,7 @@ const OtpVerificationUI = () => {
           position: "absolute",
           width: "110%",
           alignSelf: "center",
-          top: 160,
+          top: 165,
         }}
       >
         {error && <ErrorAlert message={error} onClose={() => setError("")} />}
@@ -60,7 +57,6 @@ const OtpVerificationUI = () => {
           marginBottom: 140,
         }}
       >
-        {/* <Text style={styles.emailText}>OTP Verification</Text> */}
         <Text style={styles.mailText}>
           Enter the verification code sent to ***38
         </Text>

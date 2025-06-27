@@ -99,7 +99,11 @@ export default function SignUp() {
         source={require("../../../assets/logo/logo2.png")}
         style={styles.logoAbsolute}
       />
-      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
+
+      <View style={{ position: "absolute", top: 130, width: "100%" }}>
+        {error && <ErrorAlert message={error} onClose={() => setError("")} />}
+      </View>
+
       <KeyboardAvoidingView behavior="padding" style={styles.form}>
         <ManualBlur
           style={[
