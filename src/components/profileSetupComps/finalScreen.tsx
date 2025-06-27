@@ -1,16 +1,24 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, StatusBar } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  StatusBar,
+} from "react-native";
 import colourPalette from "../../theme/darkPaletter";
+import RandomBackgroundImages from "../RandomBGImage";
 
 const FinalSetupPage: React.FC = () => {
   return (
-    <View
+    <RandomBackgroundImages
+      type="Dark"
+      blur={5}
       style={{
         flex: 1,
         alignItems: "center",
-        // backgroundColor: "#9CE89D33",
-        backgroundColor: colourPalette.backgroundSecondary,
-        marginTop: 40,
+        paddingTop: 40,
       }}
     >
       <StatusBar barStyle="dark-content" />
@@ -41,14 +49,13 @@ const FinalSetupPage: React.FC = () => {
       >
         Swipe. Flip. Connect
       </Text>
-    </View>
+    </RandomBackgroundImages>
   );
 };
 
 const splashButton = {
   position: "absolute",
   bottom: 50,
-  backgroundColor: "#000",
   alignSelf: "center",
   width: "90%",
   height: 50,
