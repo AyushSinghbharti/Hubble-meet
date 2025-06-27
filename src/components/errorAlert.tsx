@@ -1,6 +1,13 @@
-// components/ErrorAlert.js
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+// components/ErrorAlert.tsx
+import React, { useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  PanResponder,
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 interface ErrorAlertProps {
@@ -9,34 +16,92 @@ interface ErrorAlertProps {
 }
 
 const ErrorAlert = ({ message, onClose }: ErrorAlertProps) => {
+  const slideAnim = useRef(new Animated.Value(-100)).current;
+
+  useEffect(() => {
+    const animationTimer = setTimeout(() => {
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }, 0);
+
+    // Set up auto-close timer
+    const closeTimer = setTimeout(() => {
+      handleClose();
+    }, 3000);
+
+    return () => {
+      clearTimeout(animationTimer);
+      clearTimeout(closeTimer);
+    };
+  }, []);
+
+  const handleClose = () => {
+    Animated.timing(slideAnim, {
+      toValue: -100,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+    });
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dy) > 10;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy < -10) {
+          handleClose();
+        }
+      },
+      onPanResponderTerminationRequest: () => true,
+      onShouldBlockNativeResponder: () => false,
+    })
+  ).current;
+
   return (
-    <View style={styles.container}>
+    <Animated.View
+      {...panResponder.panHandlers}
+      style={[
+        styles.container,
+        {
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
       <Text style={styles.message}>{message}</Text>
-      <TouchableOpacity onPress={onClose}>
-        <MaterialIcons name="close" size={20} color="#d32f2f" />
-      </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    position: "absolute",
+    top: 60,
+    left: 20,
+    right: 20,
     flexDirection: "row",
-    minHeight: 57,
     backgroundColor: "#ffebee",
     padding: 12,
+    minHeight: 50,
     borderRadius: 6,
     alignItems: "center",
     justifyContent: "space-between",
-    margin: 10,
-    marginBottom: 40,
     borderLeftColor: "#d32f2f",
-    borderLeftWidth: 5
+    borderLeftWidth: 5,
+    elevation: 5,
+    zIndex: 999,
   },
   message: {
     flex: 1,
     color: "#E53935",
     fontSize: 14,
+    marginRight: 10,
   },
 });
 

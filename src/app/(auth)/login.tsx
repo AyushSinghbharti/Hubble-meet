@@ -77,9 +77,7 @@ export default function Login() {
         source={require("../../../assets/logo/logo2.png")}
         style={styles.logo}
       />
-      <View style={{ position: "absolute", top: 175, width: "100%" }}>
-        {error && <ErrorAlert message={error} onClose={() => setError("")} />}
-      </View>
+      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
 
       <KeyboardAvoidingView behavior="position" style={styles.form}>
         <View style={[styles.phoneContainer]}>
@@ -147,9 +145,7 @@ export default function Login() {
             style={[
               styles.loginText,
               {
-                color: phoneNumber
-                  ? "#000"
-                  : "#64748B",
+                color: phoneNumber ? "#000" : "#64748B",
               },
             ]}
           >

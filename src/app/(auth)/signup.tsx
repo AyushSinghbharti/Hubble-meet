@@ -100,9 +100,7 @@ export default function SignUp() {
         style={styles.logoAbsolute}
       />
 
-      <View style={{ position: "absolute", top: 130, width: "100%" }}>
-        {error && <ErrorAlert message={error} onClose={() => setError("")} />}
-      </View>
+      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
 
       <KeyboardAvoidingView behavior="padding" style={styles.form}>
         <ManualBlur

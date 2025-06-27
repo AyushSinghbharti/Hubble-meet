@@ -37,16 +37,7 @@ const OtpVerificationUI = () => {
           style={{ aspectRatio: 31 / 5, width: 248 }}
         />
       </View>
-      <View
-        style={{
-          position: "absolute",
-          width: "110%",
-          alignSelf: "center",
-          top: 165,
-        }}
-      >
-        {error && <ErrorAlert message={error} onClose={() => setError("")} />}
-      </View>
+      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
 
       {/* Main Content */}
       <KeyboardAvoidingView
