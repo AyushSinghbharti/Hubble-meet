@@ -7,13 +7,16 @@ export const loginStyles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-end",
     width: "100%",
+    paddingBottom: 75,
   },
   logo: {
     height: 40,
     width: 248,
     marginBottom: 185,
+    position: "absolute",
+    top: 115,
   },
   title: {
     fontSize: 22,
@@ -34,7 +37,7 @@ export const loginStyles = StyleSheet.create({
   phoneContainer: {
     flexDirection: "row",
     borderRadius: 10,
-    marginBottom: 40,
+    marginBottom: 35,
   },
   error: {
     color: colourPalette.errorText,
@@ -65,7 +68,6 @@ export const loginStyles = StyleSheet.create({
   },
   phoneInput: {
     flex: 1,
-    // verticalAlign: "middle",
     paddingHorizontal: 12,
     borderRadius: 8,
     elevation: 5,
@@ -96,7 +98,7 @@ export const loginStyles = StyleSheet.create({
     fontSize: 15,
     color: "#fff",
     textAlign: "center",
-    marginBottom: 35,
+    marginBottom: 15,
     fontFamily: "InterMedium",
   },
   signupLink: {

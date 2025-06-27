@@ -67,8 +67,8 @@ export default function Login() {
   };
 
   const handleSignup = () => {
-    router.replace("/signup")
-  }
+    router.replace("/signup");
+  };
 
   return (
     <RandomBackgroundImages style={styles.container}>
@@ -76,15 +76,11 @@ export default function Login() {
         source={require("../../../assets/logo/logo2.png")}
         style={styles.logo}
       />
-
-      {error ? (
-        <ErrorAlert message={error} onClose={() => setError("")} />
-      ) : (
-        <Text style={styles.title}>Login</Text>
-      )}
+      <View style={{ position: "absolute", top: 175, width: "100%" }}>
+        {error && <ErrorAlert message={error} onClose={() => setError("")} />}
+      </View>
 
       <View style={styles.form}>
-        <Text style={styles.label}>Phone number</Text>
         <View style={[styles.phoneContainer]}>
           <ManualBlur style={styles.flagBox}>
             <TouchableOpacity
@@ -146,7 +142,7 @@ export default function Login() {
           ]}
           onPress={handleLogin}
         >
-          <Text style={styles.loginText}>Log in</Text>
+          <Text style={styles.loginText}>Verify</Text>
         </TouchableOpacity>
       </View>
 
