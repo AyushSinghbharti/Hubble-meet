@@ -7,6 +7,7 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
@@ -80,7 +81,7 @@ export default function Login() {
         {error && <ErrorAlert message={error} onClose={() => setError("")} />}
       </View>
 
-      <View style={styles.form}>
+      <KeyboardAvoidingView behavior="position" style={styles.form}>
         <View style={[styles.phoneContainer]}>
           <ManualBlur style={styles.flagBox}>
             <TouchableOpacity
@@ -122,7 +123,7 @@ export default function Login() {
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               placeholder="Phone number"
-              placeholderTextColor="#aaa"
+              placeholderTextColor="#fff"
               keyboardType="phone-pad"
               style={[styles.phoneText]}
             />
@@ -142,9 +143,20 @@ export default function Login() {
           ]}
           onPress={handleLogin}
         >
-          <Text style={styles.loginText}>Verify</Text>
+          <Text
+            style={[
+              styles.loginText,
+              {
+                color: phoneNumber
+                  ? "#000"
+                  : "#64748B",
+              },
+            ]}
+          >
+            Verify
+          </Text>
         </TouchableOpacity>
-      </View>
+      </KeyboardAvoidingView>
 
       <TouchableOpacity onPress={handleSignup} style={styles.signupText}>
         <Text style={styles.signupText}>
@@ -155,7 +167,7 @@ export default function Login() {
       <View style={styles.orContainer}>
         <View style={styles.line} />
         <Text style={styles.orText}>
-          Or <Text style={styles.bold}>Login</Text> with
+          Or <Text style={styles.bold}>Signup</Text> with
         </Text>
         <View style={styles.line} />
       </View>

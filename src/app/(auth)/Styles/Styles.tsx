@@ -78,7 +78,7 @@ export const loginStyles = StyleSheet.create({
   phoneText:{
     color: colourPalette.textPrimary,
     fontSize: 15,
-    fontFamily: "InterMedium",
+    fontFamily: "InterSemiBold",
   },
   loginBtn: {
     elevation: 5,
@@ -154,7 +154,7 @@ export const loginStyles = StyleSheet.create({
   },
   emailContainer: {
     flexDirection: "row",
-    marginBottom: 16
+    marginBottom: 25,
   },
   flagIcon: {
     width: 20,

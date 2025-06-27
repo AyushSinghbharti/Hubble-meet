@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   ImageSourcePropType,
+  KeyboardAvoidingView,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
@@ -72,7 +73,7 @@ export default function SignUp() {
 
   const handleLogin = () => {
     router.replace("/login");
-  }
+  };
 
   const handleAgreeTerm = () => {
     setTermModalVisible(false);
@@ -98,13 +99,8 @@ export default function SignUp() {
         source={require("../../../assets/logo/logo2.png")}
         style={styles.logoAbsolute}
       />
-      {error ? (
-        <ErrorAlert message={error} onClose={() => setError("")} />
-      ) : (
-        <Text style={styles.title}>Sign Up</Text>
-      )}
-      <View style={styles.form}>
-        <Text style={styles.label}>Email</Text>
+      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
+      <KeyboardAvoidingView behavior="padding" style={styles.form}>
         <ManualBlur
           style={[
             styles.emailContainer,
@@ -121,14 +117,13 @@ export default function SignUp() {
             value={email}
             onChangeText={setEmail}
             placeholder="Email"
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#fff"
             keyboardType="email-address"
             style={[styles.phoneText, { flex: 1 }]}
           />
         </ManualBlur>
 
-        <Text style={styles.label}>Phone number</Text>
-        <View style={[styles.phoneContainer, { marginBottom: 16 }]}>
+        <View style={[styles.phoneContainer, { marginBottom: 20 }]}>
           <ManualBlur style={styles.flagBox}>
             <TouchableOpacity
               onPress={() => {
@@ -169,7 +164,7 @@ export default function SignUp() {
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               placeholder="Phone number"
-              placeholderTextColor="#aaa"
+              placeholderTextColor="#fff"
               keyboardType="phone-pad"
               style={[styles.phoneText]}
             />
@@ -224,6 +219,7 @@ export default function SignUp() {
           style={[
             styles.loginBtn,
             {
+              marginBottom: 20,
               backgroundColor:
                 phoneNumber && termAccept && email
                   ? colourPalette.buttonPrimary
@@ -236,15 +232,24 @@ export default function SignUp() {
           ]}
           onPress={handleSignUp}
         >
-          <Text style={styles.loginText}>Verify</Text>
+          <Text
+            style={[
+              styles.loginText,
+              {
+                color: phoneNumber && termAccept && email ? "#000" : "#64748B",
+              },
+            ]}
+          >
+            Verify
+          </Text>
         </TouchableOpacity>
-      </View>
+      </KeyboardAvoidingView>
 
       <Text style={styles.signupText} onPress={handleLogin}>
         Don’t have an account? <Text style={styles.signupLink}>Log In</Text>
       </Text>
 
-      <View style={styles.orContainer}>
+      <View style={[styles.orContainer]}>
         <View style={styles.line} />
         <Text style={styles.orText}>
           Or <Text style={styles.orBold}>Signup</Text> with
