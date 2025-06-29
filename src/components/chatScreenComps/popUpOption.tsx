@@ -9,6 +9,7 @@ interface BlockModalProps {
   description: string;
   acceptButtonName: string;
   cancelButtonName: string;
+  altStyle?: boolean;
 }
 
 export default function PopUpOption({
@@ -19,16 +20,25 @@ export default function PopUpOption({
   description,
   acceptButtonName,
   cancelButtonName,
+  altStyle = false,
 }: BlockModalProps) {
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
           <Text style={styles.title}>{message}</Text>
           <Text style={styles.message}>{description}</Text>
 
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
+            <TouchableOpacity
+              style={[styles.cancelBtn, { flex: altStyle ? 0 : 1 }]}
+              onPress={onClose}
+            >
               <Text style={styles.cancelText}>{cancelButtonName}</Text>
             </TouchableOpacity>
 
@@ -76,17 +86,21 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cancelBtn: {
-    flex: 1,
+    // flex: 1,
+    minWidth: 70,
     backgroundColor: "#F1F5F9",
     paddingVertical: 12,
     borderRadius: 8,
+    justifyContent: "center",
     alignItems: "center",
   },
   blockBtn: {
     flex: 1,
-    backgroundColor: "#1C1917",
+    minWidth: 70,
+    backgroundColor: "#BBCF8D",
     paddingVertical: 12,
     borderRadius: 8,
+    justifyContent: "center",
     alignItems: "center",
   },
   cancelText: {
@@ -95,7 +109,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   blockText: {
-    color: "#fff",
+    color: "#000",
     fontFamily: "InterBold",
     fontWeight: "600",
   },

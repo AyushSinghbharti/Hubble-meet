@@ -139,16 +139,6 @@ export default function CreatePitch() {
     setTypeModal(!typeModal);
   };
 
-  // if (popUp) {
-  //   return (
-  //     <UploadErrorModal
-  //       visible={popUp}
-  //       onClose={handleClosePopup}
-  //       type={status ?? "error"}
-  //     />
-  //   );
-  // }
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}

@@ -1,8 +1,17 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
-const AttachmentSheet = ({ isVisible, footerHeight }: { isVisible: boolean, footerHeight: number }) => {
+interface AttachmentSheetProps {
+  isVisible: boolean;
+  footerHeight: number;
+  handlePress?: (label: string) => void;
+}
+
+const AttachmentSheet: React.FC<AttachmentSheetProps> = ({
+  isVisible,
+  footerHeight,
+  handlePress,
+}) => {
   if (!isVisible) return null;
 
   const options = [
@@ -13,10 +22,14 @@ const AttachmentSheet = ({ isVisible, footerHeight }: { isVisible: boolean, foot
   ];
 
   return (
-    <View style={[styles.floatingContainer, {bottom: footerHeight + 5}]}>
+    <View style={[styles.floatingContainer, { bottom: footerHeight + 5 }]}>
       <View style={styles.container}>
         {options.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.option}>
+          <TouchableOpacity
+            key={index}
+            style={styles.option}
+            onPress={() => handlePress?.(item.label)}
+          >
             <Image source={item.icon} style={styles.icon} />
             <Text style={styles.label}>{item.label}</Text>
           </TouchableOpacity>
@@ -31,14 +44,15 @@ export default AttachmentSheet;
 const styles = StyleSheet.create({
   floatingContainer: {
     position: "absolute",
-    // top: 10,
     left: 0,
     right: 0,
     alignItems: "center",
     zIndex: 999,
   },
   icon: {
-    height: 24, aspectRatio: 1, tintColor: "#7A7A7A"
+    height: 24,
+    aspectRatio: 1,
+    tintColor: "#7A7A7A",
   },
   container: {
     backgroundColor: "white",

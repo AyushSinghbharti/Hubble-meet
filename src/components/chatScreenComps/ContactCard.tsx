@@ -13,7 +13,11 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, phone, photoUri }) => {
     <View style={styles.card}>
       <View style={styles.header}>
         <Image
-          source={{ uri: photoUri }}
+          source={
+            photoUri
+              ? { uri: photoUri }
+              : require("../assets/default-profile.png") // fallback image
+          }
           style={styles.avatar}
         />
         <Text style={styles.name}>{name}</Text>
@@ -35,12 +39,10 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, phone, photoUri }) => {
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
     backgroundColor: "#fff",
-    borderWidth: 0.5,
-    borderColor: "#ccc",
     borderRadius: 16,
     padding: 16,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -50,7 +52,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   avatar: {
     width: 48,
