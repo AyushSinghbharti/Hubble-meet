@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,50 +6,152 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
 } from "react-native";
 import {
   Ionicons,
   MaterialIcons,
   Entypo,
   FontAwesome,
+  Feather,
+  AntDesign,
+  FontAwesome6,
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
+import SwipeButton from "../../../components/SwipeButton";
+import ErrorAlert from "../../../components/errorAlert";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+import { useVideoPlayer, VideoView } from "expo-video";
+import { useEvent } from "expo";
+import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
+import ManualBlur from "../../../components/BlurComp";
+
+interface Item {
+  name: string;
+  desc: string;
+  format: string;
+  pitchType: string;
+  duration: number;
+  videoUrl: string | null;
+}
 
 export default function CreatePitch() {
-  const [duration, setDuration] = useState<number>(30);
-  const [pitchType, setPitchType] = useState("Business");
-  const [format, setFormat] = useState("Upload");
-  const [name, setName] = useState<string>();
-  const [desc, setDesc] = useState<string>();
+  const params = useLocalSearchParams();
+  const item: Item = JSON.parse(params.item as string);
+
+  const [name, setName] = useState<string>(item.name);
+  const [desc, setDesc] = useState<string>(item.desc);
+  const [format, setFormat] = useState(item.format);
+  const [pitchType, setPitchType] = useState(item.pitchType);
+  const [duration, setDuration] = useState<number>(item.duration);
   const [error, setError] = useState<string>();
+  const [typeModal, setTypeModal] = useState(false);
+
   const router = useRouter();
+
+  //Media State
+  const [status, setStatus] = useState<"pending" | "success" | "error">();
+  const [media, setMedia] = useState<string | null>(item.videoUrl);
+  const [popUp, setPopUp] = useState(false);
+
+  //Media Props
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["videos"],
+      allowsEditing: true,
+      aspect: [3, 4],
+      quality: 0.5,
+    });
+
+    if (!result.canceled && result.assets && result.assets[0]) {
+      setMedia(result.assets[0].uri);
+      if (
+        result.assets[0].fileSize !== undefined &&
+        result.assets[0].fileSize >= 5000 * 1024
+      ) {
+        setStatus("error");
+        setError("Media size is larger than limit");
+      } else {
+        setStatus("pending");
+      }
+    }
+  };
+
+  type PitchType = "Upload" | "Record";
+
+  const handleUpload = (type: PitchType = "Upload") => {
+    if (type === "Upload") {
+      pickImage();
+    } else {
+      router.push({
+        pathname: "/pitchStack/recordPitch",
+        params: {
+          item: JSON.stringify({
+            name,
+            desc,
+            format,
+            pitchType,
+            duration,
+            videoUrl: null,
+          }),
+        },
+      });
+    }
+  };
+
+  const player = useVideoPlayer(media, (player) => {
+    player.loop = true;
+    player.play();
+  });
+
+  const { isPlaying } = useEvent(player, "playingChange", {
+    isPlaying: player.playing,
+  });
+
+  const handleClosePopup = () => {
+    if (status === "error") {
+      setPopUp(!popUp);
+    } else if (status === "pending") {
+      router.push("/pitch");
+    } else {
+      router.push("/connect");
+    }
+  };
 
   const handleRoutes = () => {
     if (!name || !desc) {
       setError("Please fill all Fields");
       return;
     }
-
-    if (format === "Upload") {
-      router.push({
-        pathname: "/pitchStack/uploadPitch",
-        params: {
-          item: JSON.stringify({ name, desc, format, pitchType, duration, videoUrl: null }),
-        },
-      });
-    } else {
-      router.push({
-        pathname: "/pitchStack/recordPitch",
-        params: {
-          item: JSON.stringify({ name, desc, format, pitchType, duration, videoUrl: null }),
-        },
-      });
+    if (!media) {
+      setError("Media is not selected, select one now");
+      return;
     }
+
+    setPopUp(!popUp);
   };
 
+  const handleTypeSelect = (text: string) => {
+    setPitchType(text);
+    setTypeModal(!typeModal);
+  };
+
+  // if (popUp) {
+  //   return (
+  //     <UploadErrorModal
+  //       visible={popUp}
+  //       onClose={handleClosePopup}
+  //       type={status ?? "error"}
+  //     />
+  //   );
+  // }
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Header */}
       <View
         style={{
           flexDirection: "row",
@@ -65,157 +167,248 @@ export default function CreatePitch() {
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Pitch Duration */}
-      <View style={styles.card}>
-        <View style={styles.cardRow}>
+      {/* Media Select box */}
+      {media ? (
+        <View style={styles.videoBox}>
+          <VideoView
+            style={styles.videoStyle}
+            player={player}
+            allowsFullscreen
+            allowsPictureInPicture
+            nativeControls={false}
+          />
+
+          {/* position content */}
+          <Pressable style={styles.deleteIcon} onPress={() => setMedia(null)}>
+            <MaterialIcons name="delete-outline" size={24} color="white" />
+          </Pressable>
+          <Text style={styles.videoText}>30 sec</Text>
+          {!isPlaying ? (
+            <Pressable
+              hitSlop={30}
+              onPress={() => player.play()}
+              style={styles.videoIcon}
+            >
+              <FontAwesome6 name="play" size={24} color="white" />
+            </Pressable>
+          ) : (
+            <Pressable
+              hitSlop={30}
+              onPress={() => player.pause()}
+              style={styles.videoIcon}
+            >
+              <FontAwesome6 name="pause" size={24} color="white" />
+            </Pressable>
+          )}
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={styles.uploadBox}
+          onPress={() => handleUpload("Upload")}
+        >
+          <View style={styles.uploadBody}>
+            <Feather name="upload-cloud" size={36} color="#292D32" />
+            <Text style={styles.uploadTitle}>
+              Please Upload Your Pitch Here. Please Upload Your Pitch Here.
+            </Text>
+            <Text style={styles.uploadHint}>
+              You can upload your 30 second video in maximum{"\n"}size of 50mb
+              here…
+            </Text>
+          </View>
+
+          <View style={[styles.uploadButtonContainer]}>
+            <TouchableOpacity
+              onPress={() => {
+                setFormat("Record");
+                handleUpload("Record");
+              }}
+              style={[
+                styles.toggleButton,
+                format === "Record"
+                  ? styles.activeToggle
+                  : styles.inActiveToggle,
+              ]}
+            >
+              <Image
+                source={require("../../../../assets/icons/record.png")}
+                style={[
+                  styles.icon,
+                  { tintColor: format === "Record" ? "#fff" : "#000" },
+                ]}
+              />
+              <Text
+                style={
+                  format === "Record" ? styles.activeText : styles.toggleText
+                }
+              >
+                Record
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.uploadHint}>Or</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setFormat("Upload");
+                handleUpload("Upload");
+              }}
+              style={[
+                styles.toggleButton,
+                format === "Upload"
+                  ? styles.activeToggle
+                  : styles.inActiveToggle,
+              ]}
+            >
+              <Image
+                source={require("../../../../assets/icons/upload.png")}
+                style={[
+                  styles.icon,
+                  { tintColor: format === "Upload" ? "#fff" : "#000" },
+                ]}
+              />
+              <Text
+                style={
+                  format === "Upload" ? styles.activeText : styles.toggleText
+                }
+              >
+                Upload
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      )}
+
+      {/* Switch Bars */}
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 15,
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        {/* Pitch Duration */}
+        <View style={styles.card}>
           <View style={styles.rowNoGap}>
             <Image
               source={require("../../../../assets/icons/timer.png")}
               style={styles.icon}
             />
-            <Text style={styles.label}>Pitch duration</Text>
+            <Text style={styles.cardTitle}>Duration</Text>
           </View>
 
           {/* green chip */}
           <TouchableOpacity style={styles.durationButton}>
-            <Text style={styles.selectedText}>{duration} Seconds</Text>
+            <Text style={styles.cardText}>{duration} Sec</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Pitch Type */}
-      <View style={styles.card}>
-        <View style={styles.row}>
-          <Image
-            source={require("../../../../assets/icons/refresh.png")}
-            style={styles.icon}
-          />
-          <Text style={styles.label}>Pitch type</Text>
-        </View>
-        <View style={styles.toggleGroup}>
-          <TouchableOpacity
-            onPress={() => setPitchType("Individual")}
-            style={[
-              styles.toggleButton,
-              pitchType === "Individual" && styles.activeToggle,
-            ]}
-          >
-            <Text
-              style={
-                pitchType === "Individual"
-                  ? styles.activeText
-                  : styles.toggleText
-              }
-            >
-              Individual
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setPitchType("Business")}
-            style={[
-              styles.toggleButton,
-              pitchType === "Business" && styles.activeToggle,
-            ]}
-          >
-            <Text
-              style={
-                pitchType === "Business" ? styles.activeText : styles.toggleText
-              }
-            >
-              Business
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        {/* Pitch Type */}
+        <View style={styles.card}>
+          <View style={styles.rowNoGap}>
+            <Image
+              source={require("../../../../assets/icons/refresh.png")}
+              style={styles.icon}
+            />
+            <Text style={styles.cardTitle}>Type</Text>
+          </View>
 
-      {/* Pitch Format */}
-      <View style={styles.card}>
-        <View style={styles.row}>
-          <Image
-            source={require("../../../../assets/icons/format.png")}
-            style={styles.icon}
-          />
-          <Text style={styles.label}>Pitch format</Text>
-        </View>
-        <View style={styles.toggleGroup}>
           <TouchableOpacity
-            onPress={() => setFormat("Record")}
-            style={[
-              styles.toggleButton,
-              format === "Record" && styles.activeToggle,
-            ]}
+            style={styles.durationButton}
+            onPress={() => setTypeModal(!typeModal)}
           >
-            <Image
-              source={require("../../../../assets/icons/record.png")}
-              style={[
-                styles.icon,
-                { tintColor: format === "Record" ? "#fff" : "#000" },
-              ]}
-            />
-            <Text
-              style={
-                format === "Record" ? styles.activeText : styles.toggleText
-              }
-            >
-              Record
-            </Text>
+            <Text style={styles.cardText}>{pitchType}</Text>
+            <AntDesign name="down" size={24} color="black" />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setFormat("Upload")}
-            style={[
-              styles.toggleButton,
-              format === "Upload" && styles.activeToggle,
-            ]}
-          >
-            <Image
-              source={require("../../../../assets/icons/upload.png")}
+
+          {/* Modal */}
+          {typeModal && (
+            <View
               style={[
-                styles.icon,
-                { tintColor: format === "Upload" ? "#fff" : "#000" },
+                styles.modalContainer,
+                {
+                  backgroundColor: "#fff",
+                  borderColor: "#c7c7c7",
+                  borderWidth: 0.5,
+                  borderRadius: 10,
+                  gap: 5,
+                },
               ]}
-            />
-            <Text
-              style={
-                format === "Upload" ? styles.activeText : styles.toggleText
-              }
             >
-              Upload
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[styles.cardText, styles.fullText]}
+                onPress={() => handleTypeSelect("Individual")}
+              >
+                Individual
+              </Text>
+              <View style={{ borderBottomWidth: 1, borderColor: "#DEDEE0" }} />
+              <Text
+                style={[styles.cardText, styles.fullText]}
+                onPress={() => handleTypeSelect("Buisness")}
+              >
+                Buisness
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
       {/* Name and Description */}
-      <View style={styles.inputBox}>
-        <TextInput
-          placeholder="Display name"
-          value={name}
-          onChangeText={setName}
-          style={styles.input}
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "space-between",
+          marginBottom: 30,
+        }}
+      >
+        <View>
+          <TextInput
+            placeholder="Pitch Title"
+            value={name}
+            onChangeText={setName}
+            style={styles.input}
+            placeholderTextColor={"#949494"}
+          />
+          <View style={styles.inputBox}>
+            <TextInput
+              placeholder="Pitch caption"
+              value={desc}
+              onChangeText={setDesc}
+              style={[styles.desc]}
+              placeholderTextColor={"#949494"}
+              multiline
+              textAlignVertical="top"
+            />
+            {error && <Text style={styles.errorText}>{error}</Text>}
+          </View>
+        </View>
+        <SwipeButton
+          hasError={error}
+          onSwipeSuccess={handleRoutes}
+          text={"Swipe to Submit"}
         />
-        <View style={{ borderBottomWidth: 1, borderColor: "#DEDEE0" }}></View>
-        <TextInput
-          placeholder="Pitch caption"
-          value={desc}
-          onChangeText={setDesc}
-          style={styles.input}
-          multiline
-        />
-        {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
 
-      {/* Proceed Button */}
-      <TouchableOpacity style={[styles.proceedButton]} onPress={handleRoutes}>
-        <Text style={styles.proceedText}>Proceed</Text>
-      </TouchableOpacity>
+      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
+
+      {/* Modals */}
+      {popUp && (
+        <View style={{ flex: 1 }}>
+          <UploadErrorModal
+            visible={popUp}
+            onClose={handleClosePopup}
+            type={status ?? "error"}
+          />
+        </View>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#f7f7f7",
   },
   title: {
     flex: 1,
@@ -225,60 +418,50 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   card: {
+    flex: 1,
     backgroundColor: "#FFF",
     borderRadius: 12,
-    padding: 16,
+    padding: 10,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: "#5C5C6533",
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    gap: 12,
+    minHeight: 75,
   },
   rowNoGap: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
   },
-
+  cardTitle: {
+    fontFamily: "InterMedium",
+    fontSize: 14,
+    color: "#57616B",
+  },
+  cardText: {
+    fontFamily: "InterMedium",
+    fontSize: 14,
+    color: "#000",
+  },
   /* pitch‑duration chip */
   durationButton: {
-    backgroundColor: "#596c2d",
-    borderRadius: 24,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    minWidth: 140,
-    alignItems: "center",
-  },
-  row: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    width: "100%",
+    flex: 1,
+    justifyContent: "space-between",
   },
   icon: {
     height: 22,
     width: 22,
   },
-  label: {
-    marginLeft: 8,
-    fontFamily: "InterSemiBold",
-    color: "#57616B",
-  },
-  selectedText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontFamily: "InterBold",
-  },
-  toggleGroup: {
-    flexDirection: "row",
-    backgroundColor: "#eaf0db",
-    borderRadius: 24,
-  },
   toggleButton: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 10,
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
@@ -289,28 +472,47 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
+  inActiveToggle: {
+    backgroundColor: "#EAF0DB",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
   toggleText: {
     color: "#4D5D2A",
-    fontWeight: "500",
+    fontFamily: "InterMedium",
   },
   activeText: {
     color: "#fff",
-    fontWeight: "600",
+    fontFamily: "InterSemiBold",
   },
   inputBox: {
     backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#DEDEE0",
-    marginBottom: 24,
-    gap: 10,
+    borderColor: "#CBD5E1",
+    marginBottom: 10,
+    minHeight: 100,
   },
   input: {
     fontSize: 14,
     fontFamily: "InterSemiBold",
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    color: "#000",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    marginBottom: 10,
+  },
+  desc: {
+    fontSize: 14,
+    fontFamily: "InterSemiBold",
     paddingVertical: 8,
-    color: "#111",
+    color: "#000",
+    flex: 1,
   },
   errorText: {
     color: "#EF5350",
@@ -327,5 +529,104 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+  },
+
+  //Upload box
+  uploadBox: {
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "#5C5C6580",
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    minHeight: 240,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+    padding: 10,
+    paddingBottom: 18,
+  },
+  uploadBody: { justifyContent: "center", alignItems: "center", flex: 1 },
+  uploadTitle: {
+    marginTop: 12,
+    fontSize: 14,
+    fontFamily: "InterSemiBold",
+    color: "#525f7f",
+  },
+  uploadHint: {
+    marginTop: 6,
+    fontFamily: "Inter",
+    fontSize: 12,
+    textAlign: "center",
+    color: "#525f7f",
+    lineHeight: 18,
+  },
+  uploadButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  //Modal View
+  modalContainer: {
+    position: "absolute",
+    top: "120%",
+    zIndex: 2,
+    borderTopWidth: 0,
+    borderTopRightRadius: 0,
+    borderTopLeftRadius: 0,
+    width: "115%",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    elevation: 0.5,
+    shadowOffset: { height: 200, width: 100 },
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  fullText: { textAlign: "left", width: "100%" },
+
+  //Video Container:
+  videoBox: {
+    borderWidth: 1,
+    borderColor: "#5C5C6580",
+    backgroundColor: "black",
+    borderRadius: 12,
+    height: 240,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  videoStyle: {
+    height: "100%",
+    width: "100%",
+  },
+  videoText: {
+    position: "absolute",
+    bottom: 18,
+    left: 20,
+    color: "#fff",
+    fontFamily: "InterSemiBold",
+    fontSize: 14,
+  },
+  videoIcon: {
+    position: "absolute",
+    bottom: 8,
+    right: 10,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteIcon: {
+    backgroundColor: "#FFFFFF66",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    height: 50,
+    width: 50,
+    position: "absolute",
+    top: 10,
+    right: 10,
   },
 });

@@ -43,11 +43,6 @@ export default function UploadPitch() {
   const [media, setMedia] = useState<string | null>(item.videoUrl);
   const [popUp, setPopUp] = useState(false);
 
-  useEffect(() => {
-    console.log(media);
-  }, [media]);
-
-
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["videos"],

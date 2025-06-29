@@ -45,6 +45,22 @@ export default function PitchScreen() {
   const router = useRouter();
   const [flipped, setFlipped] = useState(true);
 
+  const handleRoutes = () => {
+    router.push({
+      pathname: "/pitchStack/createPitch",
+      params: {
+        item: JSON.stringify({
+          name: null,
+          desc: null,
+          format: "Upload",
+          pitchType: "Business",
+          duration: 30,
+          videoUrl: null,
+        }),
+      },
+    });
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -54,9 +70,7 @@ export default function PitchScreen() {
           source={require("../../../../assets/images/logo.png")}
           style={{ height: 24, width: 148 }}
         />
-        <TouchableOpacity
-          onPress={() => router.push("/pitchStack/createPitch")}
-        >
+        <TouchableOpacity onPress={handleRoutes}>
           <View style={[styles.iconContainer]}>
             <Image
               source={require("../../../../assets/icons/pitch2.png")}
@@ -93,6 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 18,
     paddingTop: 32,
+    paddingBottom: 90,
   },
   headerContainer: {
     width: "100%",

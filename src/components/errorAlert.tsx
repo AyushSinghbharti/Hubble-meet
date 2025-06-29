@@ -11,7 +11,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 interface ErrorAlertProps {
-  message: string | String;
+  message: string | String | undefined;
   onClose: () => void;
 }
 
