@@ -5,22 +5,24 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
-  StatusBar,
+  StyleProp,
+  ViewStyle
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 type NavHeaderProps = {
   title: string;
+  style?: StyleProp<ViewStyle>;
   showBackButton?: boolean;
   onBackPress?: () => void;
 };
 
-export default function NavHeader({ title, showBackButton = true, onBackPress }: NavHeaderProps) {
+export default function NavHeader({ title, showBackButton = true, onBackPress, style }: NavHeaderProps) {
   const router = useRouter();
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, style]}>
       <View style={styles.container}>
         {showBackButton ? (
           <TouchableOpacity
@@ -42,7 +44,7 @@ export default function NavHeader({ title, showBackButton = true, onBackPress }:
 
 const styles = StyleSheet.create({
   wrapper: {
-     paddingTop: Platform.OS === 'android' ? 0:30,
+     paddingTop: Platform.OS === 'android' ? 5:30,
      width:"100%"
   },
   container: {
@@ -50,7 +52,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
 
     borderBottomColor: '#eee',
   },
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: "InterBold",
   },
   rightPlaceholder: {
     width: 32,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,14 +7,15 @@ import {
   TouchableOpacity,
   Platform,
   Switch,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import NavHeader from '../../../components/NavHeader';
-import SupportModal from '../../../components/Modal/SupportModal';
-
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import NavHeader from "../../../components/NavHeader";
+import SupportModal from "../../../components/Modal/SupportModal";
 
 export default function SettingsScreen() {
-  const [supportModalType, setSupportModalType] = useState<'problem' | 'feedback' | null>(null);
+  const [supportModalType, setSupportModalType] = useState<
+    "problem" | "feedback" | null
+  >(null);
 
   const [toggles, setToggles] = useState({
     shareVBC: false,
@@ -40,23 +41,38 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 200, flex: 1 }}
+    >
       <NavHeader title="Support & Help" />
 
       <View style={styles.card}>
-        <SupportItem label="Report a problem" onPress={() => setSupportModalType('problem')} />
-        <SupportItem label="Feedback & Suggestions" onPress={() => setSupportModalType('feedback')} />
+        <SupportItem
+          label="Report a problem"
+          onPress={() => setSupportModalType("problem")}
+        />
+        <Divider />
+        <SupportItem
+          label="Feedback & Suggestions"
+          onPress={() => setSupportModalType("feedback")}
+        />
       </View>
 
       <Text style={styles.sectionHeader}>My App</Text>
       <View style={styles.card}>
         <SupportItem label="HubbleMeet Demo" onPress={() => {}} />
+        <Divider />
         <SupportItem label="Contact Us" onPress={() => {}} />
       </View>
 
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Submit</Text>
-      </TouchableOpacity>
+      <View
+        style={{flex: 1, justifyContent: "flex-end" }}
+      >
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText}>Submit</Text>
+        </TouchableOpacity>
+      </View>
 
       <SupportModal
         visible={!!supportModalType}
@@ -75,18 +91,29 @@ const SupportItem = ({ label, onPress }: any) => (
   </TouchableOpacity>
 );
 
+const Divider = () => {
+  return (
+    <View
+      style={{
+        borderBottomWidth: 1,
+        borderBottomColor: "#eee",
+      }}
+    />
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 10 : 30,
-    backgroundColor: '#f4f5f7',
+    paddingTop: Platform.OS === "ios" ? 10 : 30,
+    backgroundColor: "#f4f5f7",
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -96,34 +123,31 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 24,
     marginBottom: 12,
-    color: '#596C2D',
+    color: "#596C2D",
   },
   settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   settingLabel: {
     fontSize: 16,
-    color: '#111',
+    color: "#111",
   },
   button: {
-    marginTop: 304,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 12,
     marginHorizontal: 16,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 16,
   },
 });

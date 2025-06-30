@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,12 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-} from 'react-native';
-import { Ionicons, Entypo, Feather } from '@expo/vector-icons';
-import InviteModal from '../../../components/Modal/InviteModal';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import MyInviteModal from '../../../components/Alerts/MyInviteModal';
+} from "react-native";
+import { Ionicons, Entypo, Feather } from "@expo/vector-icons";
+import InviteModal from "../../../components/Modal/InviteModal";
+import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import MyInviteModal from "../../../components/Alerts/MyInviteModal";
 
 // Profile Data
 const profileData = {
@@ -30,26 +30,27 @@ const profileData = {
 
 export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-    const [MyInviteModalVisible, setMyInviteModalVisible] = useState(false);
+  const [MyInviteModalVisible, setMyInviteModalVisible] = useState(false);
   const router = useRouter();
 
   return (
     <ScrollView style={styles.container}>
-
       <View style={styles.header}>
+        <View style={{ width: 30 }} />
         <Text style={styles.headerText}>Profile</Text>
-        <TouchableOpacity style={{ left: Platform.OS === "ios" ? 150 : 140 }} onPress={() => router.push('(profile)/Setting')}>
-          <Ionicons name="settings-outline" size={24} color="black" />
+        <TouchableOpacity onPress={() => router.push("(profile)/Setting")}>
+          <Ionicons name="settings-outline" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
-
       <View style={styles.profileContainer}>
-        <Image source={{ uri: profileData.avatar }} style={styles.profileImage} />
+        <Image
+          source={{ uri: profileData.avatar }}
+          style={styles.profileImage}
+        />
         <Text style={styles.name}>{profileData.name}</Text>
         <Text style={styles.subtitle}>{profileData.title}</Text>
       </View>
-
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Expand your Hubble Circle</Text>
@@ -62,26 +63,23 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-
       <View style={styles.card}>
         <Text style={styles.cardTitle}>About</Text>
         <Text style={styles.cardText}>{profileData.about}</Text>
       </View>
 
-
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Contact</Text>
 
-
         <View style={styles.contactRow}>
-   <LinearGradient
-  colors={['#DCE9BA','#DCE9BA', '#DCE9BA']}
-  start={{ x: 0, y: 0 }}
-  end={{ x: 1, y: 1 }}
-  style={styles.iconGradient}
->
-  <Ionicons name="mail-outline" size={20} color="#1F2937" />
-</LinearGradient>
+          <LinearGradient
+            colors={["#DCE9BA", "#DCE9BA", "#DCE9BA"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.iconGradient}
+          >
+            <Ionicons name="mail-outline" size={20} color="#1F2937" />
+          </LinearGradient>
 
           <View>
             <Text style={styles.contactLabel}>Email</Text>
@@ -89,11 +87,9 @@ export default function ProfileScreen() {
           </View>
         </View>
 
- 
         <View style={styles.contactRow}>
           <LinearGradient
-              colors={['#DCE9BA','#DCE9BA', '#DCE9BA']}
-   
+            colors={["#DCE9BA", "#DCE9BA", "#DCE9BA"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.iconGradient}
@@ -107,16 +103,21 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-
       <View style={[styles.card, styles.profileCard]}>
         <View style={styles.profileRow}>
-          <Image source={{ uri: profileData.avatar }} style={styles.profileImageSmall} />
+          <Image
+            source={{ uri: profileData.avatar }}
+            style={styles.profileImageSmall}
+          />
           <View style={styles.profileInfo}>
             <Text style={styles.name}>{profileData.name}</Text>
             <Text style={styles.subtitle}>{profileData.title}</Text>
             <Text style={styles.location}>{profileData.location}</Text>
           </View>
-          <TouchableOpacity onPress={()=>router.push('/(pitch)/pitch')} style={styles.pitchButton}>
+          <TouchableOpacity
+            onPress={() => router.push("/(pitch)/pitch")}
+            style={styles.pitchButton}
+          >
             <Image
               style={{ height: 25, width: 25 }}
               source={require("../../../../assets/icons/pitch2.png")}
@@ -124,45 +125,51 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity   onPress={() => setMyInviteModalVisible(true)} style={styles.shareIcon}>
+        <TouchableOpacity
+          onPress={() => setMyInviteModalVisible(true)}
+          style={styles.shareIcon}
+        >
           <Entypo name="share" size={20} color="#000" />
         </TouchableOpacity>
       </View>
 
-      <InviteModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+      <InviteModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+      />
 
-  <MyInviteModal
-  visible={MyInviteModalVisible} 
-  onClose={() => setMyInviteModalVisible(false)}
-  profileImage="https://randomuser.me/api/portraits/men/41.jpg"
-  name="Robin Gupta"
-  qrValue="https://example.com/invite-link"
-/>
-
+      <MyInviteModal
+        visible={MyInviteModalVisible}
+        onClose={() => setMyInviteModalVisible(false)}
+        profileImage="https://randomuser.me/api/portraits/men/41.jpg"
+        name="Robin Gupta"
+        qrValue="https://example.com/invite-link"
+      />
     </ScrollView>
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F8F8F8',
+    // backgroundColor: "#F8F8F8",
+    backgroundColor: "#3E3E3E",
     flex: 1,
     padding: 16,
   },
   header: {
     marginTop: 24,
     marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   headerText: {
     fontSize: 20,
-    fontFamily: 'InterBold',
+    color: "#fff",
+    fontFamily: "InterBold",
   },
   profileContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   profileImage: {
@@ -170,27 +177,29 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 4,
-    borderColor: '#B2CD82',
+    borderColor: "#B2CD82",
   },
   name: {
     fontSize: 18,
-    fontFamily: 'InterBold',
+    color: "#fff",
+    fontFamily: "InterBold",
     marginTop: 12,
   },
   subtitle: {
     fontSize: 14,
-    fontFamily: 'Inter',
-    color: '#3E3E3E',
+    fontFamily: "InterMedium",
+    // color: "#3E3E3E",
+    color: "#fff",
     marginTop: 4,
   },
   location: {
     fontSize: 12,
-    color: '#7D7D7D',
-    fontFamily: 'Inter',
+    color: "#7D7D7D",
+    fontFamily: "Inter",
     marginTop: 2,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
@@ -198,59 +207,58 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontFamily: 'InterBold',
+    fontFamily: "InterBold",
     marginBottom: 8,
   },
   cardText: {
     fontSize: 14,
-    color: '#444',
-    fontFamily: 'Inter',
+    color: "#444",
+    fontFamily: "Inter",
     marginBottom: 12,
   },
   inviteButton: {
-    backgroundColor: '#B2CD82',
+    backgroundColor: "#B2CD82",
     paddingVertical: 10,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   inviteButtonText: {
-    color: '#000',
-    fontFamily: 'InterBold',
+    color: "#000",
+    fontFamily: "InterBold",
   },
   contactRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 12,
   },
   contactLabel: {
     fontSize: 12,
-    color: '#777',
-    fontFamily: 'SpaceMono',
+    color: "#777",
+    fontFamily: "SpaceMono",
   },
   contactEmail: {
     fontSize: 14,
-    fontFamily: 'InterBold',
+    fontFamily: "InterBold",
   },
   iconGradient: {
     width: 35,
     height: 35,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 10,
   },
   profileCard: {
-    backgroundColor: '#FFE07B',
+    backgroundColor: "#FFE07B",
     padding: 16,
     borderRadius: 16,
     marginBottom: Platform.OS === "ios" ? 20 : 40,
-    position: 'relative',
-    
+    position: "relative",
   },
   profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   profileImageSmall: {
     width: 120,
@@ -273,9 +281,9 @@ const styles = StyleSheet.create({
     bottom: 60,
   },
   shareIcon: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 12,
-    right: Platform.OS === "ios" ? 193:170,
+    right: Platform.OS === "ios" ? 193 : 170,
     backgroundColor: "#fff",
     height: 35,
     width: 35,

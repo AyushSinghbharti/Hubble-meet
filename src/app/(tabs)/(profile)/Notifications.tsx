@@ -40,7 +40,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-      <NavHeader title="Notifications"  />
+      <NavHeader title="Notifications" style={{paddingHorizontal: 16}}  />
 
 
       <View style={{ flex: 1,
