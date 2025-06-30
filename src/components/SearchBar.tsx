@@ -19,13 +19,13 @@ const SearchBar: React.FC<CustomSearchBarProps> = ({
     <View style={styles.row}>
 
       <View style={styles.container}>
-        <Ionicons name="search" size={20} color="#6B7280" style={styles.icon} />
+        <Ionicons name="search" size={20} color="#898989" style={styles.icon} />
         <TextInput
           style={styles.input}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#A5B4FC"
+          placeholderTextColor="#898989"
         />
       </View>
 
@@ -41,7 +41,6 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 10,
     marginVertical: 10,
   },
   container: {
@@ -51,7 +50,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 30,
     paddingHorizontal: 12,
-    height: 54,
     borderWidth: 1,
     borderColor: '#CBD5E1',
   },
@@ -61,7 +59,8 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#111827',
+    fontFamily: "InterMedium",
+    color: '#000',
   },
   filterButton: {
     marginLeft: 10,

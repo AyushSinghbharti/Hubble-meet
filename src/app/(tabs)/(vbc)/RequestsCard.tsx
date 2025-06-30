@@ -202,15 +202,14 @@ export default ProfileList;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f7f7f7",
   },
   flatList: {
     flex: 1,
   },
   flatListContent: {
-    paddingVertical: 10,
     paddingHorizontal: 10,
-    paddingBottom: 20, 
+    paddingBottom: 100, 
   },
   card: {
     width: width * 0.9,

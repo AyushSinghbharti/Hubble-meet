@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, FlatList, Alert, StyleSheet, Dimensions } from "react-native";
+import { View, FlatList, Alert, StyleSheet, Dimensions, Text } from "react-native";
 import CustomModal from "./Modal/CustomModal";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomCard from "./Cards/vbcCard";
@@ -133,7 +133,7 @@ const VbcCard = ({ spacing }) => {
           }}
           confirmText="Open Bag"
           cancelText="Close"
-        />
+        />  
       )}
     </>
   );
