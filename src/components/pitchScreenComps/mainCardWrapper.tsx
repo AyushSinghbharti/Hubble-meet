@@ -102,19 +102,25 @@ const MainCardWrapper = ({ pitch, onPress }) => {
 
       {/* bottom user row */}
       <View style={[styles.userRow]}>
-        <Image
-          source={{ uri: pitch.user.avatar }}
-          style={styles.avatar}
-          transition={300}
-        />
+        <View style={styles.typeShown}>
+          <Text style={styles.typeText}>Individual</Text>
+        </View>
 
-        <View style={{ marginLeft: 10, justifyContent: "center" }}>
-          <Text numberOfLines={1} style={styles.userName}>
-            {pitch.user.name}
-          </Text>
-          <Text numberOfLines={1} style={styles.tagline}>
-            {pitch.user.tagline}
-          </Text>
+        <View style={{ flexDirection: "row" }}>
+          <Image
+            source={{ uri: pitch.user.avatar }}
+            style={styles.avatar}
+            transition={300}
+          />
+
+          <View style={{ marginLeft: 10, justifyContent: "center" }}>
+            <Text numberOfLines={1} style={styles.userName}>
+              {pitch.user.name}
+            </Text>
+            <Text numberOfLines={1} style={styles.tagline}>
+              {pitch.user.tagline}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -185,8 +191,23 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     bottom: 16,
-    flexDirection: "row",
+    // flexDirection: "row",
     alignItems: "flex-start",
+    gap: 13,
+  },
+  typeShown: {
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    borderColor: "#F1F0F0",
+    backgroundColor: "#FFFFFF15",
+  },
+  typeText: {
+    fontFamily:"InterSemiBold",
+    color: "#fff",
   },
   avatar: {
     height: 44,

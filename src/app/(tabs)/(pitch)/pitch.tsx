@@ -47,7 +47,8 @@ export default function PitchScreen() {
 
   const handleRoutes = () => {
     router.push({
-      pathname: "/pitchStack/createPitch",
+      // pathname: "/pitchStack/createPitch",
+      pathname: "/pitchStack/myPitch",
       params: {
         item: JSON.stringify({
           name: null,
@@ -65,11 +66,6 @@ export default function PitchScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.headerContainer]}>
-        <View></View>
-        <Image
-          source={require("../../../../assets/images/logo.png")}
-          style={{ height: 24, width: 148 }}
-        />
         <TouchableOpacity onPress={handleRoutes}>
           <View style={[styles.iconContainer]}>
             <Image
@@ -110,12 +106,13 @@ const styles = StyleSheet.create({
     paddingBottom: 90,
   },
   headerContainer: {
+    position: "absolute",
     width: "100%",
-    // backgroundColor: "red",
     flexDirection: "row",
-    marginTop: 2,
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
+    top: 65,
+    zIndex: 2,
   },
   iconContainer: {
     justifyContent: "center",

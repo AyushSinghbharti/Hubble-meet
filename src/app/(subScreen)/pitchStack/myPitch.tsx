@@ -1,180 +1,297 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  Image,
+  TextInput,
+  ImageBackground,
   TouchableOpacity,
+  StyleSheet,
   SafeAreaView,
-  StatusBar,
+  Image,
 } from "react-native";
-import { Ionicons, Feather, Octicons } from "@expo/vector-icons";
+import { Ionicons, Feather, Entypo } from "@expo/vector-icons";
+import { useVideoPlayer, VideoView } from "expo-video";
+import { useRouter } from "expo-router";
+
+let VideoUri =
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
 export default function MyPitchScreen() {
-  // In case you want to toggle play/pause later
-  const [isPaused, setIsPaused] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const player = useVideoPlayer(VideoUri, (player) => {
+    player.loop = true;
+    player.pause();
+  });
+
+  const handlePlayPause = () => {
+    if (isPlaying) {
+      player.pause();
+      setIsPlaying(false);
+    } else {
+      player.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const router = useRouter();
+
+  const handleRouter = (type) => {
+    if (type === "Upload") {
+      router.push({
+        pathname: "/pitchStack/createPitch",
+        params: {
+          item: JSON.stringify({
+            name: null,
+            desc: null,
+            format: null,
+            pitchType: null,
+            duration: null,
+            videoUrl: null,
+          }),
+        },
+      });
+    } else {
+      router.push({
+        pathname: "/pitchStack/recordPitch",
+        params: {
+          item: JSON.stringify({
+            name: null,
+            desc: null,
+            format: null,
+            pitchType: null,
+            duration: null,
+            videoUrl: null,
+          }),
+        },
+      });
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
-      {/* Header */}
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => {}}>
-          <Ionicons name="chevron-back" size={24} />
-        </TouchableOpacity>
+        <Ionicons name="arrow-back" size={24} color="#000" />
         <Text style={styles.headerTitle}>My Pitch</Text>
-        {/* Placeholder to keep title centered */}
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Media (image for now, video later) */}
-      <View style={styles.mediaWrapper}>
-        <Image
-          source={{
-            uri: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e",
-          }}
-          style={styles.media}
-          resizeMode="cover"
+      <View style={styles.videoContainer}>
+        <VideoView
+          style={StyleSheet.absoluteFillObject}
+          player={player}
+          nativeControls={false}
+          startsPictureInPictureAutomatically={true}
+          allowsPictureInPicture={true}
+          onTouchStart={handlePlayPause}
         />
-        <TouchableOpacity
-          style={styles.playBtn}
-          activeOpacity={0.8}
-          onPress={() => setIsPaused(!isPaused)}
-        >
-          <Ionicons
-            name={isPaused ? "play" : "pause"}
-            size={28}
-            color="#fff"
+        {!isPlaying && (
+          <TouchableOpacity
+            onPress={handlePlayPause}
+            style={[styles.playButton]}
+          >
+            <Entypo name="controller-play" size={32} color="white" />
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.deleteIcon}>
+          <Image
+            source={require("../../../../assets/icons/delete.png")}
+            style={[styles.icon, { tintColor: "#fff" }]}
           />
         </TouchableOpacity>
+
+        <View style={styles.tag}>
+          <Text style={styles.tagText}>Individual</Text>
+        </View>
       </View>
 
-      {/* Name + company */}
-      <View style={styles.card}>
-        <Text style={styles.primaryText}>Jhon William</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.secondaryText}>
-          Dummy Corp specialises in innovative digital sol…
+      <View style={styles.inputSection}>
+        <Text style={styles.input}>John William</Text>
+        <Text style={[styles.input, { height: 80 }]}>
+          Dummy Corp specialises in innovative digital
         </Text>
       </View>
 
-      {/* Meta rows */}
-      <View style={[styles.card, styles.metaRow]}>
-        <View style={styles.rowLeft}>
-          <Octicons name="stopwatch" size={18} color="#FFA800" />
-          <Text style={styles.rowLabel}>Pitch duration</Text>
-        </View>
-        <Text style={styles.rowValue}>30 sec pitch</Text>
+      <View style={[styles.uploadButtonContainer]}>
+        <TouchableOpacity
+          onPress={() => handleRouter("Record")}
+          style={[styles.toggleButton, styles.activeToggle]}
+        >
+          <Image
+            source={require("../../../../assets/icons/record.png")}
+            style={[styles.icon, { tintColor: "#fff" }]}
+          />
+          <Text style={styles.activeText}>Record</Text>
+        </TouchableOpacity>
+        <Text style={styles.uploadHint}>Or</Text>
+        <TouchableOpacity
+          onPress={() => handleRouter("Upload")}
+          style={[styles.toggleButton, styles.inActiveToggle]}
+        >
+          <Image
+            source={require("../../../../assets/icons/upload.png")}
+            style={[styles.icon, { tintColor: "#000" }]}
+          />
+          <Text style={styles.toggleText}>Upload</Text>
+        </TouchableOpacity>
       </View>
-
-      <View style={[styles.card, styles.metaRow]}>
-        <View style={styles.rowLeft}>
-          <Feather name="users" size={18} color="#00C37A" />
-          <Text style={styles.rowLabel}>Pitch type</Text>
-        </View>
-        <Text style={[styles.rowValue, { color: "#00C37A" }]}>Individual</Text>
-      </View>
-
-      {/* Spacer */}
-      <View style={{ flex: 1 }} />
-
-      {/* Upload button */}
-      <TouchableOpacity style={styles.actionBtn}>
-        <Text style={styles.actionText}>Upload new Pitch</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  container: {
     flex: 1,
-    backgroundColor: "#F8FAFB",
+    backgroundColor: "#f7f7f7",
     paddingHorizontal: 16,
+    paddingBottom: 60,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  mediaWrapper: {
-    width: "100%",
-    aspectRatio: 9 / 16, // keeps it vertical‑video friendly
-    borderRadius: 12,
-    overflow: "hidden",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingTop: 45,
     marginBottom: 16,
   },
-  media: {
-    flex: 1,
+  headerTitle: {
+    fontSize: 18,
+    fontFamily: "InterBold",
+    color: "#111",
   },
-  playBtn: {
-    position: "absolute",
-    top: "45%",
-    left: "45%",
-    height: 56,
-    width: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(0,0,0,0.6)",
+  videoContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+    borderColor: "#CBD5E1",
+    borderWidth: 1,
+    borderRadius: 10,
+    overflow: "hidden",
+    marginBottom: 16,
     justifyContent: "center",
     alignItems: "center",
   },
-  card: {
-    backgroundColor: "#fff",
+  playButton: {
+    alignSelf: "center",
+    padding: 10,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 10,
+  },
+  deleteIcon: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    padding: 6,
+    borderRadius: 10,
+  },
+  tag: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "#FFFFFF44",
+    borderWidth: 1,
+    borderColor: "#fff",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 12,
-    elevation: 2, // Android shadow
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
   },
-  primaryText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1D1D1F",
+  tagText: {
+    color: "#fff",
+    fontSize: 12,
   },
-  secondaryText: {
+  inputSection: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 14,
-    color: "#6D6D74",
+    color: "#343D46",
+    fontFamily: "InterSemiBold",
   },
-  metaRow: {
+  buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  rowLeft: {
+  recordButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    backgroundColor: "#4a5f24",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 30,
   },
-  rowLabel: {
-    fontSize: 14,
-    color: "#4B4B4F",
-  },
-  rowValue: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
-  },
-  actionBtn: {
-    backgroundColor: "#000",
-    borderRadius: 8,
-    paddingVertical: 14,
+  uploadButton: {
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    gap: 6,
+    backgroundColor: "#e6e6e0",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 30,
   },
-  actionText: {
+  orText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  buttonText: {
+    fontSize: 14,
+    fontWeight: "500",
     color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
+  },
+
+  //Upload Button Container
+  uploadButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+  },
+  activeToggle: {
+    backgroundColor: "#596c2d",
+    borderWidth: 2,
+    borderColor: "#f7f7f7",
+  },
+  inActiveToggle: {
+    backgroundColor: "#EAF0DB",
+    borderWidth: 2,
+    borderColor: "#f7f7f7",
+  },
+  toggleText: {
+    color: "#4D5D2A",
+    fontFamily: "InterMedium",
+  },
+  activeText: {
+    color: "#fff",
+    fontFamily: "InterSemiBold",
+  },
+  icon: {
+    height: 22,
+    width: 22,
+  },
+  uploadHint: {
+    marginTop: 6,
+    fontFamily: "Inter",
+    fontSize: 12,
+    textAlign: "center",
+    color: "#525f7f",
+    lineHeight: 18,
   },
 });
