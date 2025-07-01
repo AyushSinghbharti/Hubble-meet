@@ -3,63 +3,96 @@ import {
   Modal,
   View,
   Text,
-  StyleSheet,
   Image,
   TouchableOpacity,
+  StyleSheet,
+  Pressable,
 } from "react-native";
+import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface UploadErrorModalProps {
   visible: boolean;
   onClose: () => void;
-  type: "error" | "success" | "pending";
+  onExit?: () => void;
+  type: "success" | "pending" | "error" | "warning";
+  heading?: string;
+  description?: string;
+  buttonText?: string;
+  icon?: keyof typeof MaterialCommunityIcons.glyphMap; // e.g. "exclamation-circle"
+  iconColor?: string;
 }
+
+const MODAL_CONFIG = {
+  success: {
+    icon: require("../../../assets/icons/success.png"),
+    heading: "Pitch Upload Successful.",
+    description: "Congratulations! You have uploaded your pitch successfully.",
+    buttonText: "Go to profile",
+  },
+  pending: {
+    icon: require("../../../assets/icons/video.png"),
+    heading: "Video Submitted",
+    description: "It’ll be reviewed and updated to your profile once approved.",
+    buttonText: "Go to pitch",
+  },
+  error: {
+    icon: require("../../../assets/icons/barrier.png"),
+    heading: "Upload Error!",
+    description:
+      "Your video exceeds the allowed duration. Please upload a file under 5MB",
+    buttonText: "Okay",
+  },
+  warning: {
+    icon: require("../../../assets/icons/barrier.png"),
+    heading: "Warning",
+    description: "Please review the upload guidelines before continuing.",
+    buttonText: "Understood",
+  },
+};
 
 const UploadErrorModal: React.FC<UploadErrorModalProps> = ({
   visible,
   onClose,
+  onExit,
   type,
+  heading,
+  description,
+  buttonText,
+  icon,
+  iconColor = "#000",
 }) => {
-  const icons = {
-    success: require("../../../assets/icons/success.png"),
-    pending: require("../../../assets/icons/video.png"),
-    error: require("../../../assets/icons/barrier.png"),
-  };
+  const config = MODAL_CONFIG[type];
 
   return (
-    <Modal animationType="fade" transparent visible={visible}>
-      <View style={styles.overlay}>
+    <Modal animationType="fade" transparent visible={visible} onRequestClose={onExit}>
+      <Pressable style={styles.overlay} onPress={onExit}>
         <View style={styles.modalContainer}>
-          <Image
-            source={icons[type]}
-            style={styles.icon}
-            resizeMode="contain"
-          />
-          <Text style={styles.title}>
-            {type === "success"
-              ? "Pitch Upload Successful."
-              : type === "pending"
-              ? "Video Submitted"
-              : "Upload Error!"}
-          </Text>
+          <View style={styles.iconWrapper}>
+            <Image
+              source={config.icon}
+              style={styles.icon}
+              resizeMode="contain"
+            />
+            {icon && (
+              <MaterialCommunityIcons
+                name={icon}
+                size={24}
+                color={iconColor}
+                style={[styles.customIcon]}
+              />
+            )}
+          </View>
+          <Text style={styles.title}>{heading || config.heading}</Text>
           <Text style={styles.message}>
-            {type === "success"
-              ? "Congratulations! You have uploaded your pitch successfully. "
-              : type === "pending"
-              ? "It’ll be reviewed and updated to your profile once approved."
-              : "Your video exceeds the allowed duration. Please upload a file under 5MB"}
+            {description || config.description}
           </Text>
-
           <TouchableOpacity style={styles.button} onPress={onClose}>
             <Text style={styles.buttonText}>
-              {type === "success"
-                ? "Go to profile"
-                : type === "pending"
-                ? "Go to pitch"
-                : "Okay"}
+              {buttonText || config.buttonText}
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 };
@@ -80,6 +113,16 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: "center",
   },
+  iconWrapper: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12
+  },
+  customIcon: {
+    position: "absolute",
+    bottom: 5,
+    right: -10,
+  },
   icon: {
     width: 48,
     height: 48,
@@ -88,7 +131,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: "InterSemiBold",
-    marginBottom: 8,
+    marginBottom: 4,
     textAlign: "center",
   },
   message: {
@@ -99,14 +142,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: "#000",
+    backgroundColor: "#BBCF8D",
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 32,
+    minWidth: 200,
+    justifyContent: 'center',
+    alignItems: "center"
   },
   buttonText: {
-    fontFamily: "InterMedium",
-    color: "#fff",
+    fontFamily: "InterBold",
+    color: "#000",
     fontSize: 16,
   },
 });

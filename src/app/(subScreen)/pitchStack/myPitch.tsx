@@ -12,12 +12,14 @@ import {
 import { Ionicons, Feather, Entypo } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useRouter } from "expo-router";
+import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
 
 let VideoUri =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
 export default function MyPitchScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [viewModal, setViewModal] = useState(false);
 
   const player = useVideoPlayer(VideoUri, (player) => {
     player.loop = true;
@@ -45,8 +47,8 @@ export default function MyPitchScreen() {
             name: null,
             desc: null,
             format: null,
-            pitchType: null,
-            duration: null,
+            pitchType: "Individual",
+            duration: 30,
             videoUrl: null,
           }),
         },
@@ -59,8 +61,8 @@ export default function MyPitchScreen() {
             name: null,
             desc: null,
             format: null,
-            pitchType: null,
-            duration: null,
+            pitchType: "Individual",
+            duration: 30,
             videoUrl: null,
           }),
         },
@@ -69,9 +71,15 @@ export default function MyPitchScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="arrow-back" size={24} color="#000" />
+        <TouchableOpacity
+          onPress={() => router.replace("/pitch")}
+          hitSlop={50}
+          style={{ zIndex: 999 }}
+        >
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>My Pitch</Text>
         <View style={{ width: 24 }} />
       </View>
@@ -94,7 +102,7 @@ export default function MyPitchScreen() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.deleteIcon}>
+        <TouchableOpacity style={styles.deleteIcon} onPress={() => setViewModal(!viewModal)}>
           <Image
             source={require("../../../../assets/icons/delete.png")}
             style={[styles.icon, { tintColor: "#fff" }]}
@@ -136,7 +144,20 @@ export default function MyPitchScreen() {
           <Text style={styles.toggleText}>Upload</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+
+      {/* Modal */}
+      <UploadErrorModal
+        visible={viewModal}
+        onClose={() => handleRouter("Upload")}
+        onExit={() => setViewModal(!viewModal)}
+        type={"pending"}
+        icon="delete"
+        iconColor="#000"
+        heading="Remove Current Pitch"
+        description="This will remove the existing pitch from the application."
+        buttonText="Continue"
+      />
+    </View>
   );
 }
 
@@ -189,7 +210,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 20,
     right: 20,
-    backgroundColor: "#FFFFFF44",
+    backgroundColor: "rgba(0,0,0,0.3)",
     borderWidth: 1,
     borderColor: "#fff",
     paddingHorizontal: 10,
@@ -198,6 +219,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     color: "#fff",
+    fontFamily: "InterMedium",
     fontSize: 12,
   },
   inputSection: {

@@ -150,7 +150,7 @@ export default function CreatePitch() {
           marginVertical: 20,
         }}
       >
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.replace("/pitchStack/myPitch")}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.title}>My Pitch</Text>
