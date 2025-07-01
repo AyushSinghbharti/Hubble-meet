@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import {
   View,
   TextInput,
@@ -11,26 +11,29 @@ import {
   Dimensions,
   Keyboard,
   TouchableWithoutFeedback,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
-const { width: screenWidth } = Dimensions.get('window');
-const MAX_WIDTH = Platform.OS === 'ios' ? 330 : 310;
+const { width: screenWidth } = Dimensions.get("window");
+const MAX_WIDTH = Platform.OS === "ios" ? 330 : 310;
 const MIN_WIDTH = 40;
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 const Header = ({ logoSource, onSearch }) => {
   const [searchActive, setSearchActive] = useState(false);
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const inputRef = useRef(null);
   const router = useRouter();
 
   const onBagPress = () => {
-    router.push('notification');
+    router.push("notification");
   };
 
   const handleSearchToggle = () => {
@@ -42,7 +45,7 @@ const Header = ({ logoSource, onSearch }) => {
       }, 250);
     } else {
       setSearchActive(false);
-      setSearchText('');
+      setSearchText("");
       Keyboard.dismiss();
     }
   };
@@ -52,7 +55,11 @@ const Header = ({ logoSource, onSearch }) => {
       <View style={styles.header}>
         {!searchActive && (
           <View style={styles.logoWrapper}>
-            <Image source={logoSource} style={styles.logo} resizeMode="contain" />
+            <Image
+              source={logoSource}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
         )}
 
@@ -62,38 +69,40 @@ const Header = ({ logoSource, onSearch }) => {
             activeOpacity={0.9}
             style={[
               styles.searchContainer,
+              searchActive ? styles.searchExpanded : styles.searchIconOnly,
               {
-                width: searchActive ? MAX_WIDTH : MIN_WIDTH,
-                borderColor: searchActive ? '#BBCF8D' : '#ccc',
-                shadowColor: searchActive ? '#BBCF8D' : 'transparent',
+                borderColor: searchActive ? "#BBCF8D" : "#ccc",
+                shadowColor: searchActive ? "#BBCF8D" : "transparent",
                 shadowOpacity: searchActive ? 0.8 : 0,
                 shadowRadius: searchActive ? 6 : 0,
                 elevation: searchActive ? 8 : 0,
               },
             ]}
           >
-            <TextInput
-              ref={inputRef}
-              style={styles.input}
-              value={searchText}
-              onChangeText={setSearchText}
-              placeholder="Search..."
-              placeholderTextColor="#888"
-              editable={searchActive}
-              onSubmitEditing={() => onSearch && onSearch(searchText)}
-            />
+            {searchActive && (
+              <TextInput
+                ref={inputRef}
+                style={styles.input}
+                value={searchText}
+                onChangeText={setSearchText}
+                placeholder="Search..."
+                placeholderTextColor="#888"
+                editable={true}
+                onSubmitEditing={() => onSearch && onSearch(searchText)}
+              />
+            )}
             <Feather
-              name={searchActive ? 'x' : 'search'}
+              name={searchActive ? "x" : "search"}
               size={20}
-              style={{right:Platform.OS === "ios"? 0 :6}}
               color="#94A3B8"
+              style={searchActive ? styles.iconExpanded : styles.iconCentered}
             />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={onBagPress} style={styles.bagBtn}>
             <Image
               style={{ height: 25, width: 25 }}
-              source={require('../../../assets/icons/briefcase.png')}
+              source={require("../../../assets/icons/briefcase.png")}
             />
           </TouchableOpacity>
         </View>
@@ -106,21 +115,20 @@ export default Header;
 
 const styles = StyleSheet.create({
   header: {
-    height: 60,
     marginTop: 40,
     paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    backgroundColor: '#fff',
-    position: 'relative',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    backgroundColor: "#fff",
+    position: "relative",
   },
   logoWrapper: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 1,
   },
   logo: {
@@ -128,26 +136,40 @@ const styles = StyleSheet.create({
     width: 100,
   },
   rightSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     zIndex: 10,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 20,
-    marginRight: 10,
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 2,
-    overflow: 'hidden',
-    paddingHorizontal: 8,
-    height: 35,
-    backgroundColor: '#fff',
+    borderRadius: 20,
+    backgroundColor: "#fff",
     zIndex: 5,
+  },
+  searchExpanded: {
+    width: MAX_WIDTH,
+    height: 40,
+    paddingHorizontal: 8,
+  },
+  searchIconOnly: {
+    width: MIN_WIDTH,
+    height: MIN_WIDTH,
+    justifyContent: "center",
+    alignItems: "center",
   },
   input: {
     flex: 1,
-    height: 35,
-    color: '#0f172a',
+    height: 40,
+    color: "#0f172a",
+    paddingRight: 6, // So the icon doesn't overlap text
+  },
+  iconCentered: {
+    alignSelf: "center",
+  },
+  iconExpanded: {
+    marginLeft: 6,
   },
   bagBtn: {
     padding: 6,

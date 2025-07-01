@@ -88,7 +88,7 @@ const Setting = () => {
         animationType="fade"
         onRequestClose={() => setLogoutModalVisible(false)}
       >
-        <View style={styles.modalBackground}>
+        <Pressable onPress={() => setLogoutModalVisible(false)} style={styles.modalBackground}>
           <View style={styles.modalBox}>
             {/* Close Icon */}
             <Pressable
@@ -110,7 +110,7 @@ const Setting = () => {
             {/* Logout Button */}
             <Button label="Yes, Logout" onPress={handleLogout} width={"100%"} style={{marginTop: 0}} />
           </View>
-        </View>
+        </Pressable>
       </Modal>
     </View>
   );

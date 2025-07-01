@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ViewStyle,
-  Pressable,
+  Animated,
+  Easing,
 } from "react-native";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import FlipCardWrapper from "../../../components/pitchScreenComps/flipCardWrapper";
 import MainCardWrapper from "../../../components/pitchScreenComps/mainCardWrapper";
-import { useRouter } from "expo-router";
 
+// Dummy pitch and user
 const pitch = {
   id: "1",
   thumbnail:
@@ -43,11 +44,20 @@ const dummyUser = {
 
 export default function PitchScreen() {
   const router = useRouter();
-  const [flipped, setFlipped] = useState(true);
+  const [flipped, setFlipped] = useState(false);
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
-  const handleRoutes = () => {
+  const handleFlip = () => {
+    Animated.timing(rotateAnim, {
+      toValue: flipped ? 0 : 180,
+      duration: 400,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start(() => setFlipped(!flipped));
+  };
+
+  const navigateToMyPitch = () => {
     router.push({
-      // pathname: "/pitchStack/createPitch",
       pathname: "/pitchStack/myPitch",
       params: {
         item: JSON.stringify({
@@ -62,37 +72,75 @@ export default function PitchScreen() {
     });
   };
 
+  // Animations
+  const frontRotation = rotateAnim.interpolate({
+    inputRange: [0, 180],
+    outputRange: ["0deg", "180deg"],
+  });
+
+  const backRotation = rotateAnim.interpolate({
+    inputRange: [0, 180],
+    outputRange: ["180deg", "360deg"],
+  });
+
+  const frontOpacity = rotateAnim.interpolate({
+    inputRange: [0, 90],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+
+  const backOpacity = rotateAnim.interpolate({
+    inputRange: [90, 180],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={[styles.headerContainer]}>
-        <TouchableOpacity onPress={handleRoutes}>
-          <View style={[styles.iconContainer]}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={navigateToMyPitch}>
+          <View style={styles.iconContainer}>
             <Image
               source={require("../../../../assets/icons/pitch2.png")}
-              style={{ height: 24, aspectRatio: 1 }}
+              style={styles.pitchIcon}
             />
-            <Text style={[styles.headerText]}>My Pitch</Text>
+            <Text style={styles.headerText}>My Pitch</Text>
           </View>
         </TouchableOpacity>
       </View>
 
-      {/* Main Cards Container */}
-      {flipped ? (
-        <MainCardWrapper
-          pitch={pitch}
-          onPress={() => {
-            setFlipped(!flipped);
-          }}
-        />
-      ) : (
-        <FlipCardWrapper
-          item={dummyUser}
-          onPress={() => {
-            setFlipped(!flipped);
-          }}
-        />
-      )}
+      {/* Flip Card Area */}
+      <View style={styles.cardArea}>
+        {/* Front Card */}
+        <Animated.View
+          style={[
+            styles.flipCard,
+            {
+              transform: [{ rotateY: frontRotation }],
+              opacity: frontOpacity,
+              zIndex: flipped ? 0 : 1,
+            },
+          ]}
+        >
+          <MainCardWrapper pitch={pitch} onPress={handleFlip} />
+        </Animated.View>
+
+        {/* Back Card */}
+        <Animated.View
+          style={[
+            styles.flipCard,
+            styles.absoluteFill,
+            {
+              transform: [{ rotateY: backRotation }],
+              opacity: backOpacity,
+              zIndex: flipped ? 1 : 0,
+            },
+          ]}
+        >
+          <FlipCardWrapper item={dummyUser} onPress={handleFlip} />
+        </Animated.View>
+      </View>
     </View>
   );
 }
@@ -111,7 +159,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    top: 65,
+    top: 70,
     zIndex: 2,
   },
   iconContainer: {
@@ -119,8 +167,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 2,
   },
+  pitchIcon: {
+    height: 24,
+    aspectRatio: 1,
+  },
   headerText: {
     fontSize: 10,
     color: "#64748B",
+  },
+  cardArea: {
+    flex: 1,
+  },
+  flipCard: {
+    flex: 1,
+    backfaceVisibility: "hidden",
+  },
+  absoluteFill: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 });

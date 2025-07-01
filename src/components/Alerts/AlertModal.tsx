@@ -7,14 +7,18 @@ import {
   Image,
   ImageSourcePropType,
 } from "react-native";
+import { FONT } from "../../../assets/constants/fonts";
 
 interface AlertModalProps {
   visible: boolean;
   onClose: () => void;
+  onButtonPress: () => void;
   label: string;
   imageSource: ImageSourcePropType;
   positionTop?: boolean;
   positionBottom?: boolean;
+  viewButton?: boolean;
+  buttonText?: string;
 }
 
 const AlertModal: React.FC<AlertModalProps> = ({
@@ -24,17 +28,20 @@ const AlertModal: React.FC<AlertModalProps> = ({
   imageSource,
   positionTop = false,
   positionBottom = false,
+  viewButton = false,
+  buttonText,
+  onButtonPress
 }) => {
   useEffect(() => {
     if (visible) {
-      const timer = setTimeout(onClose, 2000);
+      const timer = setTimeout(onClose, 3000);
       return () => clearTimeout(timer);
     }
   }, [visible, onClose]);
 
   let positionStyle = {};
   if (positionTop) {
-    positionStyle = { justifyContent: "flex-start", paddingTop: 60 };
+    positionStyle = { justifyContent: "flex-start", paddingTop: 45 };
   } else if (positionBottom) {
     positionStyle = { justifyContent: "flex-end", paddingBottom: 100 };
   } else {
@@ -42,13 +49,38 @@ const AlertModal: React.FC<AlertModalProps> = ({
   }
 
   return (
-    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
+    <Modal
+      transparent
+      animationType="fade"
+      visible={visible}
+      onRequestClose={onClose}
+    >
       <View style={[styles.overlay, positionStyle]}>
         <View style={styles.modalBox}>
           <View style={styles.contentRow}>
-            <Image source={imageSource} style={styles.iconImage} resizeMode="contain" />
+            <Image
+              source={imageSource}
+              style={styles.iconImage}
+              resizeMode="contain"
+            />
             <Text style={styles.labelText}>{label}</Text>
           </View>
+
+          {viewButton && (
+            <Text
+              onPress={onButtonPress}
+              style={{
+                paddingHorizontal: 8,
+                backgroundColor: "#EEEEEE",
+                paddingVertical: 4,
+                marginRight: 6,
+                borderRadius: 10,
+                fontFamily: FONT.MEDIUM,
+              }}
+            >
+              {buttonText}
+            </Text>
+          )}
         </View>
       </View>
     </Modal>
@@ -65,11 +97,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   modalBox: {
-    width: "55%",
+    width: "100%",
+    justifyContent: "space-between",
+    flexDirection: "row",
     backgroundColor: "#fff",
-    borderRadius: 16,
+    borderRadius: 4,
     alignItems: "center",
     padding: 6,
+    paddingLeft: 8,
+    borderLeftWidth: 5,
+    borderLeftColor: "#F87171",
   },
   contentRow: {
     flexDirection: "row",

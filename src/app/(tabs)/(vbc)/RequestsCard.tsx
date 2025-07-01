@@ -34,13 +34,15 @@ interface Profile {
   location: string;
 }
 
-
 interface ProfileCardProps {
   profile: Profile;
   onSwipeComplete: (id: string) => void;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onSwipeComplete }) => {
+const ProfileCard: React.FC<ProfileCardProps> = ({
+  profile,
+  onSwipeComplete,
+}) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const rotate = useSharedValue(0);
@@ -58,45 +60,47 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onSwipeComplete }) =
     opacity: isSwiped ? 0 : translateX.value === 0 ? 1 : 0.8,
   }));
 
-  const handleSwipe = useCallback((direction: string) => {
-    if (direction === "left") {
-      setAlertVisible(true);
-      setTimeout(() => {
-        setIsSwiped(true);
-        onSwipeComplete(profile.id);
-      }, 1000); // delay swipe completion
-    } else if (direction === "right") {
-      setModalVisible(true);
-    }
-  }, [profile.id, onSwipeComplete]);
+  const handleSwipe = useCallback(
+    (direction: string) => {
+      if (direction === "left") {
+        setAlertVisible(true);
+        setTimeout(() => {
+          setIsSwiped(true);
+          onSwipeComplete(profile.id);
+        }, 1000); // delay swipe completion
+      } else if (direction === "right") {
+        setModalVisible(true);
+      }
+    },
+    [profile.id, onSwipeComplete]
+  );
 
-const panGesture = Gesture.Pan()
-  .activeOffsetX([-10, 10])       // Enable horizontal pan
-  .activeOffsetY([-1000, 1000])   // Disable vertical pan
-.onUpdate((event) => {
-  if (!isSwiped) {
-    translateX.value = event.translationX;
-    // Lock vertical movement by not updating translateY
-    rotate.value = (event.translationX / width) * 15;
-  }
-})
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-10, 10]) // Enable horizontal pan
+    .activeOffsetY([-1000, 1000]) // Disable vertical pan
+    .onUpdate((event) => {
+      if (!isSwiped) {
+        translateX.value = event.translationX;
+        // Lock vertical movement by not updating translateY
+        rotate.value = (event.translationX / width) * 15;
+      }
+    })
 
-  .onEnd(() => {
-    if (isSwiped) return;
-    if (translateX.value < -SWIPE_THRESHOLD) {
-      translateX.value = withSpring(-width * 2);
-      rotate.value = withSpring(-30);
-      runOnJS(handleSwipe)("left");
-    } else if (translateX.value > SWIPE_THRESHOLD) {
-      translateX.value = withSpring(width * 2);
-      rotate.value = withSpring(30);
-      runOnJS(handleSwipe)("right");
-    } else {
-      translateX.value = withSpring(0);
-      rotate.value = withSpring(0);
-    }
-  });
-
+    .onEnd(() => {
+      if (isSwiped) return;
+      if (translateX.value < -SWIPE_THRESHOLD) {
+        translateX.value = withSpring(-width * 2);
+        rotate.value = withSpring(-30);
+        runOnJS(handleSwipe)("left");
+      } else if (translateX.value > SWIPE_THRESHOLD) {
+        translateX.value = withSpring(width * 2);
+        rotate.value = withSpring(30);
+        runOnJS(handleSwipe)("right");
+      } else {
+        translateX.value = withSpring(0);
+        rotate.value = withSpring(0);
+      }
+    });
 
   const handleSendMessage = () => {
     setModalVisible(false);
@@ -116,10 +120,19 @@ const panGesture = Gesture.Pan()
     <>
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.card, cardStyle]}>
-          <Image source={profile.image} style={styles.image} resizeMode="cover" />
+          <Image
+            source={profile.image}
+            style={styles.image}
+            resizeMode="cover"
+          />
           <TouchableOpacity style={styles.expandThumb}>
             <Image source={profile.image} style={styles.thumbImage} />
-            <AntDesign name="arrowsalt" size={16} color="#fff" style={styles.expandIcon} />
+            <AntDesign
+              name="arrowsalt"
+              size={16}
+              color="#fff"
+              style={styles.expandIcon}
+            />
           </TouchableOpacity>
           <LinearGradient
             colors={["transparent", "rgba(255,255,255,0.9)", "#fff"]}
@@ -132,32 +145,26 @@ const panGesture = Gesture.Pan()
         </Animated.View>
       </GestureDetector>
 
-
       <View>
-            <AlertModal
-        visible={alertVisible}
-        onClose={() => setAlertVisible(false)}
-        imageSource={require("../../../../assets/icons/Cross.png")}
-        label="Request Rejected"
-        positionBottom
-      />
-
+        <AlertModal
+          visible={alertVisible}
+          onClose={() => setAlertVisible(false)}
+          imageSource={require("../../../../assets/icons/cross.png")}
+          label="Request Rejected"
+          positionTop
+          positionBottom
+        />
       </View>
 
-
       <View>
-           <MatchModal
-        visible={modalVisible}
-        onClose={handleBackToRequest}
-        onSendMessage={handleSendMessage}
-        user1Image={Image.resolveAssetSource(profile.image).uri}
-        user2Image={Image.resolveAssetSource(profile.image).uri}
-      />
-
+        <MatchModal
+          visible={modalVisible}
+          onClose={handleBackToRequest}
+          onSendMessage={handleSendMessage}
+          user1Image={Image.resolveAssetSource(profile.image).uri}
+          user2Image={Image.resolveAssetSource(profile.image).uri}
+        />
       </View>
-
-  
-   
     </>
   );
 };
@@ -172,7 +179,9 @@ const ProfileList: React.FC = () => {
   const renderItem = useCallback(
     ({ item }: { item: Profile }) => {
       if (swipedIds.includes(item.id)) return null;
-      return <ProfileCard profile={item} onSwipeComplete={handleSwipeComplete} />;
+      return (
+        <ProfileCard profile={item} onSwipeComplete={handleSwipeComplete} />
+      );
     },
     [swipedIds, handleSwipeComplete]
   );
@@ -198,7 +207,6 @@ const ProfileList: React.FC = () => {
 
 export default ProfileList;
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -209,7 +217,7 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     paddingHorizontal: 10,
-    paddingBottom: 100, 
+    paddingBottom: 100,
   },
   card: {
     width: width * 0.9,
@@ -301,8 +309,8 @@ const styles = StyleSheet.create({
   },
   backButton: {
     backgroundColor: "#fff",
-    borderWidth:1,
-    borderColor:"#BBCF8D"
+    borderWidth: 1,
+    borderColor: "#BBCF8D",
   },
   modalButtonText: {
     color: "#191919",

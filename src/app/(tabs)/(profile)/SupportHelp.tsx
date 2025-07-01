@@ -68,11 +68,7 @@ export default function SettingsScreen() {
         <SupportItem label="Contact Us" onPress={() => {}} />
       </View>
 
-      <View
-        style={{flex: 1, justifyContent: "flex-end" }}
-      >
-        <Button label="Save settings" onPress={() => {}} />
-      </View>
+      <Button label="Save settings" onPress={() => {}} />
 
       <SupportModal
         visible={!!supportModalType}

@@ -30,8 +30,8 @@ const loginAlerts = [
 const options = [
   "Blocked Users",
   "Terms & Conditions",
-  "Privacy policy",
-  "Data compliance",
+  "Privacy Policy",
+  "Data Compliance",
 ];
 
 export default function PrivacySettingsScreen() {

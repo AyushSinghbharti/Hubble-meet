@@ -51,11 +51,11 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
       <Modal visible={visible} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.overlay}>
-             <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
-        keyboardVerticalOffset={Platform.OS === "android" ? 0 : 40}
-      >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={styles.keyboardAvoidingView}
+              keyboardVerticalOffset={Platform.OS === "android" ? 0 : 40}
+            >
               <View style={styles.modalBox}>
                 <Text style={styles.title}>Block {userName}</Text>
                 <Text style={styles.label}>
@@ -93,7 +93,8 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
 
                 <Text style={styles.warning}>
                   Note: Once you block this user, the action can be undone via{" "}
-                  <Text style={{ fontWeight: "bold" }}>"Block Users"</Text> within Settings
+                  <Text style={{ fontWeight: "bold" }}>"Block Users"</Text>{" "}
+                  within Settings
                 </Text>
 
                 <View style={styles.buttonRow}>
@@ -130,7 +131,6 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
       </Modal>
 
       <AlertModal
-
         visible={blockedModalVisible}
         onClose={() => setBlockedModalVisible(false)}
         label="Connection Blocked"
@@ -148,7 +148,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#00000099",
     padding: 16,
-
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -161,7 +160,6 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingVertical: 32,
     paddingHorizontal: 24,
-
   },
   title: {
     fontSize: 22,

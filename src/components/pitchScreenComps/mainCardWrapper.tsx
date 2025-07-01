@@ -8,44 +8,52 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Feather } from "@expo/vector-icons";
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useFocusEffect } from "expo-router";
 
-//Dummy data
-let VideoUri =
+// Dummy video
+const VideoUri =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
 const MainCardWrapper = ({ pitch, onPress }) => {
   const [options, setOptions] = useState(false);
-  const player = useVideoPlayer(VideoUri, (player) => {
-    player.loop = true;
-    player.play();
+  const [isPaused, setIsPaused] = useState(false);
+  const [isLiked, setLiked] = useState(false);
+
+  const player = useVideoPlayer(VideoUri, (p) => {
+    p.loop = true;
+    p.play();
   });
 
   useFocusEffect(
     useCallback(() => {
       player?.play?.();
+      setIsPaused(false);
 
       return () => {
-        // Only attempt to pause if player is valid and not already released
-        if (player?.pause && typeof player.pause === "function") {
-          try {
-            player.pause();
-          } catch (error) {
-            console.warn("Video cleanup error:", error);
-          }
+        try {
+          player?.pause?.();
+        } catch (err) {
+          console.warn("Video cleanup error:", err);
         }
-        // Removed player.dispose() as it does not exist on VideoPlayer
       };
     }, [player])
   );
 
-  const [isLiked, setLiked] = useState(false);
+  const togglePlayPause = () => {
+    if (!player) return;
+    if (isPaused) {
+      player.play();
+    } else {
+      player.pause();
+    }
+    setIsPaused(!isPaused);
+  };
 
   return (
     <View style={styles.cardWrapper}>
-      {/* Thumb / video */}
+      {/* Video layer */}
       <VideoView
         style={StyleSheet.absoluteFillObject}
         player={player}
@@ -54,65 +62,86 @@ const MainCardWrapper = ({ pitch, onPress }) => {
         allowsPictureInPicture={false}
       />
 
-      <LinearGradient
-        colors={[
-          "transparent",
-          "transparent",
-          "rgba(0,0,0,0.15)",
-          "rgba(0,0,0,0.95)",
-        ]}
+      {/* Overlay gradient and global tap handler */}
+      <Pressable
+        onPress={togglePlayPause}
         style={StyleSheet.absoluteFillObject}
       >
-        <Pressable onPress={onPress} style={StyleSheet.absoluteFillObject} />
-      </LinearGradient>
+        <LinearGradient
+          colors={[
+            "transparent",
+            "transparent",
+            "rgba(0,0,0,0.15)",
+            "rgba(0,0,0,0.95)",
+          ]}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </Pressable>
 
-      {/* right‑hand vertical action rail (à‑la TikTok) */}
+      {/* Pause Icon */}
+      {isPaused && (
+        <View style={styles.pauseIconContainer}>
+          <View
+            style={{
+              height: 55,
+              width: 55,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              borderRadius: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <FontAwesome5 name="play" size={22} color="#fff" />
+          </View>
+        </View>
+      )}
+
+      {/* Action rail */}
       <View style={styles.actionRail}>
-        <TouchableOpacity style={styles.actionBtn}>
+        {/* <TouchableOpacity style={styles.actionBtn}>
           <Image
             source={require("../../../assets/icons/logo.png")}
             style={{ height: 30, width: 30 }}
           />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity
           style={styles.likeSection}
           onPress={() => setLiked(!isLiked)}
         >
-          {isLiked ? (
-            <Image
-              source={require("../../../assets/icons/like.png")}
-              style={{ height: 40, width: 32 }}
-            />
-          ) : (
-            <Image
-              source={require("../../../assets/icons/unlike.png")}
-              style={{ height: 40, width: 22 }}
-            />
-          )}
+          <Image
+            source={
+              isLiked
+                ? require("../../../assets/icons/like.png")
+                : require("../../../assets/icons/unlike.png")
+            }
+            style={{ height: 40, width: isLiked ? 32 : 22 }}
+          />
           <Text style={styles.likeCount}>
             {Intl.NumberFormat().format(pitch.likes + isLiked)}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setOptions(!options)}>
+        <TouchableOpacity
+          style={{ zIndex: 2 }}
+          onPress={() => setOptions(!options)}
+        >
           <Feather name="more-horizontal" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      {/* bottom user row */}
-      <View style={[styles.userRow]}>
+      {/* Bottom Profile Section (tap triggers onPress only here) */}
+      <View style={styles.userRow}>
         <View style={styles.typeShown}>
           <Text style={styles.typeText}>Individual</Text>
         </View>
 
-        <View style={{ flexDirection: "row" }}>
+        <TouchableOpacity style={{ flexDirection: "row" }} onPress={onPress}>
           <Image
             source={{ uri: pitch.user.avatar }}
             style={styles.avatar}
             transition={300}
           />
-
           <View style={{ marginLeft: 10, justifyContent: "center" }}>
             <Text numberOfLines={1} style={styles.userName}>
               {pitch.user.name}
@@ -121,37 +150,15 @@ const MainCardWrapper = ({ pitch, onPress }) => {
               {pitch.user.tagline}
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
-      {/* Side Options */}
+      {/* Options Popup */}
       {options && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 10,
-            right: 60,
-            backgroundColor: "#000000",
-            borderRadius: 12,
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: 10,
-            gap: 5,
-          }}
-        >
-          <Text
-            style={{ fontFamily: "InterSemiBold", fontSize: 12, color: "#fff" }}
-          >
-            Report Pitch
-          </Text>
-          <View
-            style={{ borderBottomWidth: 1, borderColor: "#fff", width: "100%" }}
-          />
-          <Text
-            style={{ fontFamily: "InterSemiBold", fontSize: 12, color: "#fff" }}
-          >
-            Not Interested
-          </Text>
+        <View style={styles.optionsBox}>
+          <Text style={styles.optionText}>Report Pitch</Text>
+          <View style={styles.optionDivider} />
+          <Text style={styles.optionText}>Not Interested</Text>
         </View>
       )}
     </View>
@@ -191,7 +198,6 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     bottom: 16,
-    // flexDirection: "row",
     alignItems: "flex-start",
     gap: 13,
   },
@@ -206,7 +212,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF15",
   },
   typeText: {
-    fontFamily:"InterSemiBold",
+    fontFamily: "InterSemiBold",
     color: "#fff",
   },
   avatar: {
@@ -224,11 +230,37 @@ const styles = StyleSheet.create({
     textShadowOffset: { height: 2, width: 2 },
   },
   tagline: {
-    textShadowColor: "#B2B2B2",
-    textShadowOffset: { height: 2, width: 2 },
     color: "#fff",
     fontSize: 12,
     fontFamily: "InterSemiBold",
+    textShadowColor: "#B2B2B2",
+    textShadowOffset: { height: 2, width: 2 },
+  },
+  optionsBox: {
+    position: "absolute",
+    bottom: 10,
+    right: 60,
+    backgroundColor: "#000",
+    borderRadius: 12,
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    gap: 5,
+  },
+  optionText: {
+    fontFamily: "InterSemiBold",
+    fontSize: 12,
+    color: "#fff",
+  },
+  optionDivider: {
+    borderBottomWidth: 1,
+    borderColor: "#fff",
+    width: "100%",
+  },
+  pauseIconContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

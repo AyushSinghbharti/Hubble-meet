@@ -1,13 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   Image,
-  Dimensions,
   Animated,
-  ScrollView,
-  StatusBar,
   Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,31 +19,27 @@ interface UserProfile {
   image: string;
 }
 
-// Global Variable
-let aspectRatio = 3 / 4;
+const aspectRatio = 3 / 4;
 
 const FlipCardWrapper = ({
   item,
   onPress,
 }: {
   item: UserProfile;
-  onPress: any;
+  onPress: () => void;
 }) => {
   const scrollY = React.useRef(new Animated.Value(0)).current;
 
   return (
     <View style={styles.root}>
-      {/* STATIC background image */}
+      {/* Background Image */}
       <Image
         source={{ uri: item.image }}
-        style={[
-          styles.backgroundImage,
-          { aspectRatio, flex: 1, width: "100%" },
-        ]}
+        style={[styles.backgroundImage, { aspectRatio, flex: 1, width: "100%" }]}
         resizeMode="cover"
       />
 
-      {/* White fade over the lower half of the image */}
+      {/* Gradient Overlay */}
       <LinearGradient
         colors={[
           "transparent",
@@ -57,9 +50,9 @@ const FlipCardWrapper = ({
         ]}
         style={styles.gradient}
         pointerEvents="none"
-      ></LinearGradient>
+      />
 
-      {/* FOREGROUND, fully scrollable */}
+      {/* Scrollable Content */}
       <Animated.ScrollView
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -69,59 +62,48 @@ const FlipCardWrapper = ({
           { useNativeDriver: false }
         )}
       >
-        <Pressable onPress={onPress}>
-          <LinearGradient
-            colors={[
-              "transparent",
-              "rgba(255,255,255, 0.75)",
-              "rgba(255,255,255, 0.85)",
-              "rgba(255,255,255, 0.95)",
-              "rgba(255,255,255, 1)",
-              "rgba(255,255,255, 1)",
-              "#ffffff",
-            ]}
-            style={{
-              width: "100%",
-              flex: 1,
-              height: "100%",
-              paddingTop: 50,
-              paddingHorizontal: 12,
-            }}
-            pointerEvents="none"
-          >
-            {/* Header text overlays the image */}
-            <View style={styles.headerTextBlock}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.position}>{item.position}</Text>
-              <Text style={styles.location}>{item.location}</Text>
-            </View>
+        {/* This invisible pressable layer captures tap gestures without blocking scroll */}
+        <Pressable onPress={onPress} style={styles.pressOverlay} />
 
-            {/* ABOUT */}
-            <Text style={styles.sectionTitle}>About</Text>
-            <Text style={styles.paragraph}>{item.about}</Text>
+        <LinearGradient
+          colors={[
+            "transparent",
+            "rgba(255,255,255, 0.75)",
+            "rgba(255,255,255, 0.85)",
+            "rgba(255,255,255, 0.95)",
+            "rgba(255,255,255, 1)",
+            "#ffffff",
+          ]}
+          style={styles.innerGradient}
+        >
+          {/* HEADER */}
+          <View style={styles.headerTextBlock}>
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.position}>{item.position}</Text>
+            <Text style={styles.location}>{item.location}</Text>
+          </View>
 
-            {/* INDUSTRIES WORK */}
-            <Text style={styles.sectionTitle}>Industries work</Text>
-            <View style={styles.chipRow}>
-              {item.industries.map((chip) => (
-                <View key={chip} style={styles.chip}>
-                  <Text style={styles.chipText}>{chip}</Text>
-                </View>
-              ))}
-            </View>
+          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.paragraph}>{item.about}</Text>
 
-            {/* AREA OF INTEREST */}
-            <Text style={styles.sectionTitle}>Area of Interest</Text>
-            <View style={styles.chipRow}>
-              {item.interests.map((chip) => (
-                <View key={chip} style={styles.chip}>
-                  <Text style={styles.chipText}>{chip}</Text>
-                </View>
-              ))}
-            </View>
-          </LinearGradient>
-        </Pressable>
-        {/* Add more subsections below as needed */}
+          <Text style={styles.sectionTitle}>Industries work</Text>
+          <View style={styles.chipRow}>
+            {item.industries.map((chip) => (
+              <View key={chip} style={styles.chip}>
+                <Text style={styles.chipText}>{chip}</Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={styles.sectionTitle}>Area of Interest</Text>
+          <View style={styles.chipRow}>
+            {item.interests.map((chip) => (
+              <View key={chip} style={styles.chip}>
+                <Text style={styles.chipText}>{chip}</Text>
+              </View>
+            ))}
+          </View>
+        </LinearGradient>
       </Animated.ScrollView>
     </View>
   );
@@ -132,8 +114,6 @@ const styles = StyleSheet.create({
     marginTop: 18,
     backgroundColor: "#fff",
   },
-
-  /* ===== BACKGROUND IMAGE & GRADIENT ===== */
   backgroundImage: {
     position: "absolute",
     top: 0,
@@ -145,17 +125,23 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     width: "100%",
-    aspectRatio: aspectRatio,
+    aspectRatio,
   },
-
   contentContainer: {
     paddingTop: 280,
     paddingBottom: 50,
   },
-
-  headerTextBlock: {
-    // marginBottom: 32, //Give margin accordingly
+  pressOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1, // ensures it stays on top
   },
+  innerGradient: {
+    width: "100%",
+    flex: 1,
+    paddingTop: 50,
+    paddingHorizontal: 12,
+  },
+  headerTextBlock: {},
   name: {
     fontFamily: "InterBold",
     fontSize: 28,
@@ -172,7 +158,6 @@ const styles = StyleSheet.create({
     color: "#000",
     marginTop: 2,
   },
-
   sectionTitle: {
     fontSize: 17,
     fontWeight: "600",
@@ -185,8 +170,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     color: "#444",
   },
-
-  /* ===== CHIPS ===== */
   chipRow: {
     flexDirection: "row",
     flexWrap: "wrap",
