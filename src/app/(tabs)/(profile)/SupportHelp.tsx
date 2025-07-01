@@ -11,6 +11,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import NavHeader from "../../../components/NavHeader";
 import SupportModal from "../../../components/Modal/SupportModal";
+import Button from "../../../components/Button";
+import { FONT } from "../../../../assets/constants/fonts";
 
 export default function SettingsScreen() {
   const [supportModalType, setSupportModalType] = useState<
@@ -69,9 +71,7 @@ export default function SettingsScreen() {
       <View
         style={{flex: 1, justifyContent: "flex-end" }}
       >
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Submit</Text>
-        </TouchableOpacity>
+        <Button label="Save settings" onPress={() => {}} />
       </View>
 
       <SupportModal
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: Platform.OS === "ios" ? 10 : 30,
-    backgroundColor: "#f4f5f7",
+    backgroundColor: "#3E3E3E",
   },
   card: {
     backgroundColor: "#fff",
@@ -123,10 +123,10 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: FONT.BOLD,
     marginTop: 24,
     marginBottom: 12,
-    color: "#596C2D",
+    color: "#FFF",
   },
   settingItem: {
     flexDirection: "row",
@@ -136,6 +136,7 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
+    fontFamily: FONT.MEDIUM,
     color: "#111",
   },
   button: {
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "600",
     fontSize: 16,
+    fontFamily: FONT.SEMIBOLD,
   },
 });

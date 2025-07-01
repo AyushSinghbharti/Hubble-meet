@@ -29,7 +29,7 @@ export default function NavHeader({ title, showBackButton = true, onBackPress, s
             style={styles.backButton}
             onPress={onBackPress || (() => router.back())}
           >
-            <Ionicons name="arrow-back" size={24} color="black" />
+            <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
         ) : (
           <View style={styles.backButtonPlaceholder} />
@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
     width: 32,
   },
   title: {
+    color: "#fff",
     fontSize: 18,
     fontFamily: "InterBold",
   },

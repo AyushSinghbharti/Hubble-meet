@@ -15,6 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
 import NavHeader from "../../../components/NavHeader";
+import Button from "../../../components/Button";
 
 export default function SettingsScreen() {
   const [bio, setBio] = useState("");
@@ -80,9 +81,8 @@ export default function SettingsScreen() {
       </View>
 
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Save settings</Text>
-        </TouchableOpacity>
+
+        <Button label="Save settings" onPress={() => {}} />
       </View>
     </ScrollView>
   );
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    backgroundColor: "#f4f5f7",
+    backgroundColor: "#3E3E3E",
     paddingTop: Platform.OS === "ios" ? 10 : 30,
   },
   cardContainer: {

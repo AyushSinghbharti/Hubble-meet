@@ -6,23 +6,26 @@ import {
   Animated,
   TouchableWithoutFeedback,
 } from "react-native";
+import colorTheme from "../theme/colourTheme";
 
 interface CustomButtonProps {
   label: string;
-  number: number;
-  showLabel?: boolean;
-  onPress?: () => void;
+  onPress: () => void;
   isActive?: boolean;
-  width?: number;
+  number?: number;
+  showLabel?: boolean;
+  width?: number | string;
+  style?: any;
 }
 
 const Button: React.FC<CustomButtonProps> = ({
   label,
   number,
-  showLabel = true,
-  onPress,
-  isActive = false,
   width,
+  showLabel = false,
+  onPress,
+  isActive = true,
+  style,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -42,10 +45,11 @@ const Button: React.FC<CustomButtonProps> = ({
   };
 
   return (
-    <TouchableWithoutFeedback onPress={handlePress}>
+    <TouchableWithoutFeedback onPress={isActive ? handlePress : () => {}}>
       <Animated.View
         style={[
           styles.button,
+          style,
           isActive ? styles.activeButton : styles.inactiveBorder,
           { transform: [{ scale: scaleAnim }], width: width },
         ]}
@@ -69,11 +73,12 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
     justifyContent: "center",
+    backgroundColor: colorTheme.buttonPrimaryDisabled,
     alignItems: "center",
-    backgroundColor: "#E5E7EB",
-    paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: 35,
+    borderRadius: 12,
+    paddingVertical: 16,
+    marginTop: 24,
     marginHorizontal: 4,
   },
   content: {
@@ -85,14 +90,15 @@ const styles = StyleSheet.create({
     borderColor: "#D1D5DB",
   },
   activeButton: {
-    backgroundColor: "#BBCF8D",
+    backgroundColor: colorTheme.buttonPrimary,
   },
   label: {
+    color: "#000",
+    fontFamily: "InterBold",
     fontSize: 16,
-    color: "#374151",
   },
   activeLabel: {
-    color: "#fff",
+    color: "#000",
   },
   badge: {
     backgroundColor: "#000",

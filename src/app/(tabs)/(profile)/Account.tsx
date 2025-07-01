@@ -7,74 +7,46 @@ import {
   TouchableOpacity,
   Image,
   Modal,
-  Switch,
-  Platform,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { TextInput } from 'react-native-paper';
 import NavHeader from '../../../components/NavHeader';
 import { FONT } from '../../../../assets/constants/fonts';
+import Button from '../../../components/Button';
 
 export default function SettingsScreen() {
-  const [darkMode, setDarkMode] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
-  // ✅ State for inputs
-  const [phoneNumber, setPhoneNumber] = useState('(814) 413-9191');
-  const [email, setEmail] = useState('patricia651@outlook.com');
+  const phoneNumber = '(814) 413-9191';
+  const email = 'patricia651@outlook.com';
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <NavHeader title="Account" />
 
+      {/* Avatar */}
       <View style={styles.avatarContainer}>
         <Image
-          source={{ uri: 'https://randomuser.me/api/portraits/men/41.jpg' }}
+          source={{ uri: 'https://randomuser.me/api/portraits/women/81.jpg' }}
           style={styles.avatar}
         />
       </View>
 
-      {/* Phone Section */}
-      <View style={styles.card}>
-
-        <TextInput
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          mode="outlined"
-          outlineColor="#5C5C65"
-          activeOutlineColor="#5C5C65"
-          style={styles.paperInput}
-                    label={"Phone number"}
-          theme={{ roundness: 8 }}
-
-        />
-        <Text style={styles.note}>* You can not edit mobile number</Text>
+      {/* Phone number (read-only) */}
+      <Text style={styles.label}>Phone number</Text>
+      <View style={styles.readOnlyInput}>
+        <Text style={styles.readOnlyPhone}>{phoneNumber}</Text>
       </View>
+      <Text style={styles.note}>* You can not edit mobile number</Text>
 
-      {/* Email Section */}
-      <View style={styles.card}>
-
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          mode="outlined"
-          label={"Email address"}
-          outlineColor="#ccc"
-          activeOutlineColor="#000"
-          style={styles.paperInput}
-          theme={{ roundness: 8 }}
-         
-        />
-        <Text style={styles.note}>* You can not edit email address</Text>
+      {/* Email address (read-only) */}
+      <Text style={[styles.label, { marginTop: 24 }]}>Email address</Text>
+      <View style={styles.readOnlyInput}>
+        <Text style={styles.readOnlyEmail}>{email}</Text>
       </View>
+      <Text style={styles.note}>* You can not edit email address</Text>
 
-      {/* Dark Mode */}
-      <View style={styles.toggleCard}>
-        <Text style={styles.label}>Dark mode</Text>
-        <Switch value={darkMode} onValueChange={setDarkMode} />
-      </View>
-
-      {/* Delete Account */}
+      {/* Delete account button */}
       <TouchableOpacity
         onPress={() => setDeleteModalVisible(true)}
         style={styles.deleteButton}
@@ -83,14 +55,14 @@ export default function SettingsScreen() {
         <Ionicons name="chevron-forward" size={20} color="#e53935" />
       </TouchableOpacity>
 
-      {/* Delete Modal */}
+      {/* Delete confirmation modal */}
       <Modal
         visible={deleteModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setDeleteModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalOverlay} onPress={() => setDeleteModalVisible(false)}>
           <View style={styles.modalContent}>
             <TouchableOpacity
               onPress={() => setDeleteModalVisible(false)}
@@ -106,11 +78,10 @@ export default function SettingsScreen() {
             <Text style={styles.modalText}>
               Your account will be permanently removed after a 30-day grace period.
             </Text>
-            <TouchableOpacity style={styles.modalDeleteButton}>
-              <Text style={styles.modalDeleteText}>Delete account</Text>
-            </TouchableOpacity>
+
+            <Button label="Delete account" onPress={() => {}} width="80%" />
           </View>
-        </View>
+        </Pressable>
       </Modal>
     </ScrollView>
   );
@@ -119,56 +90,49 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
-    
+    backgroundColor: '#3E3E3E',
   },
   content: {
-    padding: 16,
+    padding: 20,
     paddingBottom: 60,
   },
   avatarContainer: {
     alignItems: 'center',
-    marginVertical: 24,
+    marginTop: 16,
+    marginBottom: 24,
   },
   avatar: {
-    width: 146,
-    height: 146,
-    borderRadius: 28,
-  },
-  card: {
-    backgroundColor: '#fff',
+    width: 100,
+    height: 100,
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e1e4e8',
   },
   label: {
-    color: '#444',
+    color: '#fff',
     fontSize: 14,
     marginBottom: 6,
-    fontWeight: '500',
+    fontFamily: FONT.MEDIUM,
+  },
+  readOnlyInput: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  readOnlyPhone: {
+    fontSize: 16,
+    color: 'rgba(0, 0, 0, 0.5)',
+    fontFamily: FONT.ITALICMEDIUM,
+  },
+  readOnlyEmail: {
+    fontSize: 16,
+    fontFamily: FONT.SEMIBOLD,
+    color: 'rgba(0, 0, 0, 0.5)',
   },
   note: {
-    color: '#888',
+    color: '#aaa',
     fontSize: 12,
     marginTop: 6,
-    fontFamily:FONT.REGULAR
-  },
-  paperInput: {
-    backgroundColor: '#fff',
-    fontSize: 16,
-  },
-  toggleCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e1e4e8',
-    marginBottom: 16,
+    fontFamily: FONT.MEDIUM,
   },
   deleteButton: {
     flexDirection: 'row',
@@ -179,6 +143,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#ffe0e0',
+    marginTop: 40,
   },
   deleteButtonText: {
     color: '#e53935',
@@ -221,16 +186,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#555',
     marginBottom: 20,
-  },
-  modalDeleteButton: {
-    backgroundColor: '#000',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  modalDeleteText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 15,
   },
 });

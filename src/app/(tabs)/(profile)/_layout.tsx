@@ -13,7 +13,7 @@ export default function StackLayout() {
         options={{ title: "Setting" }} 
       />
       <Stack.Screen 
-        name="profile1" 
+        name="Profile1" 
         options={{ title: "profile" }} 
       />
       <Stack.Screen 
@@ -33,7 +33,7 @@ export default function StackLayout() {
         options={{ title: "SecurityandPrivacy" }} 
       />
       <Stack.Screen 
-        name="SupportandHelp" 
+        name="SupportHelp" 
         options={{ title: "SupportandHelp" }} 
       />
       <Stack.Screen 

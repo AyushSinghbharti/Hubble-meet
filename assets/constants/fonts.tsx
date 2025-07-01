@@ -1,7 +1,9 @@
-
 export const FONT = {
-  REGULAR: 'InterRegular',
-  BOLD: 'InterBold',
-  SEMIBOLD: 'InterSemiBold',
-  MEDIUM:'InterMedium'
+  REGULAR: "Inter",
+  BOLD: "InterBold",
+  SEMIBOLD: "InterSemiBold",
+  MEDIUM: "InterMedium",
+  ITALIC: "InterItalic",
+  ITALICMEDIUM: "InterMediumItalic",
+  ITALICBOLD: "InterItalicBold",
 };

@@ -12,6 +12,7 @@ import React, { useState } from "react";
 import NavHeader from "../../../components/NavHeader";
 import SettingsCard from "../../../components/Cards/SettingsCard";
 import { useRouter } from "expo-router";
+import Button from "../../../components/Button";
 
 const Setting = () => {
   const router = useRouter();
@@ -107,9 +108,7 @@ const Setting = () => {
             <Text style={styles.modalTitle}>Do You Want To Log Out?</Text>
 
             {/* Logout Button */}
-            <Pressable style={styles.logoutMainButton} onPress={handleLogout}>
-              <Text style={styles.logoutMainButtonText}>Yes, Logout</Text>
-            </Pressable>
+            <Button label="Yes, Logout" onPress={handleLogout} width={"100%"} style={{marginTop: 0}} />
           </View>
         </View>
       </Modal>
@@ -122,7 +121,7 @@ export default Setting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F8F8",
+    backgroundColor: "#3E3E3E",
     paddingTop: Platform.OS === "ios" ? 10 : 30,
   },
   content: {
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontFamily: "InterBold",
-    color: "#6E812B",
+    color: "#FFF",
     marginBottom: 8,
     marginTop: 24,
   },

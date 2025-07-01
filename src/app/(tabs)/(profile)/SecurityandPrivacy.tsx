@@ -5,10 +5,27 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import NavHeader from "../../../components/NavHeader";
-import { Platform } from "react-native";
+import Button from "../../../components/Button";
+import { FONT } from "../../../../assets/constants/fonts";
+
+const loginAlerts = [
+  {
+    device: "iPhone 15",
+    date: "04/16/2025 2:19 am",
+    location: "Surat, India",
+    current: true,
+  },
+  {
+    device: "iPhone 14 pro max",
+    date: "03/12/2024 5:22 am",
+    location: "Ahmedabad, India",
+    current: false,
+  },
+];
 
 const options = [
   "Blocked Users",
@@ -19,69 +36,48 @@ const options = [
 
 export default function PrivacySettingsScreen() {
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
       <NavHeader title="Security & Privacy" />
+
       <Text style={styles.sectionTitle}>Login Alerts</Text>
 
-      <View style={styles.loginBox}>
-        <View style={styles.loginRow}>
-          <MaterialIcons name="phone-iphone" size={24} color="#333" />
-          <View style={styles.loginDetails}>
-            <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
-            >
-              <Text style={styles.deviceTitle}>iPhone 15</Text>
-              <Text style={styles.timestamp}>04/16/2025 2:19 am</Text>
-            </View>
-
-            <Text style={styles.subText}>
-              Surat, India |{" "}
-              <Text style={styles.activeDevice}>This device</Text>
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.separator} />
-
-        <View style={styles.loginRow}>
-          <MaterialIcons name="phone-iphone" size={24} color="#333" />
-          <View style={styles.loginDetails}>
-            <View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Text style={styles.deviceTitle}>iPhone 15</Text>
-                <Text style={styles.timestamp}>04/16/2025 2:19 am</Text>
+      <View style={styles.card}>
+        {loginAlerts.map((item, idx) => (
+          <View key={idx}>
+            <View style={styles.row}>
+              <View style={styles.iconBox}>
+                <MaterialIcons name="phone-iphone" size={20} color="#000" />
+              </View>
+              <View style={styles.deviceInfo}>
+                <View style={styles.rowBetween}>
+                  <Text style={styles.deviceName}>{item.device}</Text>
+                  <Text style={styles.time}>{item.date}</Text>
+                </View>
+                <Text style={styles.location}>
+                  {item.location}
+                  {item.current && (
+                    <Text style={styles.currentText}> | This device</Text>
+                  )}
+                </Text>
               </View>
             </View>
-
-            <Text style={styles.subText}>Ahmedabad, India</Text>
+            {idx !== loginAlerts.length - 1 && <View style={styles.divider} />}
           </View>
-        </View>
+        ))}
       </View>
 
-      <Text style={styles.sectionTitle}>Other Privacy</Text>
+      <Text style={styles.sectionTitle}>OTHER PRIVACY</Text>
 
-      <View style={styles.privacyList}>
+      <View style={styles.card}>
         {options.map((item, idx) => (
-          <TouchableOpacity
-            key={idx}
-            style={[
-              styles.listItem,
-              idx === options.length - 1 && { borderBottomWidth: 0 }]}
-          >
+          <TouchableOpacity key={idx} style={styles.listItem}>
             <Text style={styles.listText}>{item}</Text>
             <MaterialIcons name="chevron-right" size={24} color="#555" />
           </TouchableOpacity>
         ))}
       </View>
 
-      <TouchableOpacity style={styles.saveButton}>
-        <Text style={styles.saveButtonText}>Save settings</Text>
-      </TouchableOpacity>
+      <Button label="Save settings" onPress={() => {}} />
     </ScrollView>
   );
 }
@@ -90,87 +86,93 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#f4f5f7",
     paddingTop: Platform.OS === "ios" ? 10 : 30,
+    backgroundColor: "#3E3E3E",
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#4A5C2D",
-    marginBottom: 8,
+    fontSize: 14,
+    fontFamily: FONT.BOLD,
+    color: "#fff",
     marginTop: 16,
+    marginBottom: 8,
+    textTransform: "uppercase",
   },
-  loginBox: {
+  card: {
     backgroundColor: "#fff",
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 12,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: 24,
   },
-  loginRow: {
+  row: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 10,
+    gap: 10,
   },
-  loginDetails: {
-    marginLeft: 10,
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  iconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 4,
+  },
+  deviceInfo: {
     flex: 1,
   },
-  deviceTitle: {
+  deviceName: {
     fontSize: 15,
-    fontWeight: "bold",
-    color: "#222",
+    fontFamily: FONT.BOLD,
+    color: "#111",
   },
-  subText: {
-    fontSize: 13,
-    color: "#555",
-  },
-  activeDevice: {
-    color: "green",
-    fontWeight: "600",
-  },
-  timestamp: {
+  time: {
     fontSize: 12,
-    color: "#888",
+    fontFamily: FONT.REGULAR,
+    color: "#999",
+  },
+  location: {
+    fontSize: 13,
+    fontFamily: FONT.MEDIUM,
+    color: "#444",
     marginTop: 2,
   },
-  separator: {
-    height: 1,
-    backgroundColor: "#ddd",
-    marginVertical: 10,
+  currentText: {
+    color: "green",
+    fontFamily: FONT.SEMIBOLD,
   },
-  privacyList: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    paddingVertical: 4,
-    marginBottom: 24,
+  divider: {
+    height: 1,
+    backgroundColor: "#eee",
+    marginVertical: 10,
   },
   listItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 16,
     borderBottomColor: "#eee",
     borderBottomWidth: 1,
   },
   listText: {
     fontSize: 15,
-    color: "#333",
+    fontFamily: FONT.MEDIUM,
+    color: "#222",
   },
   saveButton: {
-    backgroundColor: "#000",
-    paddingVertical: 14,
+    backgroundColor: "#CDDC39",
+    paddingVertical: 16,
     borderRadius: 10,
     alignItems: "center",
+    marginTop: 10,
   },
   saveButtonText: {
-    color: "#fff",
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: FONT.SEMIBOLD,
+    color: "#000",
   },
 });

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -10,29 +10,31 @@ import {
   Image,
   findNodeHandle,
   UIManager,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import NavHeader from '../../../components/NavHeader';
-import SelectCountryModal from '../../../components/selectCountryModal';
-import TagDropdown from '../../../components/TagDropdown';
-import { FONT } from '../../../../assets/constants/fonts';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import NavHeader from "../../../components/NavHeader";
+import SelectCountryModal from "../../../components/selectCountryModal";
+import TagDropdown from "../../../components/TagDropdown";
+import { FONT } from "../../../../assets/constants/fonts";
+import colorTheme from "../../../theme/colourTheme";
+import Button from "../../../components/Button";
 
 export default function SettingsScreen() {
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [location, setLocation] = useState('');
-  const [jobTitle, setJobTitle] = useState('');
-  const [bio, setBio] = useState('');
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [location, setLocation] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [bio, setBio] = useState("");
   const [companies, setCompanies] = useState([]);
   const [industries, setIndustries] = useState([]);
   const [dob, setDob] = useState(null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const [selectedFlag, setSelectedFlag] = useState({
-    flag: 'https://flagcdn.com/w40/us.png',
-    dial_code: '+1',
+    flag: "https://flagcdn.com/w40/us.png",
+    dial_code: "+1",
   });
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -59,7 +61,7 @@ export default function SettingsScreen() {
   const handleSave = () => {
     const formData = {
       name,
-      dob: dob ? dob.toISOString().split('T')[0] : '',
+      dob: dob ? dob.toISOString().split("T")[0] : "",
       phone,
       email,
       location,
@@ -70,40 +72,50 @@ export default function SettingsScreen() {
       countryCode: selectedFlag.dial_code,
     };
 
-    console.log('Form data:', JSON.stringify(formData, null, 2));
+    console.log("Form data:", JSON.stringify(formData, null, 2));
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 100 }}
+      keyboardShouldPersistTaps="handled"
+    >
       <NavHeader title="Profile" />
 
       <View style={styles.profileContainer}>
         <Image
-          source={{ uri: 'https://randomuser.me/api/portraits/men/41.jpg' }}
+          source={{ uri: "https://randomuser.me/api/portraits/men/41.jpg" }}
           style={styles.profileImage}
         />
         <Text style={styles.profileName}>Dennis Callis</Text>
+        <TouchableOpacity style={{ marginTop: 2 }}>
+          <Text
+            style={{
+              color: "#fff",
+              fontFamily: FONT.MEDIUM,
+              fontSize: 12,
+              textDecorationLine: "underline",
+              letterSpacing: 0.5,
+            }}
+          >
+            Change
+          </Text>
+        </TouchableOpacity>
       </View>
 
-   {/* <FormLabel label={"User Name"}> 
-
- 
-
-
-</FormLabel> */}
-
-<Text style={styles.label}>
-  User Name <Text style={{ color: 'red' }}>*</Text>
-</Text>
+      <Text style={styles.label}>
+        User Name <Text style={{ color: "red" }}>*</Text>
+      </Text>
       <Input placeholder="Enter name" value={name} onChangeText={setName} />
 
-   <Text style={styles.label}>
-  DOB <Text style={{ color: 'red' }}>*</Text>
-</Text>
+      <Text style={styles.label}>
+        DOB <Text style={{ color: "red" }}>*</Text>
+      </Text>
       <TouchableOpacity onPress={showDatePicker}>
         <Input
           placeholder="Select date"
-          value={dob ? dob.toLocaleDateString() : ''}
+          value={dob ? dob.toLocaleDateString() : ""}
           icon="calendar-clear-outline"
           editable={false}
         />
@@ -117,9 +129,9 @@ export default function SettingsScreen() {
         onCancel={hideDatePicker}
       />
 
-     <Text style={styles.label}>
-  Phone Number <Text style={{ color: 'red' }}>*</Text>
-</Text>
+      <Text style={styles.label}>
+        Phone Number <Text style={{ color: "red" }}>*</Text>
+      </Text>
       <View style={styles.phoneContainer}>
         <TouchableOpacity
           style={styles.countryCode}
@@ -128,19 +140,31 @@ export default function SettingsScreen() {
         >
           {selectedFlag && (
             <>
-              <Image source={{ uri: selectedFlag.flag }} style={{ width: 24, height: 18, marginRight: 6 }} />
+              <Image
+                source={{ uri: selectedFlag.flag }}
+                style={{ width: 24, height: 18, marginRight: 6 }}
+              />
               <Text>{selectedFlag.dial_code}</Text>
             </>
           )}
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Input placeholder="525 735 4556" containerStyle={{ marginLeft: 8 }} value={phone} onChangeText={setPhone} />
+          <Input
+            placeholder="525 735 4556"
+            containerStyle={{ marginLeft: 8 }}
+            value={phone}
+            onChangeText={setPhone}
+          />
         </View>
       </View>
       <Text style={styles.otpText}>Verify with OTP</Text>
 
       <FormLabel label="Email" />
-      <Input placeholder="r.g.rhodes@aol.com" value={email} onChangeText={setEmail} />
+      <Input
+        placeholder="r.g.rhodes@aol.com"
+        value={email}
+        onChangeText={setEmail}
+      />
       <Text style={styles.otpText}>Verify with OTP</Text>
 
       <FormLabel label="Country/City" />
@@ -159,26 +183,28 @@ export default function SettingsScreen() {
 
       <FormLabel label="Company" />
       <TagDropdown
-        options={['Google', 'Microsoft', 'Amazon', 'Apple', 'Netflix']}
+        options={["Google", "Microsoft", "Amazon", "Apple", "Netflix"]}
         selected={companies}
         onChange={setCompanies}
         placeholder="Select companies"
       />
 
       <FormLabel label="Job Title" />
-      <Input placeholder="General Manager" value={jobTitle} onChangeText={setJobTitle} />
+      <Input
+        placeholder="General Manager"
+        value={jobTitle}
+        onChangeText={setJobTitle}
+      />
 
       <FormLabel label="Industries" />
       <TagDropdown
-        options={['Technology', 'Healthcare', 'Finance', 'Education', 'Retail']}
+        options={["Technology", "Healthcare", "Finance", "Education", "Retail"]}
         selected={industries}
         onChange={setIndustries}
         placeholder="Select industries"
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSave}>
-        <Text style={styles.buttonText}>Save settings</Text>
-      </TouchableOpacity>
+      <Button label="Save settings" onPress={handleSave} />
 
       <SelectCountryModal
         visible={modalVisible}
@@ -212,8 +238,10 @@ const Input = ({
         styles.input,
         multiline && styles.textArea,
         // Platform specific adjustments for line height
-        Platform.OS === 'ios' && { lineHeight: 20 }, // Adjust for iOS if needed
-        Platform.OS === 'android' && { textAlignVertical: multiline ? 'top' : 'center' }, // Ensure vertical alignment
+        Platform.OS === "ios" && { lineHeight: 20 }, // Adjust for iOS if needed
+        Platform.OS === "android" && {
+          textAlignVertical: multiline ? "top" : "center",
+        }, // Ensure vertical alignment
       ]}
       placeholder={placeholder}
       placeholderTextColor="#000"
@@ -224,7 +252,7 @@ const Input = ({
       onChangeText={onChangeText}
       editable={editable}
       // 'none' prevents interaction with the TextInput when editable is false
-      pointerEvents={editable ? 'auto' : 'none'}
+      pointerEvents={editable ? "auto" : "none"}
     />
     {icon && <Ionicons name={icon} size={20} color="gray" />}
   </View>
@@ -234,11 +262,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 10 : 30,
-    backgroundColor: '#fff',
+    paddingTop: Platform.OS === "ios" ? 10 : 30,
+    backgroundColor: "#3E3E3E",
   },
   profileContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 24,
   },
   profileImage: {
@@ -248,79 +276,78 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   profileName: {
+    color: "#fff",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   label: {
-  fontSize: 16,
+    fontSize: 16,
     marginTop: 16,
-    color: '#111',
-    fontFamily:FONT.SEMIBOLD
+    color: "#fff",
+    fontFamily: FONT.SEMIBOLD,
   },
   inputContainer: {
     borderWidth: 1,
-    borderColor: '#cfd4dc',
+    borderColor: "#cfd4dc",
     borderRadius: 8,
     // Unified padding for better consistency
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === 'ios' ? 12 : 10, // Slight adjustment for iOS vs Android
-    backgroundColor: '#F8FBFF',
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingVertical: Platform.OS === "ios" ? 12 : 10, // Slight adjustment for iOS vs Android
+    backgroundColor: "#F8FBFF",
+    flexDirection: "row",
+    alignItems: "center",
     minHeight: 48, // Set a minimum height for single-line inputs
   },
   input: {
     flex: 1,
     fontSize: 16,
-    fontFamily: 'InterMedium',
+    fontFamily: "InterMedium",
     // Remove padding here as it's handled by inputContainer
     padding: 0, // Important: remove default TextInput padding
   },
   textArea: {
     minHeight: 80, // Minimum height for multiline inputs
-    height: 'auto', // Allow height to adjust based on content
-    textAlignVertical: 'top', // Ensures text starts from the top on Android
-    paddingVertical: Platform.OS === 'ios' ? 12 : 10, // Maintain vertical padding for multiline
+    height: "auto", // Allow height to adjust based on content
+    textAlignVertical: "top", // Ensures text starts from the top on Android
+    paddingVertical: Platform.OS === "ios" ? 12 : 10, // Maintain vertical padding for multiline
   },
   phoneContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   countryCode: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderWidth: 1,
-    backgroundColor: '#f1f1f1',
+    backgroundColor: "#f1f1f1",
   },
   otpText: {
-    color: 'green',
+    color: "green",
     fontSize: 12,
-    textAlign: 'right',
+    textAlign: "right",
     marginTop: 4,
-    fontFamily:FONT.BOLD
+    fontFamily: FONT.BOLD,
   },
   counter: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     fontSize: 12,
-    color: '#888',
+    color: "#888",
   },
   button: {
     marginTop: 24,
-    backgroundColor: '#000',
+    backgroundColor: colorTheme.buttonPrimary,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 12,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#000",
+    fontFamily: "InterBold",
     fontSize: 16,
   },
-
-
 });

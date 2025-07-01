@@ -163,11 +163,11 @@ export default function ChatScreen() {
           setShowBlockModal(!showBlockModal);
           alert("User Blocked");
         }}
-        message={`Block ${selectedUser?.name} user?`}
+        message={`Block ${selectedUser?.name}`}
         description={
           "Blocked contacts cannot send you message.This contact will not be notified"
         }
-        acceptButtonName={"Block User"}
+        acceptButtonName={"Block"}
         cancelButtonName={"Cancel"}
       />
 
