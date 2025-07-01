@@ -2,8 +2,15 @@ This is not an important file, It created it to share bugs on screens that neede
 
 ChatScreen Bugs
 - Swipe to reply option on chatScreen (To be implemented) on "src\components\chatScreenComps\chatBody.tsx"
-- Add screen that popup after select photos and document to send
+- Add screen that popup after select photos and document to send --- DONE
 
 PitchScreen bugs
  - MainCardWrapper showing on press on wrapper after unmounting of video as Video cleanup error
- - My pitch Screen to be add into route later
+ - My pitch Screen to be add into route later --- DONE
+
+ OverAll Updates To be done
+- Icons in menu old 
+- Add to hubble circle – keep animation for couple more secs
+- Similarly when connection is made
+- Display name on pitch : business name, individual – auto populated 
+- First letter caps of all words – check everywhere 
