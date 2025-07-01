@@ -33,7 +33,7 @@ const MODAL_CONFIG = {
     icon: require("../../../assets/icons/video.png"),
     heading: "Video Submitted",
     description: "It’ll be reviewed and updated to your profile once approved.",
-    buttonText: "Go to pitch",
+    buttonText: "Let's Explore",
   },
   error: {
     icon: require("../../../assets/icons/barrier.png"),
