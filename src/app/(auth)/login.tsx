@@ -27,8 +27,7 @@ type Country = {
 };
 
 const FLAG_ICON = "https://flagcdn.com/w40/in.png";
-const GOOGLE_ICON =
-  "https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/google_logo-google_icongoogle-512.png";
+const GOOGLE_ICON = "https://img.icons8.com/color/512/google-logo.png";
 const FACEBOOK_ICON =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSy0dDdi3KJgMq_87aJt9us_0yh69ewaKgUzg&s";
 
@@ -103,7 +102,7 @@ export default function Login() {
                   style={styles.flagIcon}
                 />
                 <Text style={styles.countryCode}>{selectedFlag.dial_code}</Text>
-                <FontAwesome name="chevron-down" size={12} color="#656565" />
+                <FontAwesome name="chevron-down" size={12} color="#fff" />
               </View>
             </TouchableOpacity>
           </ManualBlur>

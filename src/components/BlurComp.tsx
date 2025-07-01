@@ -9,13 +9,14 @@ interface BlurCompProps {
 
 const ManualBlur: React.FC<BlurCompProps> = ({ children, style }) => {
   return (
-    <BlurView
+    <View
+
       // Expo BlurView Prop
-      experimentalBlurMethod="dimezisBlurView"
+      // experimentalBlurMethod="dimezisBlurView"
       // experimentalBlurMethod={"blur" as ExperimentalBlurMethod}
-      tint="systemChromeMaterialDark"
-      blurReductionFactor={15}
-      intensity={40}
+      // tint="systemChromeMaterialDark"
+      // blurReductionFactor={15}
+      // intensity={40}
 
       // Community Blur View Prop
       // blurAmount = {5}
@@ -23,10 +24,10 @@ const ManualBlur: React.FC<BlurCompProps> = ({ children, style }) => {
       // blurRadius= {5}
       // downsampleFactor={5}
 
-      style={[style, { overflow: "hidden" }]}
+      style={[style, { overflow: "hidden", backgroundColor: "rgba(255, 255, 255, 0.3)", elevation: 0 }]}
     >
       {children}
-    </BlurView>
+    </View>
   );
 };
 
