@@ -9,10 +9,6 @@ import { PaperProvider } from 'react-native-paper';
 
 export { ErrorBoundary } from "expo-router";
 
-// export const unstable_settings = {
-//   initialRouteName: "(splash)",
-// };
-
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require("../../assets/fonts/SpaceMono-Regular.ttf"),

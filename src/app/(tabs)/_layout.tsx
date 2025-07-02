@@ -53,7 +53,7 @@ export default function StackLayout() {
             position: "absolute",
             borderTopWidth: 0,
             elevation: 5000,
-            height: Platform.OS === "ios" ? 80 : 85,
+            ...(Platform.OS === "ios" && { height: 80 }),
           },
           tabBarBackground: () => (
             <View style={{ position: "relative", top: -25 }}>
