@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,19 +6,26 @@ import {
   StyleSheet,
   Platform,
   StyleProp,
-  ViewStyle
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+  ViewStyle,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 type NavHeaderProps = {
   title: string;
   style?: StyleProp<ViewStyle>;
   showBackButton?: boolean;
   onBackPress?: () => void;
+  mode?: "light" | "dark";
 };
 
-export default function NavHeader({ title, showBackButton = true, onBackPress, style }: NavHeaderProps) {
+export default function NavHeader({
+  title,
+  showBackButton = true,
+  onBackPress,
+  style,
+  mode="light",
+}: NavHeaderProps) {
   const router = useRouter();
 
   return (
@@ -29,13 +36,22 @@ export default function NavHeader({ title, showBackButton = true, onBackPress, s
             style={styles.backButton}
             onPress={onBackPress || (() => router.back())}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            {}
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color={mode === "light" ? "#fff" : "#000"}
+            />
           </TouchableOpacity>
         ) : (
           <View style={styles.backButtonPlaceholder} />
         )}
 
-        <Text style={styles.title}>{title}</Text>
+        <Text
+          style={[styles.title, { color: mode === "light" ? "#fff" : "#000" }]}
+        >
+          {title}
+        </Text>
         <View style={styles.rightPlaceholder} />
       </View>
     </View>
@@ -44,20 +60,20 @@ export default function NavHeader({ title, showBackButton = true, onBackPress, s
 
 const styles = StyleSheet.create({
   wrapper: {
-     paddingTop: Platform.OS === 'android' ? 5:30,
-     width:"100%"
+    paddingTop: Platform.OS === "android" ? 5 : 30,
+    width: "100%",
   },
   container: {
     height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
 
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   backButton: {
     width: 32,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   backButtonPlaceholder: {
     width: 32,

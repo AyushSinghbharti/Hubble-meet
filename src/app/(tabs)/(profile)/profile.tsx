@@ -13,6 +13,7 @@ import InviteModal from "../../../components/Modal/InviteModal";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import MyInviteModal from "../../../components/Alerts/MyInviteModal";
+import ProfileCard from "../../../components/profileSetupComps/profileCard";
 
 // Profile Data
 const profileData = {
@@ -103,35 +104,20 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <View style={[styles.card, styles.profileCard]}>
-        <View style={styles.profileRow}>
-          <Image
-            source={{ uri: profileData.avatar }}
-            style={styles.profileImageSmall}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={styles.name}>{profileData.name}</Text>
-            <Text style={styles.subtitle}>{profileData.title}</Text>
-            <Text style={styles.location}>{profileData.location}</Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => router.push("/(pitch)/pitch")}
-            style={styles.pitchButton}
-          >
-            <Image
-              style={{ height: 25, width: 25 }}
-              source={require("../../../../assets/icons/pitch2.png")}
-            />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          onPress={() => setMyInviteModalVisible(true)}
-          style={styles.shareIcon}
-        >
-          <Entypo name="share" size={20} color="#000" />
-        </TouchableOpacity>
-      </View>
+      <ProfileCard
+        avatar={profileData.avatar}
+        name="Robin Gupta and sons"
+        title="Design Lead at Microsoft"
+        location="Bengaluru, India"
+        onVideoPress={() => {}}
+        onChatPress={() => {}}
+        onBlockPress={() => {}}
+        backgroundColor="#FFE699"
+        viewShareButton={true}
+        viewChatButton={false}
+        viewBlockButton={false}
+        style={{ marginBottom: 40 }}
+      />
 
       <InviteModal
         visible={modalVisible}
@@ -268,7 +254,6 @@ const styles = StyleSheet.create({
   profileInfo: {
     flex: 1,
     marginLeft: 10,
-    bottom: 40,
   },
   pitchButton: {
     backgroundColor: "#fff",
@@ -280,9 +265,6 @@ const styles = StyleSheet.create({
     bottom: 60,
   },
   shareIcon: {
-    position: "absolute",
-    bottom: 12,
-    right: Platform.OS === "ios" ? 193 : 170,
     backgroundColor: "#fff",
     height: 35,
     width: 35,

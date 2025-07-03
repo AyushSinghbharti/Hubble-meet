@@ -24,8 +24,12 @@ export default function TabBarBackground({
   const path = `
     M0 0
     H${center - halfBump}
-    C${center - halfBump * 0.6} 0, ${center - halfBump * 0.6} ${-bumpHeight}, ${center} ${-bumpHeight}
-    C${center + halfBump * 0.6} ${-bumpHeight}, ${center + halfBump * 0.6} 0, ${center + halfBump} 0
+    C${center - halfBump * 0.6} 0, ${
+    center - halfBump * 0.6
+  } ${-bumpHeight}, ${center} ${-bumpHeight}
+    C${center + halfBump * 0.6} ${-bumpHeight}, ${center + halfBump * 0.6} 0, ${
+    center + halfBump
+  } 0
     H${width}
     V${height}
     H0
@@ -42,7 +46,7 @@ export default function TabBarBackground({
         top: 0,
       }}
     >
-      <Path d={path} fill={fill} />
+      <Path d={path} fill={fill} stroke="#ccc" strokeWidth={1.1} />
     </Svg>
   );
 }

@@ -9,8 +9,28 @@ PitchScreen bugs
  - My pitch Screen to be add into route later --- DONE
 
  OverAll Updates To be done
-- Icons in menu old 
+- Icons in menu old --- DONE
 - Add to hubble circle – keep animation for couple more secs
 - Similarly when connection is made
-- Display name on pitch : business name, individual – auto populated 
+- Display name on pitch : business name, individual – auto populated --- DONE
 - First letter caps of all words – check everywhere 
+
+ On profile setup
+- remove: Block and message icon ---DONE
+- Add: share functionality --- DONE
+
+ Connect:
+- Background card will move on swipe next card come and notification stay for a little longer
+- on another action the notification auto hide
+- add flip animation too
+- search issue fix, add padding --- DONE
+- change colour to f5f5f5 --- DONE
+- check stroke --- DONE
+- add shadow to menu bar --- DONE
+
+ Profile:
+- Fix the share icon on vbc card --- DONE
+- Change the button size to 44 (save settings) --- DONE
+
+ Pitch screen:
+- Change swipe button height to 50 --- DONE

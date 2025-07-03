@@ -1,10 +1,8 @@
-// components/SwipeToSubmitButton.tsx
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  I18nManager,
   LayoutChangeEvent,
 } from "react-native";
 import Animated, {
@@ -19,17 +17,18 @@ import {
   PanGestureHandlerGestureEvent,
 } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
-import { useEffect } from "react";
 
 interface Props {
   onSwipeSuccess: () => void;
   text: string;
-  hasError?: String | string | boolean;
+  hasError?: string | boolean;
 }
 
 const SwipeToSubmitButton: React.FC<Props> = ({ onSwipeSuccess, text, hasError }) => {
   const [containerWidth, setContainerWidth] = useState(0);
-  const CIRCLE_SIZE = 60;
+
+  const HEIGHT = 50;
+  const CIRCLE_SIZE = HEIGHT;
 
   const translateX = useSharedValue(0);
   const MAX_TRANSLATE = containerWidth - CIRCLE_SIZE;
@@ -74,16 +73,26 @@ const SwipeToSubmitButton: React.FC<Props> = ({ onSwipeSuccess, text, hasError }
   return (
     <View style={styles.outerContainer}>
       <View
-        style={styles.container}
+        style={[styles.container, { height: HEIGHT }]}
         onLayout={(e: LayoutChangeEvent) =>
           setContainerWidth(e.nativeEvent.layout.width)
         }
       >
-        <Animated.View style={[styles.fill, bgFillStyle]} />
+        <Animated.View style={[styles.fill, bgFillStyle, { borderRadius: HEIGHT / 2 }]} />
         <Text style={styles.label}>{text}</Text>
 
         <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View style={[styles.circle, circleStyle]}>
+          <Animated.View
+            style={[
+              styles.circle,
+              {
+                width: CIRCLE_SIZE,
+                height: CIRCLE_SIZE,
+                borderRadius: CIRCLE_SIZE / 2,
+              },
+              circleStyle,
+            ]}
+          >
             <AntDesign name="arrowright" size={24} color="#000" />
           </Animated.View>
         </PanGestureHandler>
@@ -105,7 +114,6 @@ const styles = StyleSheet.create({
   },
   container: {
     width: "100%",
-    height: 60,
     backgroundColor: "#fff",
     borderRadius: 100,
     justifyContent: "center",
@@ -122,11 +130,10 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     backgroundColor: "#BBCF8D",
-    borderRadius: 100,
     zIndex: 1,
   },
   label: {
-    fontSize: 18,
+    fontSize: 16,
     color: "#000",
     fontFamily: "InterMedium",
     zIndex: 0,
@@ -134,9 +141,6 @@ const styles = StyleSheet.create({
   circle: {
     position: "absolute",
     left: 0,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
     backgroundColor: "#BBCF8D",
     justifyContent: "center",
     alignItems: "center",

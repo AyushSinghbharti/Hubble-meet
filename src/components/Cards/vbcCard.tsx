@@ -113,7 +113,7 @@ const CustomCard = memo(
               onPress={onAddPress}
             >
               <Image
-                source={require("../../../assets/icons/block.png")}
+                source={require("../../../assets/icons/block2.png")}
                 style={{ width: 15, height: 24, tintColor: iconColor }}
                 resizeMode="contain"
               />

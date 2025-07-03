@@ -15,8 +15,6 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
-const { width: screenWidth } = Dimensions.get("window");
-const MAX_WIDTH = Platform.OS === "ios" ? 330 : 310;
 const MIN_WIDTH = 40;
 
 if (
@@ -120,7 +118,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
-    backgroundColor: "#fff",
+    backgroundColor: "#f7f7f7",
     position: "relative",
   },
   logoWrapper: {
@@ -132,8 +130,8 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   logo: {
-    height: 30,
-    width: 100,
+    height: 24,
+    width: 148,
   },
   rightSection: {
     flexDirection: "row",
@@ -149,7 +147,7 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   searchExpanded: {
-    width: MAX_WIDTH,
+    flex: 1,
     height: 40,
     paddingHorizontal: 8,
   },

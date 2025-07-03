@@ -404,6 +404,8 @@ export default function ProfileSetup() {
           name={name}
           title={jobTitle}
           location={address}
+          viewChatButton={false}
+          viewBlockButton={false}
         />
       </>
     ),

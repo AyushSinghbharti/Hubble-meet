@@ -265,7 +265,7 @@ const ProfileCard = ({
                 <Animated.View style={[styles.actionButton, buttonStyle]}>
                   <Image
                     source={require("../../../../assets/icons/share1.png")}
-                    style={{ width: 18, height: 18 }}
+                    style={{ width: 24, height: 24 }}
                   />
                 </Animated.View>
               </TouchableOpacity>
@@ -276,8 +276,8 @@ const ProfileCard = ({
               >
                 <Animated.View style={[styles.actionButton, buttonStyle]}>
                   <Image
-                    source={require("../../../../assets/icons/block.png")}
-                    style={{ width: 18, height: 18 }}
+                    source={require("../../../../assets/icons/block2.png")}
+                    style={{ width: 24, height: 24 }}
                   />
                 </Animated.View>
               </TouchableOpacity>

@@ -7,7 +7,8 @@ const CARD_HEIGHT = height * 0.4;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
+    backgroundColor: "#f7f7f7",
   },
   flatListContent: {
     paddingVertical: 10,

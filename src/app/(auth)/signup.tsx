@@ -69,21 +69,22 @@ export default function SignUp() {
       setPhoneError(true);
       return;
     }
+    router.push("/otpVerify");
 
-    signup(
-      { phone: phoneNumber, email: email, termsAccepted: termAccept },
-      {
-        onSuccess: () => {
-          router.push("/otpVerify");
-        },
-        onError: (err: any) => {
-          console.log(err);
-          setError(
-            err?.response?.data?.message || "Login failed. Please try again"
-          );
-        },
-      }
-    );
+    // signup(
+    //   { phone: phoneNumber, email: email, termsAccepted: termAccept },
+    //   {
+    //     onSuccess: () => {
+    //       router.push("/otpVerify");
+    //     },
+    //     onError: (err: any) => {
+    //       console.log(err);
+    //       setError(
+    //         err?.response?.data?.message || "Login failed. Please try again"
+    //       );
+    //     },
+    //   }
+    // );
   };
 
   const handleLogin = () => {

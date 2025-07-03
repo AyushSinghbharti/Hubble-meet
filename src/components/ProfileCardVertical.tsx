@@ -116,7 +116,7 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
               />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.actionCircle,{backgroundColor: lightenColor(selectedProfile.borderColor,50)}]}>
-              <Image source={require("../../assets/icons/block.png")} style={styles.icon} />
+              <Image source={require("../../assets/icons/block2.png")} style={styles.icon} />
             </TouchableOpacity>
           </View>
         </View>
