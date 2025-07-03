@@ -90,7 +90,10 @@ export default function StackLayout() {
                 >
                   <Image
                     source={icons.connect}
-                    style={[styles.icon, { tintColor: "#000", height: 30, width: 30 }]}
+                    style={[
+                      styles.icon,
+                      { height: 30, width: 30 },
+                    ]}
                   />
                 </View>
               ) : (
@@ -100,7 +103,10 @@ export default function StackLayout() {
                     { backgroundColor: "#B2D37D", height: 55, width: 55 },
                   ]}
                 >
-                  <Image source={icons.connect} style={[styles.icon, {height: 27, width: 27}]} />
+                  <Image
+                    source={icons.connect}
+                    style={[styles.icon, {tintColor: "#000", height: 27, width: 27 }]}
+                  />
                 </View>
               ),
           }}
