@@ -47,7 +47,7 @@ export default function StackLayout() {
           headerShown: false,
           tabBarActiveTintColor: "#99BB66",
           tabBarInactiveTintColor: "#9DB2CE",
-          tabBarLabelStyle: {paddingTop: 5},
+          tabBarLabelStyle: { paddingTop: 5 },
           tabBarStyle: {
             backgroundColor: "#fff",
             position: "absolute",
@@ -90,7 +90,7 @@ export default function StackLayout() {
                 >
                   <Image
                     source={icons.connect}
-                    style={[styles.icon, { tintColor: "#fff" }]}
+                    style={[styles.icon, { tintColor: "#000", height: 30, width: 30 }]}
                   />
                 </View>
               ) : (
@@ -100,10 +100,7 @@ export default function StackLayout() {
                     { backgroundColor: "#B2D37D", height: 55, width: 55 },
                   ]}
                 >
-                  <Image
-                    source={icons.connect}
-                    style={[styles.icon, { tintColor: "#fff" }]}
-                  />
+                  <Image source={icons.connect} style={[styles.icon, {height: 27, width: 27}]} />
                 </View>
               ),
           }}
@@ -130,8 +127,8 @@ export default function StackLayout() {
 
 const styles = StyleSheet.create({
   icon: {
-    width: 24,
-    height: 24,
+    width: 25,
+    height: 25,
     resizeMode: "contain",
   },
   circleWrapper: {

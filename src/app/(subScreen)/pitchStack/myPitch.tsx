@@ -46,8 +46,8 @@ export default function MyPitchScreen() {
           item: JSON.stringify({
             name: null,
             desc: null,
-            format: null,
-            pitchType: "Individual",
+            format: "Upload",
+            pitchType: "Business",
             duration: 30,
             videoUrl: null,
           }),
@@ -60,7 +60,7 @@ export default function MyPitchScreen() {
           item: JSON.stringify({
             name: null,
             desc: null,
-            format: null,
+            format: "Record",
             pitchType: "Individual",
             duration: 30,
             videoUrl: null,
@@ -102,7 +102,10 @@ export default function MyPitchScreen() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.deleteIcon} onPress={() => setViewModal(!viewModal)}>
+        <TouchableOpacity
+          style={styles.deleteIcon}
+          onPress={() => setViewModal(!viewModal)}
+        >
           <Image
             source={require("../../../../assets/icons/delete.png")}
             style={[styles.icon, { tintColor: "#fff" }]}

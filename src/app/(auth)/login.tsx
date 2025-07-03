@@ -18,6 +18,7 @@ import SelectCountryModal from "../../components/selectCountryModal";
 import ManualBlur from "../../components/BlurComp";
 import ErrorAlert from "../../components/errorAlert";
 import RandomBackgroundImages from "../../components/RandomBGImage";
+import { useLogin } from "../../hooks/useAuth";
 
 type Country = {
   name: string;
@@ -56,14 +57,29 @@ export default function Login() {
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef<View>(null);
   const [error, setError] = useState<string>("");
+  const { mutate: login, isPending } = useLogin();
 
   const handleLogin = () => {
     if (!phoneNumber) {
       setError("Please enter your phone number");
       return;
     }
-
     router.push("/connect");
+    
+    // login(
+    //   { phone: phoneNumber, email: "" },
+    //   {
+    //     onSuccess: () => {
+    //       router.push("/connect");
+    //     },
+    //     onError: (err: any) => {
+    //       console.log(err);
+    //       setError(
+    //         err?.response?.data?.message || "Login failed. Please try again."
+    //       );
+    //     },
+    //   }
+    // );
   };
 
   const handleSignup = () => {

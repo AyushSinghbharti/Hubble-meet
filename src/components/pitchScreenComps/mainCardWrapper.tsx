@@ -133,7 +133,8 @@ const MainCardWrapper = ({ pitch, onPress }) => {
       {/* Bottom Profile Section (tap triggers onPress only here) */}
       <View style={styles.userRow}>
         <View style={styles.typeShown}>
-          <Text style={styles.typeText}>Individual</Text>
+          <Text style={styles.typeText}>Individual:</Text>
+          <Text style={styles.pitchTitleText}>John William</Text>
         </View>
 
         <TouchableOpacity style={{ flexDirection: "row" }} onPress={onPress}>
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
   cardWrapper: {
     flex: 1,
     marginTop: 18,
-    marginBottom: 10,
+    marginBottom: 18,
     borderRadius: 20,
     overflow: "hidden",
     backgroundColor: "#e5e7eb",
@@ -210,9 +211,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: "#F1F0F0",
     backgroundColor: "#FFFFFF15",
+    flexDirection: "row",
+    gap: 4
+  },
+  pitchTitleText: {
+    fontFamily: "InterBold",
+    color: "#fff",
   },
   typeText: {
-    fontFamily: "InterSemiBold",
+    fontFamily: "InterMedium",
     color: "#fff",
   },
   avatar: {

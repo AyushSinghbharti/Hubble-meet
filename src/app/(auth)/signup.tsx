@@ -20,6 +20,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { loginStyles as styles } from "./Styles/Styles";
 import ManualBlur from "../../components/BlurComp";
 import RandomBackgroundImages from "../../components/RandomBGImage";
+import { useSignup } from "../../hooks/useAuth";
 
 type Country = {
   name: string;
@@ -35,7 +36,7 @@ const FACEBOOK_ICON =
 export default function SignUp() {
   const router = useRouter();
   const [phoneNumber, setPhoneNumber] = useState<string>("");
-  const [termAccept, toogleTerm] = useState<Boolean>(false);
+  const [termAccept, toogleTerm] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [selectedFlag, setSelectedFlag] = useState<Country>({
     code: "IN",
@@ -50,6 +51,7 @@ export default function SignUp() {
   const [error, setError] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
+  const { mutate: signup, isPending } = useSignup();
 
   const handleSignUp = () => {
     if (!termAccept) {
@@ -68,7 +70,20 @@ export default function SignUp() {
       return;
     }
 
-    router.push("/otpVerify");
+    signup(
+      { phone: phoneNumber, email: email, termsAccepted: termAccept },
+      {
+        onSuccess: () => {
+          router.push("/otpVerify");
+        },
+        onError: (err: any) => {
+          console.log(err);
+          setError(
+            err?.response?.data?.message || "Login failed. Please try again"
+          );
+        },
+      }
+    );
   };
 
   const handleLogin = () => {

@@ -57,19 +57,7 @@ export default function PitchScreen() {
   };
 
   const navigateToMyPitch = () => {
-    router.push({
-      pathname: "/pitchStack/myPitch",
-      params: {
-        item: JSON.stringify({
-          name: null,
-          desc: null,
-          format: "Upload",
-          pitchType: "Business",
-          duration: 30,
-          videoUrl: null,
-        }),
-      },
-    });
+    router.push("/pitchStack/myPitch");
   };
 
   // Animations

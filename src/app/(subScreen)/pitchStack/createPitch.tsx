@@ -199,7 +199,7 @@ export default function CreatePitch() {
           <View style={styles.uploadBody}>
             <Feather name="upload-cloud" size={36} color="#292D32" />
             <Text style={styles.uploadTitle}>
-              Please Upload Your Pitch Here. Please Upload Your Pitch Here.
+              Please Upload Your Pitch Here.
             </Text>
             <Text style={styles.uploadHint}>
               You can upload your 30 second video in maximum{"\n"}size of 50mb
@@ -352,7 +352,7 @@ export default function CreatePitch() {
       >
         <View>
           <TextInput
-            placeholder="Pitch Title"
+            placeholder="Display Name"
             value={name}
             onChangeText={setName}
             style={styles.input}
@@ -360,7 +360,7 @@ export default function CreatePitch() {
           />
           <View style={styles.inputBox}>
             <TextInput
-              placeholder="Pitch caption"
+              placeholder="Caption"
               value={desc}
               onChangeText={setDesc}
               style={[styles.desc]}
