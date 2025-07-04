@@ -64,22 +64,25 @@ export default function Login() {
       setError("Please enter your phone number");
       return;
     }
-    router.push("/connect");
-    
-    // login(
-    //   { phone: phoneNumber, email: "" },
-    //   {
-    //     onSuccess: () => {
-    //       router.push("/connect");
-    //     },
-    //     onError: (err: any) => {
-    //       console.log(err);
-    //       setError(
-    //         err?.response?.data?.message || "Login failed. Please try again."
-    //       );
-    //     },
-    //   }
-    // );
+    // router.push("/connect");
+
+    login(
+      { phone: phoneNumber, email: "testuser@email.com" },
+      {
+        onSuccess: (res) => {
+          router.push({
+            pathname: "/otpVerify",
+            params: {phone: phoneNumber, res: JSON.stringify(res)},
+          });
+        },
+        onError: (err: any) => {
+          console.log(err);
+          setError(
+            err?.response?.data?.message || "Login failed. Please try again."
+          );
+        },
+      }
+    );
   };
 
   const handleSignup = () => {

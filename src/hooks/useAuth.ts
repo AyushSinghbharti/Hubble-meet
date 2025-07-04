@@ -9,7 +9,6 @@ export const useSignup = () => {
   return useMutation({
     mutationFn: signup,
     onSuccess: async (data) => {
-      console.log("signup data", data);
       const token = data?.token;
       if (token) {
         await AsyncStorage.setItem('@token', token);
@@ -25,12 +24,11 @@ export const useVerifyOTP = () => {
   return useMutation({
     mutationFn: verifyOTP,
     onSuccess: async (data) => {
-      console.log("Verify OTP data", data);
-      // const token = data?.token;
-      // if (token) {
-      //   await AsyncStorage.setItem('@token', token);
-      //   setToken(token);
-      // }
+      const token = data?.token;
+      if (token) {
+        await AsyncStorage.setItem('@token', token);
+        setToken(token);
+      }
     },
   });
 };
@@ -41,7 +39,7 @@ export const useResendOTP = () => {
   return useMutation({
     mutationFn: resendOTP,
     onSuccess: async (data) => {
-      console.log("Resend OTP data", data);
+      // console.log("Resend OTP data", data);
       // const token = data?.token;
       // if (token) {
       //   await AsyncStorage.setItem('@token', token);
@@ -57,7 +55,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: login,
     onSuccess: async (data) => {
-      console.log("login data", data);
+      // console.log("login data", data);
       const token = data?.token;
       if (token) {
         await AsyncStorage.setItem('@token', token);
@@ -73,7 +71,7 @@ export const useSocialLogin = () => {
   return useMutation({
     mutationFn: socialLogin,
     onSuccess: async (data) => {
-      console.log("login via social data", data);
+      // console.log("login via social data", data);
       const token = data?.token;
       if (token) {
         await AsyncStorage.setItem('@token', token);

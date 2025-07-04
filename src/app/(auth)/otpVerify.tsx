@@ -9,25 +9,67 @@ import {
 } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 import { SimpleLineIcons, Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import colourPalette from "../../theme/darkPaletter";
 import RandomBackgroundImages from "../../components/RandomBGImage";
 import ErrorAlert from "../../components/errorAlert";
+import { useVerifyOTP, useResendOTP } from "../../hooks/useAuth";
 
 const OtpVerificationUI = () => {
+  const params = useLocalSearchParams();
+  // console.log("params", params.res);
+  let { phone, res } = params;
+  if (Array.isArray(phone)) {
+    phone = phone[0];
+  }
+  const data = JSON.parse(res as string);
+
   const router = useRouter();
-  const [error, setError] = useState<String>(
-    "Incorrect OTP. Try again or request a new code"
-  );
+  const [error, setError] = useState<String | null>();
   const [otp, setOTP] = useState<string>();
+  const { mutate: verifyOTP, isPending } = useVerifyOTP();
+  const { mutate: resendOTP } = useResendOTP();
 
   const handleVerify = () => {
     if (!otp || otp?.length < 4) {
       setError("Please Enter valid OTP");
       return;
     }
-    router.replace("/profileSetup");
+
+    verifyOTP(
+      { phone: phone, otp: otp },
+      {
+        onSuccess: (res) => {
+          console.log(res);
+          router.push("/connect");
+        },
+        onError: (err: any) => {
+          console.log(err);
+          setError(
+            err?.response?.data?.message || "Login failed. Please try again"
+          );
+        },
+      }
+    );
   };
+
+  const handleResendOTP = () => {
+    resendOTP(
+      { phone: phone },
+      {
+        onSuccess: (res) => {
+          setError(res.message);
+        },
+        onError: (err: any) => {
+          console.log(err);
+          setError(
+            err?.response?.data?.message || "Login failed. Please try again"
+          );
+        },
+      }
+    );
+  };
+
   return (
     <RandomBackgroundImages style={styles.container}>
       {/* Header */}
@@ -70,7 +112,7 @@ const OtpVerificationUI = () => {
 
         <View style={styles.resendView}>
           <Text
-            onPress={() => alert("OTP has resent on your mail ID")}
+            onPress={handleResendOTP}
             style={[
               styles.resendText,
               {
@@ -81,7 +123,7 @@ const OtpVerificationUI = () => {
             Didn't receive an OTP?
           </Text>
           <TouchableOpacity
-            onPress={() => alert("OTP has resent on your mail ID")}
+            onPress={handleResendOTP}
           >
             <Text
               style={[

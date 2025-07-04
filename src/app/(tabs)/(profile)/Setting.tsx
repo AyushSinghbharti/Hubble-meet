@@ -13,15 +13,18 @@ import NavHeader from "../../../components/NavHeader";
 import SettingsCard from "../../../components/Cards/SettingsCard";
 import { useRouter } from "expo-router";
 import Button from "../../../components/Button";
+import { useAuthStore } from "../../../store/auth";
 
 const Setting = () => {
   const router = useRouter();
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const clearToken = useAuthStore((store) => (store.clearToken));
 
   const handleLogout = () => {
-    // TODO: Add your logout logic here
-    console.log("User logged out");
     setLogoutModalVisible(false);
+
+    clearToken();
+    router.replace("/");
   };
 
   return (

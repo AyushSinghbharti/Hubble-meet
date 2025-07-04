@@ -3,7 +3,6 @@ import api from './axios';
 export const signup = async (data: {
   email: string;
   phone: string;
-  termsAccepted: boolean | Boolean;
 }) => {
   const response = await api.post('/api/auth/signup', data);
   return response.data;
@@ -27,8 +26,9 @@ export const socialLogin = async (data: {
 };
 
 export const verifyOTP = async (data: {
-  userId: string,
-  otp: number
+  phone: string | String,
+  userId?: string,
+  otp: number | string,
 }) => {
   const response = await api.post('/api/auth/verify-otp', data);
   return response.data;
