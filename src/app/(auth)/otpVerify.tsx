@@ -18,11 +18,12 @@ import { useVerifyOTP, useResendOTP } from "../../hooks/useAuth";
 const OtpVerificationUI = () => {
   const params = useLocalSearchParams();
   // console.log("params", params.res);
-  let { phone, res } = params;
+  let { phone, res, type } = params;
   if (Array.isArray(phone)) {
     phone = phone[0];
   }
   const data = JSON.parse(res as string);
+  console.log(type);
 
   const router = useRouter();
   const [error, setError] = useState<String | null>();
@@ -41,7 +42,8 @@ const OtpVerificationUI = () => {
       {
         onSuccess: (res) => {
           console.log(res);
-          router.push("/connect");
+          if (type === "login") router.push("/connect");
+          else router.push("/profileSetup");
         },
         onError: (err: any) => {
           console.log(err);
@@ -122,9 +124,7 @@ const OtpVerificationUI = () => {
           >
             Didn't receive an OTP?
           </Text>
-          <TouchableOpacity
-            onPress={handleResendOTP}
-          >
+          <TouchableOpacity onPress={handleResendOTP}>
             <Text
               style={[
                 styles.resendText,

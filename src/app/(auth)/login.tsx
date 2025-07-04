@@ -64,7 +64,6 @@ export default function Login() {
       setError("Please enter your phone number");
       return;
     }
-    // router.push("/connect");
 
     login(
       { phone: phoneNumber, email: "testuser@email.com" },
@@ -72,7 +71,7 @@ export default function Login() {
         onSuccess: (res) => {
           router.push({
             pathname: "/otpVerify",
-            params: {phone: phoneNumber, res: JSON.stringify(res)},
+            params: {phone: phoneNumber, res: JSON.stringify(res), type: "login"},
           });
         },
         onError: (err: any) => {

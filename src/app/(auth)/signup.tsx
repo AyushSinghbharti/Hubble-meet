@@ -76,7 +76,7 @@ export default function SignUp() {
         onSuccess: (res) => {
           router.push({
             pathname: "/otpVerify",
-            params: {phone: phoneNumber, res},
+            params: {phone: phoneNumber, res: JSON.stringify(res), type: "signup"},
           });
         },
         onError: (err: any) => {
