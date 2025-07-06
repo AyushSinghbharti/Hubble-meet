@@ -38,14 +38,7 @@ export const useResendOTP = () => {
 
   return useMutation({
     mutationFn: resendOTP,
-    onSuccess: async (data) => {
-      // console.log("Resend OTP data", data);
-      // const token = data?.token;
-      // if (token) {
-      //   await AsyncStorage.setItem('@token', token);
-      //   setToken(token);
-      // }
-    },
+    onSuccess: async (data) => {},
   });
 };
 
@@ -79,4 +72,21 @@ export const useSocialLogin = () => {
       }
     },
   });
+};
+
+export const logout = async () => {
+  try {
+    await AsyncStorage.removeItem('@token');
+
+    const setToken = useAuthStore.getState().setToken;
+    const clearToken = useAuthStore.getState().clearToken;
+    setToken(null);
+    clearToken();
+
+    const resetUser = useAuthStore.getState().resetUser;
+    resetUser?.();
+
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
 };

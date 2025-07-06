@@ -50,6 +50,7 @@ export default function StackLayout() {
           tabBarLabelStyle: { paddingTop: 5 },
           tabBarStyle: {
             backgroundColor: "#fff",
+            marginBottom: 7,
             position: "absolute",
             borderTopWidth: 0,
             elevation: 5000,

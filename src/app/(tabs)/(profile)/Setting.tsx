@@ -14,16 +14,16 @@ import SettingsCard from "../../../components/Cards/SettingsCard";
 import { useRouter } from "expo-router";
 import Button from "../../../components/Button";
 import { useAuthStore } from "../../../store/auth";
+import { logout } from '../../../hooks/useAuth';
 
 const Setting = () => {
   const router = useRouter();
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
-  const clearToken = useAuthStore((store) => (store.clearToken));
+  const clearToken = useAuthStore((store) => store.clearToken);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setLogoutModalVisible(false);
-
-    clearToken();
+    await logout();
     router.replace("/");
   };
 
@@ -91,7 +91,10 @@ const Setting = () => {
         animationType="fade"
         onRequestClose={() => setLogoutModalVisible(false)}
       >
-        <Pressable onPress={() => setLogoutModalVisible(false)} style={styles.modalBackground}>
+        <Pressable
+          onPress={() => setLogoutModalVisible(false)}
+          style={styles.modalBackground}
+        >
           <View style={styles.modalBox}>
             {/* Close Icon */}
             <Pressable
@@ -111,7 +114,12 @@ const Setting = () => {
             <Text style={styles.modalTitle}>Do You Want To Log Out?</Text>
 
             {/* Logout Button */}
-            <Button label="Yes, Logout" onPress={handleLogout} width={"100%"} style={{marginTop: 0}} />
+            <Button
+              label="Yes, Logout"
+              onPress={handleLogout}
+              width={"100%"}
+              style={{ marginTop: 0 }}
+            />
           </View>
         </Pressable>
       </Modal>

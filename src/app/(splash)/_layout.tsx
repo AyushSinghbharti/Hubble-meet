@@ -10,7 +10,7 @@ export default function StackLayout() {
 
   useEffect(() => {
     if (isCheckingFirstLaunch) return;
-
+    
     const timeout = setTimeout(() => {
       if (token) {
         router.replace("/connect");
@@ -25,7 +25,7 @@ export default function StackLayout() {
   }, [token, isFirstLaunch, isCheckingFirstLaunch]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }} initialRouteName="second">
+    <Stack screenOptions={{ headerShown: false }} initialRouteName="index">
       <Stack.Screen name="index" options={{ title: "First Screen" }} />
       <Stack.Screen name="second" options={{ title: "Second Screen" }} />
     </Stack>

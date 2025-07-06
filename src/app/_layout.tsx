@@ -71,7 +71,6 @@ function RootLayoutNav() {
     <PaperProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <StatusBar style="dark" />
-        {/* <Stack initialRouteName="(splash)"> */}
         <Stack initialRouteName="(splash)">
           <Stack.Screen name="(splash)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
