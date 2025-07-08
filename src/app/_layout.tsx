@@ -10,6 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthStore } from "../store/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAppState } from "../store/appState";
+import { registerForPushNotificationsAsync, requestNotificationPermission } from "../api/notification";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -45,6 +46,11 @@ function RootLayoutNav() {
   const setToken = useAuthStore((state) => state.setToken);
   const checkFirstLaunch = useAppState((state) => state.checkFirstLaunch);
   const [ready, setReady] = useState(false);
+
+  //Requwst for permission
+  useEffect(() => {
+    requestNotificationPermission();
+  }, [])
 
   // Load token from AsyncStorage once
   useEffect(() => {

@@ -2,42 +2,45 @@
 
 buildscript {
   ext {
-    kotlinVersion = '2.0.21' // ✅ Define Kotlin version here
+    buildToolsVersion = "34.0.0"
+    minSdkVersion = 21
+    compileSdkVersion = 35
+    targetSdkVersion = 35
+    ndkVersion = "25.1.8937393"
+    kotlinVersion = "1.8.0"
   }
   repositories {
     google()
     mavenCentral()
   }
   dependencies {
-    classpath("com.android.tools.build:gradle:7.4.1") // ✅ You must define versions
-    classpath("com.facebook.react:react-native-gradle-plugin")
-    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-     classpath 'com.google.gms:google-services:4.4.2'
+    classpath('com.android.tools.build:gradle')
+    classpath('com.facebook.react:react-native-gradle-plugin')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+    classpath('com.google.gms:google-services:4.4.2')
   }
 }
 
-def reactNativePackage = new ByteArrayOutputStream()
-exec {
-  commandLine = ["node", "--print", "require.resolve('react-native/package.json')"]
-  standardOutput = reactNativePackage
-}
 def reactNativeAndroidDir = new File(
-  reactNativePackage.toString().trim(),
+  providers.exec {
+    workingDir(rootDir)
+    commandLine("node", "--print", "require.resolve('react-native/package.json')")
+  }.standardOutput.asText.get().trim(),
   "../android"
 )
 
 allprojects {
   repositories {
     maven {
-      url(reactNativeAndroidDir) // React Native AARs
+      // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+      url(reactNativeAndroidDir)
     }
+
     google()
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
   }
 }
 
-// ✅ Apply plugins safely at the bottom
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
-

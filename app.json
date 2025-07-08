@@ -26,10 +26,14 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": true,
       "package": "com.hubblemeetmobile",
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.NOTIFICATIONS",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
       ]
     },
     "web": {
@@ -67,8 +71,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "bbb1a933-372e-4549-842d-35236cad0027"
+        "projectId": "038c355f-9f0b-4c05-9b47-955ecc55d665"
       }
-    }
+    },
+    "owner": "ayushsingh"
   }
 }

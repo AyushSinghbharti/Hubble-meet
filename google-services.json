@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "353630945012",
+    "project_id": "hubble-meet-mobile-c05c4",
+    "storage_bucket": "hubble-meet-mobile-c05c4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:353630945012:android:c9e1a0af0533cc77e868a1",
+        "android_client_info": {
+          "package_name": "com.hubblemeetmobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGmMb_X5T_PV6ewVdpQG3rXLE2sKNGWOQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
