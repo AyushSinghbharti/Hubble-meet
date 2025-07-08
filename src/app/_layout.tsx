@@ -10,7 +10,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthStore } from "../store/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAppState } from "../store/appState";
-import { registerForPushNotificationsAsync, requestNotificationPermission } from "../api/notification";
+import {
+  getExpoPushToken,
+  getFirebaseToken,
+  initializeFirebaseMessaging,
+  registerForPushNotificationsAsync,
+  requestNotificationPermission,
+  sendTestNotification,
+} from "../api/notification";
+import { Alert } from "react-native";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -47,10 +55,27 @@ function RootLayoutNav() {
   const checkFirstLaunch = useAppState((state) => state.checkFirstLaunch);
   const [ready, setReady] = useState(false);
 
-  //Requwst for permission
+  // Request for permission
   useEffect(() => {
-    requestNotificationPermission();
-  }, [])
+    const fixNotification = async () => {
+      console.log("requesting");
+      requestNotificationPermission();
+      initializeFirebaseMessaging();
+      const expoToken = await getExpoPushToken();
+      const FCMToken = await getFirebaseToken();
+      console.log("FCMToken", FCMToken);
+      {
+        FCMToken && Alert.alert("FCMToken", FCMToken);
+      }
+      {
+        expoToken && Alert.alert("expoToken", expoToken);
+      }
+    };
+
+    fixNotification();
+  }, []);
+
+  useEffect(() => {}, []);
 
   // Load token from AsyncStorage once
   useEffect(() => {

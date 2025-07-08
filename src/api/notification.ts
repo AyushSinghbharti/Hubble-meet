@@ -1,116 +1,3 @@
-// import { useState, useEffect } from 'react';
-// import { Platform } from 'react-native';
-// import * as Device from 'expo-device';
-// import * as Notifications from 'expo-notifications';
-// import Constants from 'expo-constants';
-
-
-// Notifications.setNotificationHandler({
-//     handleNotification: async () => ({
-//         shouldShowAlert: true,
-//         shouldPlaySound: true,
-//         shouldSetBadge: true,
-//         shouldShowBanner: true,
-//         shouldShowList: true,
-//     }),
-// });
-
-
-
-// export async function sendPushNotification(expoPushToken: string) {
-//     const message = {
-//         to: expoPushToken,
-//         sound: 'default',
-//         title: 'Original Title',
-//         body: 'And here is the body!',
-//         data: { someData: 'goes here' },
-//     };
-
-//     await fetch('https://exp.host/--/api/v2/push/send', {
-//         method: 'POST',
-//         headers: {
-//             Accept: 'application/json',
-//             'Accept-encoding': 'gzip, deflate',
-//             'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(message),
-//     });
-// }
-
-
-// export function handleRegistrationError(errorMessage: string) {
-//     alert(errorMessage);
-//     throw new Error(errorMessage);
-// }
-
-// export async function registerForPushNotificationsAsync() {
-//     if (Platform.OS === 'android') {
-//         Notifications.setNotificationChannelAsync('default', {
-//             name: 'default',
-//             importance: Notifications.AndroidImportance.MAX,
-//             vibrationPattern: [0, 250, 250, 250],
-//             lightColor: '#FF231F7C',
-//         });
-//     }
-
-//     if (Device.isDevice) {
-//         const { status: existingStatus } = await Notifications.getPermissionsAsync();
-//         let finalStatus = existingStatus;
-//         if (existingStatus !== 'granted') {
-//             const { status } = await Notifications.requestPermissionsAsync();
-//             finalStatus = status;
-//         }
-//         if (finalStatus !== 'granted') {
-//             handleRegistrationError('Permission not granted to get push token for push notification!');
-//             return;
-//         }
-//         const projectId =
-//             Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
-//         if (!projectId) {
-//             handleRegistrationError('Project ID not found');
-//         }
-//         try {
-//             const pushTokenString = (
-//                 await Notifications.getExpoPushTokenAsync({
-//                     projectId,
-//                 })
-//             ).data;
-//             console.log(pushTokenString);
-//             return pushTokenString;
-//         } catch (e: unknown) {
-//             handleRegistrationError(`${e}`);
-//         }
-//     } else {
-//         handleRegistrationError('Must use physical device for push notifications');
-//     }
-// }
-
-// export default function notificationSetup() {
-//     const [expoPushToken, setExpoPushToken] = useState('');
-//     const [notification, setNotification] = useState<Notifications.Notification | undefined>(
-//         undefined
-//     );
-
-//     useEffect(() => {
-//         registerForPushNotificationsAsync()
-//             .then(token => setExpoPushToken(token ?? ''))
-//             .catch((error: any) => setExpoPushToken(`${error}`));
-
-//         const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-//             setNotification(notification);
-//         });
-
-//         const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-//             console.log(response);
-//         });
-
-//         return () => {
-//             notificationListener.remove();
-//             responseListener.remove();
-//         };
-//     }, []);
-// }
-
 import messaging from '@react-native-firebase/messaging';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
@@ -181,7 +68,7 @@ export async function getExpoPushToken() {
   try {
     // Try to get project ID from Constants
     let projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
-    
+
     // If project ID is not found in Constants, use a default value
     // You should replace this with your actual Expo project ID
     if (!projectId) {
@@ -227,7 +114,7 @@ export function initializeFirebaseMessaging() {
   const unsubscribe = messaging().onMessage(async (remoteMessage) => {
     console.log('Foreground message received:', remoteMessage);
     logFCMMessage(remoteMessage, 'foreground');
-    
+
     // Convert Firebase message to Expo notification format
     if (remoteMessage.notification) {
       await Notifications.scheduleNotificationAsync({
@@ -286,11 +173,11 @@ export async function sendTestNotification(expoPushToken: string) {
 }
 
 // Add notification listeners
-export function addNotificationListeners(onNotificationReceived: (notification: Notifications.Notification) => void, 
-                                        onNotificationResponse: (response: Notifications.NotificationResponse) => void) {
+export function addNotificationListeners(onNotificationReceived: (notification: Notifications.Notification) => void,
+  onNotificationResponse: (response: Notifications.NotificationResponse) => void) {
   // Listen for notifications received while app is in foreground
   const notificationListener = Notifications.addNotificationReceivedListener(onNotificationReceived);
-  
+
   // Listen for user interactions with notifications
   const responseListener = Notifications.addNotificationResponseReceivedListener(onNotificationResponse);
 
@@ -305,7 +192,7 @@ export function addNotificationListeners(onNotificationReceived: (notification: 
 // Function to log FCM messages for debugging purposes
 export function logFCMMessage(message: any, source: string = 'unknown') {
   console.log(`[FCM ${source}] Message received:`, JSON.stringify(message, null, 2));
-  
+
   // Log specific parts of the message
   if (message.notification) {
     console.log(`[FCM ${source}] Notification:`, {
@@ -313,16 +200,16 @@ export function logFCMMessage(message: any, source: string = 'unknown') {
       body: message.notification.body
     });
   }
-  
+
   if (message.data) {
     console.log(`[FCM ${source}] Data payload:`, message.data);
   }
-  
+
   // Log token information if available
   if (message.from) {
     console.log(`[FCM ${source}] From:`, message.from);
   }
-  
+
   if (message.messageId) {
     console.log(`[FCM ${source}] Message ID:`, message.messageId);
   }
@@ -443,7 +330,7 @@ export function handleDataOnlyMessages(callback: (data: any) => void) {
     if (!remoteMessage.notification && remoteMessage.data) {
       console.log('Data-only message received in foreground:', remoteMessage.data);
       logFCMMessage(remoteMessage, 'data-only');
-      
+
       // Process the data payload
       if (callback) {
         callback(remoteMessage.data);
@@ -506,51 +393,51 @@ sendDataOnlyMessage(
 // Debug function to help troubleshoot notification token issues
 export function debugNotificationSetup() {
   console.log('======= NOTIFICATION SETUP DEBUG INFO =======');
-  
+
   // Check device information
   console.log('Device Information:');
   console.log('- Is Physical Device:', Device.isDevice);
   console.log('- Device Type:', Device.deviceType);
   console.log('- OS:', Platform.OS);
   console.log('- OS Version:', Platform.Version);
-  
+
   // Check Expo Constants
   console.log('\nExpo Configuration:');
   console.log('- Constants.expoConfig:', Constants.expoConfig ? 'Available' : 'Not available');
   if (Constants.expoConfig) {
     console.log('  - app.json name:', Constants.expoConfig.name);
     console.log('  - app.json slug:', Constants.expoConfig.slug);
-    console.log('  - EAS Project ID:', 
+    console.log('  - EAS Project ID:',
       Constants.expoConfig.extra?.eas?.projectId || 'Not configured');
   }
-  
+
   console.log('- Constants.easConfig:', Constants.easConfig ? 'Available' : 'Not available');
   if (Constants.easConfig) {
     console.log('  - EAS Project ID:', Constants.easConfig.projectId || 'Not configured');
   }
-  
+
   // Check Firebase configuration
   console.log('\nFirebase Configuration:');
   const firebaseApps = messaging().app.name ? 'Initialized' : 'Not initialized';
   console.log('- Firebase Apps:', firebaseApps);
-  
+
   console.log('==========================================');
-  
+
   // Return a summary of the issues found
   const issues = [];
-  
+
   if (!Device.isDevice) {
     issues.push('Running on simulator/emulator - push notifications may not work properly');
   }
-  
+
   if (!Constants.expoConfig?.extra?.eas?.projectId && !Constants.easConfig?.projectId) {
     issues.push('Missing Expo project ID - configure in app.json or app.config.js');
   }
-  
+
   if (firebaseApps === 'Not initialized') {
     issues.push('Firebase not properly initialized');
   }
-  
+
   return {
     issues,
     hasIssues: issues.length > 0
