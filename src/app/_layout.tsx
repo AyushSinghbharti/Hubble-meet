@@ -14,9 +14,7 @@ import {
   getExpoPushToken,
   getFirebaseToken,
   initializeFirebaseMessaging,
-  registerForPushNotificationsAsync,
   requestNotificationPermission,
-  sendTestNotification,
 } from "../api/notification";
 import { Alert } from "react-native";
 
@@ -58,7 +56,6 @@ function RootLayoutNav() {
   // Request for permission
   useEffect(() => {
     const fixNotification = async () => {
-      console.log("requesting");
       requestNotificationPermission();
       initializeFirebaseMessaging();
       const expoToken = await getExpoPushToken();

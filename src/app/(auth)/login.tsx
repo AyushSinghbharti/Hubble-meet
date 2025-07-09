@@ -19,6 +19,10 @@ import ManualBlur from "../../components/BlurComp";
 import ErrorAlert from "../../components/errorAlert";
 import RandomBackgroundImages from "../../components/RandomBGImage";
 import { useLogin } from "../../hooks/useAuth";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser"
+
+WebBrowser.maybeCompleteAuthSession();
 
 type Country = {
   name: string;
@@ -26,6 +30,7 @@ type Country = {
   code: string;
   dial_code: string;
 };
+
 
 const FLAG_ICON = "https://flagcdn.com/w40/in.png";
 const GOOGLE_ICON = "https://img.icons8.com/color/512/google-logo.png";
@@ -45,6 +50,11 @@ const IconButton = ({
 );
 
 export default function Login() {
+  const [userInfo, setUserInfo] = useState();
+  const [request, response, promtAsync] = Google.useAuthRequest({
+    androidClientId: "",
+  });
+
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const router = useRouter();
   const [selectedFlag, setSelectedFlag] = useState<Country>({
@@ -71,7 +81,11 @@ export default function Login() {
         onSuccess: (res) => {
           router.push({
             pathname: "/otpVerify",
-            params: {phone: phoneNumber, res: JSON.stringify(res), type: "login"},
+            params: {
+              phone: phoneNumber,
+              res: JSON.stringify(res),
+              type: "login",
+            },
           });
         },
         onError: (err: any) => {
@@ -186,7 +200,9 @@ export default function Login() {
       </View>
 
       <View style={styles.socialContainer}>
-        <IconButton image={GOOGLE_ICON} />
+        <TouchableOpacity onPress={() => promtAsync()}>
+          <IconButton image={GOOGLE_ICON} />
+        </TouchableOpacity>
         <IconButton>
           <FontAwesome name="apple" size={24} color="black" />
         </IconButton>
