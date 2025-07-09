@@ -18,9 +18,8 @@ import SelectCountryModal from "../../components/selectCountryModal";
 import ManualBlur from "../../components/BlurComp";
 import ErrorAlert from "../../components/errorAlert";
 import RandomBackgroundImages from "../../components/RandomBGImage";
-import { useLogin } from "../../hooks/useAuth";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import { useSocialAuth } from "@/src/hooks/useSocialAuth"
+import { useLogin, useSocialLogin } from "../../hooks/useAuth";
+import { useSocialAuth } from "@/src/hooks/useSocialAuth";
 
 type Country = {
   name: string;
@@ -63,12 +62,35 @@ export default function Login() {
   const flagBoxRef = useRef<View>(null);
   const [error, setError] = useState<string>("");
   const { mutate: login, isPending } = useLogin();
+  const { mutate: socialLogin } = useSocialLogin();
 
   const { signInWithGoogle, loading } = useSocialAuth();
 
-  const onGoogleButtonPress = async () => {
+  const handleGoogleButtonPress = async () => {
     const payload = await signInWithGoogle();
     console.log("payload", payload);
+
+    socialLogin(
+      {
+        provider: "google",
+        providerId: payload?.idToken ?? "",
+        email: payload?.email ?? "",
+      },
+      {
+        onSuccess: (res) => {
+          console.log(res);
+          router.push({
+            pathname: "/profileSetup",
+          });
+        },
+        onError: (err: any) => {
+          console.log(err);
+          setError(
+            err?.response?.data?.message || "Login failed. Please try again"
+          );
+        },
+      }
+    );
   };
 
   const handleLogin = () => {
@@ -202,7 +224,7 @@ export default function Login() {
       </View>
 
       <View style={styles.socialContainer}>
-        <IconButton image={GOOGLE_ICON} onPress={onGoogleButtonPress} />
+        <IconButton image={GOOGLE_ICON} onPress={handleGoogleButtonPress} />
         <IconButton>
           <FontAwesome name="apple" size={24} color="black" />
         </IconButton>

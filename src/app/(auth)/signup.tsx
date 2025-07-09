@@ -20,7 +20,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { loginStyles as styles } from "./Styles/Styles";
 import ManualBlur from "../../components/BlurComp";
 import RandomBackgroundImages from "../../components/RandomBGImage";
-import { useSignup } from "../../hooks/useAuth";
+import { useSignup, useSocialLogin } from "../../hooks/useAuth";
+import { useSocialAuth } from "@/src/hooks/useSocialAuth";
 
 type Country = {
   name: string;
@@ -52,6 +53,7 @@ export default function SignUp() {
   const [emailError, setEmailError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
   const { mutate: signup, isPending } = useSignup();
+  const { mutate: socialLogin } = useSocialLogin();
 
   const handleSignUp = () => {
     if (!termAccept) {
@@ -76,7 +78,11 @@ export default function SignUp() {
         onSuccess: (res) => {
           router.push({
             pathname: "/otpVerify",
-            params: {phone: phoneNumber, res: JSON.stringify(res), type: "signup"},
+            params: {
+              phone: phoneNumber,
+              res: JSON.stringify(res),
+              type: "signup",
+            },
           });
         },
         onError: (err: any) => {
@@ -104,6 +110,33 @@ export default function SignUp() {
     } else {
       toogleTerm(!termAccept);
     }
+  };
+
+  const { signInWithGoogle, loading } = useSocialAuth();
+  const handleGoogleButtonPress = async () => {
+    const payload = await signInWithGoogle();
+    console.log("payload", payload);
+
+    socialLogin(
+      {
+        provider: "google",
+        providerId: payload?.idToken ?? "",
+        email: payload?.email ?? "",
+      },
+      {
+        onSuccess: (res) => {
+          router.push({
+            pathname: "/profileSetup",
+          });
+        },
+        onError: (err: any) => {
+          console.log(err);
+          setError(
+            err?.response?.data?.message || "Login failed. Please try again"
+          );
+        },
+      }
+    );
   };
 
   return (
@@ -278,7 +311,10 @@ export default function SignUp() {
       </View>
 
       <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={handleGoogleButtonPress}
+        >
           <Image source={{ uri: GOOGLE_ICON }} style={styles.icon} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconBtn}>
