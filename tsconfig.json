@@ -1,7 +1,6 @@
 {
   "extends": [
-    "expo/tsconfig.base",
-    "@tsconfig/react-native/tsconfig.json"
+    "expo/tsconfig.base"
   ],
   "compilerOptions": {
     "strict": true,
