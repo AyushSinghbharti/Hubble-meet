@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Create an Axios instance
 const api = axios.create({
-  baseURL: 'https://d2aks9kyhua4na.cloudfront.net/',
+  baseURL: process.env.EXPO_PUBLIC_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

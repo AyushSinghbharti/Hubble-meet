@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import colourPalette from "../../theme/darkPaletter";
 import { loginStyles as styles } from "./Styles/Styles";
 import { useRef, useState } from "react";
@@ -19,10 +19,8 @@ import ManualBlur from "../../components/BlurComp";
 import ErrorAlert from "../../components/errorAlert";
 import RandomBackgroundImages from "../../components/RandomBGImage";
 import { useLogin } from "../../hooks/useAuth";
-import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser"
-
-WebBrowser.maybeCompleteAuthSession();
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { useSocialAuth } from "@/src/hooks/useSocialAuth"
 
 type Country = {
   name: string;
@@ -30,7 +28,6 @@ type Country = {
   code: string;
   dial_code: string;
 };
-
 
 const FLAG_ICON = "https://flagcdn.com/w40/in.png";
 const GOOGLE_ICON = "https://img.icons8.com/color/512/google-logo.png";
@@ -40,21 +37,19 @@ const FACEBOOK_ICON =
 const IconButton = ({
   children,
   image,
+  onPress,
 }: {
   children?: React.ReactNode;
   image?: string;
+  onPress?: () => void;
 }) => (
-  <TouchableOpacity style={styles.iconBtn}>
+  <TouchableOpacity style={styles.iconBtn} onPress={onPress}>
     {image ? <Image source={{ uri: image }} style={styles.icon} /> : children}
   </TouchableOpacity>
 );
 
 export default function Login() {
   const [userInfo, setUserInfo] = useState();
-  const [request, response, promtAsync] = Google.useAuthRequest({
-    androidClientId: "",
-  });
-
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const router = useRouter();
   const [selectedFlag, setSelectedFlag] = useState<Country>({
@@ -68,6 +63,13 @@ export default function Login() {
   const flagBoxRef = useRef<View>(null);
   const [error, setError] = useState<string>("");
   const { mutate: login, isPending } = useLogin();
+
+  const { signInWithGoogle, loading } = useSocialAuth();
+
+  const onGoogleButtonPress = async () => {
+    const payload = await signInWithGoogle();
+    console.log("payload", payload);
+  };
 
   const handleLogin = () => {
     if (!phoneNumber) {
@@ -200,9 +202,7 @@ export default function Login() {
       </View>
 
       <View style={styles.socialContainer}>
-        <TouchableOpacity onPress={() => promtAsync()}>
-          <IconButton image={GOOGLE_ICON} />
-        </TouchableOpacity>
+        <IconButton image={GOOGLE_ICON} onPress={onGoogleButtonPress} />
         <IconButton>
           <FontAwesome name="apple" size={24} color="black" />
         </IconButton>

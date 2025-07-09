@@ -17,6 +17,15 @@ import {
   requestNotificationPermission,
 } from "../api/notification";
 import { Alert } from "react-native";
+import * as WebBrowser from "expo-web-browser"
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+
+//Global runners
+WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_WEB_CLIENTID,
+  scopes: ["profile", "email"],
+});
 
 export { ErrorBoundary } from "expo-router";
 
@@ -53,20 +62,13 @@ function RootLayoutNav() {
   const checkFirstLaunch = useAppState((state) => state.checkFirstLaunch);
   const [ready, setReady] = useState(false);
 
-  // Request for permission
+  // Notification Logic
   useEffect(() => {
     const fixNotification = async () => {
       requestNotificationPermission();
       initializeFirebaseMessaging();
-      const expoToken = await getExpoPushToken();
       const FCMToken = await getFirebaseToken();
       console.log("FCMToken", FCMToken);
-      {
-        FCMToken && Alert.alert("FCMToken", FCMToken);
-      }
-      {
-        expoToken && Alert.alert("expoToken", expoToken);
-      }
     };
 
     fixNotification();
