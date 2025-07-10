@@ -1,7 +1,7 @@
 This is not an important file, It created it to share bugs on screens that needed to be resolved later or functionalites that later to be implented or skipped
 
 ChatScreen Bugs
-- Swipe to reply option on chatScreen (To be implemented) on "src\components\chatScreenComps\chatBody.tsx"
+- Swipe to reply option on chatScreen (To be implemented) on "src\components\chatScreenComps\chatBody.tsx" --- DONE
 - Add screen that popup after select photos and document to send --- DONE
 
 PitchScreen bugs

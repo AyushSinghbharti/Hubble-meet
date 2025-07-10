@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Animated,
   Easing,
+  ScrollView,
+  FlatList,
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -42,10 +44,25 @@ const dummyUser = {
     "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=60",
 };
 
+const pitches = [
+  { pitch, dummyUser },
+  { pitch, dummyUser },
+  { pitch, dummyUser },
+];
+
+import { Dimensions } from "react-native";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const HEADER_HEIGHT = 70;
+const TAB_BAR_HEIGHT = 55;
+const ITEM_HEIGHT = SCREEN_HEIGHT - HEADER_HEIGHT - TAB_BAR_HEIGHT;
+
 export default function PitchScreen() {
   const router = useRouter();
   const [flipped, setFlipped] = useState(false);
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const flatListRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleFlip = () => {
     Animated.timing(rotateAnim, {
@@ -83,22 +100,8 @@ export default function PitchScreen() {
     extrapolate: "clamp",
   });
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={navigateToMyPitch}>
-          <View style={styles.iconContainer}>
-            <Image
-              source={require("../../../../assets/icons/pitch2.png")}
-              style={styles.pitchIcon}
-            />
-            <Text style={styles.headerText}>My Pitch</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {/* Flip Card Area */}
+  const RenderCard = ({ pitch, dummyUser, isActive }) => {
+    return (
       <View style={styles.cardArea}>
         {/* Front Card */}
         <Animated.View
@@ -111,7 +114,12 @@ export default function PitchScreen() {
             },
           ]}
         >
-          <MainCardWrapper pitch={pitch} onPress={handleFlip} />
+          <MainCardWrapper
+            pitch={pitch}
+            onPress={handleFlip}
+            isActive={isActive}
+            isFlipped={flipped}
+          />
         </Animated.View>
 
         {/* Back Card */}
@@ -129,6 +137,55 @@ export default function PitchScreen() {
           <FlipCardWrapper item={dummyUser} onPress={handleFlip} />
         </Animated.View>
       </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={navigateToMyPitch}>
+          <View style={styles.iconContainer}>
+            <Image
+              source={require("../../../../assets/icons/pitch2.png")}
+              style={styles.pitchIcon}
+            />
+            <Text style={styles.headerText}>My Pitch</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Flip Card Area */}
+      <FlatList
+        ref={flatListRef}
+        data={pitches}
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={({ item, index }) => (
+          <RenderCard
+            pitch={item.pitch}
+            dummyUser={item.dummyUser}
+            isActive={index === currentIndex}
+          />
+        )}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        decelerationRate="fast"
+        onViewableItemsChanged={
+          useRef(({ viewableItems }) => {
+            if (viewableItems.length > 0) {
+              setCurrentIndex(viewableItems[0].index);
+            }
+          }).current
+        }
+        viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
+        style={{ height: ITEM_HEIGHT }}
+        snapToInterval={ITEM_HEIGHT}
+        getItemLayout={(_, index) => ({
+          length: ITEM_HEIGHT,
+          offset: ITEM_HEIGHT * index,
+          index,
+        })}
+      />
     </View>
   );
 }
@@ -139,7 +196,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 18,
     paddingTop: 32,
-    paddingBottom: 90,
+    paddingBottom: 100,
   },
   headerContainer: {
     position: "absolute",
@@ -164,7 +221,8 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
   cardArea: {
-    flex: 1,
+    height: ITEM_HEIGHT,
+    width: "100%",
   },
   flipCard: {
     flex: 1,

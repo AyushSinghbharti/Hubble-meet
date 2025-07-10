@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,36 +10,33 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
-import { useFocusEffect } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
 
 // Dummy video
 const VideoUri =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
-const MainCardWrapper = ({ pitch, onPress }) => {
+const MainCardWrapper = ({ pitch, onPress, isActive, isFlipped }) => {
   const [options, setOptions] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isLiked, setLiked] = useState(false);
+  const isFocused = useIsFocused();
 
   const player = useVideoPlayer(VideoUri, (p) => {
     p.loop = true;
-    p.play();
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      player?.play?.();
-      setIsPaused(false);
+  useEffect(() => {
+    if (!player) return;
 
-      return () => {
-        try {
-          player?.pause?.();
-        } catch (err) {
-          console.warn("Video cleanup error:", err);
-        }
-      };
-    }, [player])
-  );
+    if (isActive && !isFlipped && isFocused) {
+      player.play();
+      setIsPaused(false);
+    } else {
+      player.pause();
+      setIsPaused(true);
+    }
+  }, [isActive, isFlipped, isFocused, player]);
 
   const togglePlayPause = () => {
     if (!player) return;
@@ -54,13 +51,15 @@ const MainCardWrapper = ({ pitch, onPress }) => {
   return (
     <View style={styles.cardWrapper}>
       {/* Video layer */}
-      <VideoView
-        style={StyleSheet.absoluteFillObject}
-        player={player}
-        nativeControls={false}
-        startsPictureInPictureAutomatically={false}
-        allowsPictureInPicture={false}
-      />
+      {isActive && !isFlipped && (
+        <VideoView
+          style={StyleSheet.absoluteFillObject}
+          player={player}
+          nativeControls={false}
+          startsPictureInPictureAutomatically={false}
+          allowsPictureInPicture={false}
+        />
+      )}
 
       {/* Overlay gradient and global tap handler */}
       <Pressable
@@ -212,7 +211,7 @@ const styles = StyleSheet.create({
     borderColor: "#F1F0F0",
     backgroundColor: "#FFFFFF15",
     flexDirection: "row",
-    gap: 4
+    gap: 4,
   },
   pitchTitleText: {
     fontFamily: "InterBold",
@@ -271,4 +270,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MainCardWrapper;
+export default React.memo(MainCardWrapper);

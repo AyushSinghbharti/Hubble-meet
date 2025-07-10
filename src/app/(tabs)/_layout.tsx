@@ -27,7 +27,7 @@ const icons = {
 
 const getIcon = (iconKey: keyof typeof icons, focused: boolean) =>
   focused && iconKey !== "connect" ? (
-    <View style={{ borderTopWidth: 1.5, borderColor: "red", paddingTop: 5 }}>
+    <View style={{ borderTopWidth: 1.5, borderColor: "red", paddingTop: 5, position: "absolute", top: -4.5 }}>
       <Image source={icons[`${iconKey}Fill`]} style={[styles.icon]} />
     </View>
   ) : (
