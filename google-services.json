@@ -12,7 +12,28 @@
           "package_name": "com.hubblemeetmobile"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "353630945012-5f7atpu05fldufij84f1v6ijtmjiivj1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hubblemeetmobile",
+            "certificate_hash": "fa6b90df76eea0c3d6110900238d25780144263e"
+          }
+        },
+        {
+          "client_id": "353630945012-cgddafhj70evj9lg62547i58v4b006fl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hubblemeetmobile",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "353630945012-hgvl5a8jeic8qlfnmhb0g370spmjif4b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCGmMb_X5T_PV6ewVdpQG3rXLE2sKNGWOQ"
@@ -20,7 +41,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "353630945012-hgvl5a8jeic8qlfnmhb0g370spmjif4b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -251,7 +251,11 @@ export default function ChatDetailsScreen() {
             showMenu={showMenu}
           />
           {messages.length > 0 ? (
-            <ChatBody messages={messages} onReply={handleReply} />
+            <ChatBody
+              messages={messages}
+              onReply={handleReply}
+              onCancelReply={onCancelReply}
+            />
           ) : (
             <View
               style={{

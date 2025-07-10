@@ -9,7 +9,13 @@ import {
   Image,
   Pressable,
 } from "react-native";
+import { Animated } from "react-native";
 import MessageAction from "./messageAction";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Swipeable, {
+  SwipeableMethods,
+  SwipeableRef,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
 
 export interface ChatMsg {
   id: string;
@@ -40,6 +46,7 @@ interface ChatBodyProps {
   onReply?: (message: ChatMsg | null) => void;
   onDelete?: (messageId: string) => void;
   onStar?: (messageId: string) => void;
+  onCancelReply?: () => void;
 }
 
 export default function ChatBody({
@@ -47,6 +54,7 @@ export default function ChatBody({
   onReply,
   onDelete,
   onStar,
+  onCancelReply,
 }: ChatBodyProps) {
   const [messageProps, setMessageprops] = useState({ x: 0, y: 0, h: 0, w: 0 });
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
@@ -63,40 +71,93 @@ export default function ChatBody({
     setSelectedMessageId(null);
   };
 
+  const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
+
   const renderItem = ({ item }: { item: ChatMsg }) => {
     const me = item.isMe;
     const isSelected = selectedMessageId === item.id;
+    const swipeableRef = useRef<SwipeableRef | null>(null);
+    
+    const handleSwipeOpen = () => {
+      if (
+        currentlyOpenSwipeable.current &&
+        currentlyOpenSwipeable.current !== swipeableRef.current
+      ) {
+        currentlyOpenSwipeable.current.close?.();
+      }
+      
+      currentlyOpenSwipeable.current = swipeableRef.current;
+      if (onReply) onReply(item);
+      setTimeout(() => {
+        swipeableRef.current?.close?.();
+      }, 300);
+    };
+
+    const renderRightActions = (
+      progress: Animated.AnimatedInterpolation<number>,
+      dragX: Animated.AnimatedInterpolation<number>
+    ) => {
+      return (
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 16,
+          }}
+        >
+          <Text style={{ color: "#007AFF", fontWeight: "bold", fontSize: 24 }}>
+            ↩
+          </Text>
+        </View>
+      );
+    };
 
     return (
-      <Pressable
-        style={[styles.row, me && styles.rowEnd, isSelected && styles.onMenu]}
-        onPress={(event) => {
-          event.target.measure((fx, fy, width, height, px, py) => {
-            setMessageprops({ x: px, y: py, w: width, h: height });
-            setSelectedMessageId((prev) => (prev === item.id ? null : item.id));
-            setSelectedMessage((prev) => (prev === item ? null : item));
-          });
-        }}
+      <Swipeable
+        ref={swipeableRef}
+        renderRightActions={me ? renderRightActions : null}
+        renderLeftActions={!me ? renderRightActions : null}
+        overshootRight={false}
+        friction={5}
+        enableTrackpadTwoFingerGesture={true}
+        onSwipeableOpen={handleSwipeOpen}
+        leftThreshold={0}
+        rightThreshold={0}
       >
-        <View style={[styles.bubble, me ? styles.bubbleMe : styles.bubbleThem]}>
-          <Text style={styles.messageText}>{item.text}</Text>
-          <View style={styles.timeRow}>
-            <Text style={styles.timeText}>
-              {item.timestamp.toLocaleTimeString("en-GB", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </Text>
+        <Pressable
+          style={[styles.row, me && styles.rowEnd, isSelected && styles.onMenu]}
+          onPress={(event) => {
+            event.target.measure((fx, fy, width, height, px, py) => {
+              setMessageprops({ x: px, y: py, w: width, h: height });
+              setSelectedMessageId((prev) =>
+                prev === item.id ? null : item.id
+              );
+              setSelectedMessage((prev) => (prev === item ? null : item));
+            });
+          }}
+        >
+          <View
+            style={[styles.bubble, me ? styles.bubbleMe : styles.bubbleThem]}
+          >
+            <Text style={styles.messageText}>{item.text}</Text>
+            <View style={styles.timeRow}>
+              <Text style={styles.timeText}>
+                {item.timestamp.toLocaleTimeString("en-GB", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
 
-            {me && (
-              <Image
-                source={require("../../../assets/icons/tick.png")}
-                style={{ height: 16, width: 16, marginLeft: 2 }}
-              />
-            )}
+              {me && (
+                <Image
+                  source={require("../../../assets/icons/tick.png")}
+                  style={{ height: 16, width: 16, marginLeft: 2 }}
+                />
+              )}
+            </View>
           </View>
-        </View>
-      </Pressable>
+        </Pressable>
+      </Swipeable>
     );
   };
 
@@ -107,36 +168,38 @@ export default function ChatBody({
   const isMenuVisible = selectedMessageId !== null;
 
   return (
-    <ScrollView
-      style={styles.container}
-      ref={scrollViewRef}
-      contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
-    >
-      <MessageAction
-        onAction={onAction}
-        isVisible={isMenuVisible}
-        topOffset={
-          messageProps.y > 550
-            ? messageProps.y - messageProps.y / 2.5
-            : messageProps.y > 515
-            ? messageProps.y - messageProps.y / 2
-            : messageProps.y - 50
-        }
-        leftOffset={messageProps.x > 90 ? 265 : 25}
-      />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ScrollView
+        style={styles.container}
+        ref={scrollViewRef}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
+      >
+        <MessageAction
+          onAction={onAction}
+          isVisible={isMenuVisible}
+          topOffset={
+            messageProps.y > 550
+              ? messageProps.y - messageProps.y / 2.5
+              : messageProps.y > 515
+              ? messageProps.y - messageProps.y / 2
+              : messageProps.y - 50
+          }
+          leftOffset={messageProps.x > 90 ? 265 : 25}
+        />
 
-      <View style={styles.dateChip}>
-        <Text style={styles.dateChipText}>
-          {dateLabel(messages[0].timestamp)}
-        </Text>
-      </View>
-
-      {[...messages].map((item) => (
-        <View key={item.id} style={styles.listContent}>
-          {renderItem({ item })}
+        <View style={styles.dateChip}>
+          <Text style={styles.dateChipText}>
+            {dateLabel(messages[0].timestamp)}
+          </Text>
         </View>
-      ))}
-    </ScrollView>
+
+        {[...messages].map((item) => (
+          <View key={item.id} style={styles.listContent}>
+            {renderItem({ item })}
+          </View>
+        ))}
+      </ScrollView>
+    </GestureHandlerRootView>
   );
 }
 
