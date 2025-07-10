@@ -5,13 +5,13 @@ ChatScreen Bugs
 - Add screen that popup after select photos and document to send --- DONE
 
 PitchScreen bugs
- - MainCardWrapper showing on press on wrapper after unmounting of video as Video cleanup error
+ - MainCardWrapper showing on press on wrapper after unmounting of video as Video cleanup error --- DONE
  - My pitch Screen to be add into route later --- DONE
 
  OverAll Updates To be done
 - Icons in menu old --- DONE
-- Add to hubble circle – keep animation for couple more secs
-- Similarly when connection is made
+- Add to hubble circle – keep animation for couple more secs --- DONE
+- Similarly when connection is made --- DONE
 - Display name on pitch : business name, individual – auto populated --- DONE
 - First letter caps of all words – check everywhere 
 

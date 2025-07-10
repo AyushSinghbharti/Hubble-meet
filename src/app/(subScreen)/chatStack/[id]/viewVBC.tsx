@@ -51,9 +51,6 @@ export default function ViewVBC() {
     if (option === "add") {
       setCloseFriend(!isCloseFriend);
       setVisible(!isVisible);
-      setTimeout(() => {
-        setVisible(false);
-      }, 1500);
     } else if (option === "block") {
       setBlockPopUp(!blockPopUp);
     } else if (option === "chat") {

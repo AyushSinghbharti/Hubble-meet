@@ -19,7 +19,7 @@ const CustomModal: React.FC<CustomModalProps> = ({ visible, onClose, name }) => 
         if (visible) {
             const timer = setTimeout(() => {
                 onClose();
-            }, 2000); // Auto-close after 2 seconds
+            }, 2600); // Auto-close after 2 seconds
 
             return () => clearTimeout(timer);
         }
@@ -32,7 +32,7 @@ const CustomModal: React.FC<CustomModalProps> = ({ visible, onClose, name }) => 
                     <TouchableWithoutFeedback>
                         <View style={styles.modalContainer}>
                             <Image
-                                source={require("../../../assets/gif/Hubble Meet icon logo.gif")}
+                                source={require("../../../assets/gif/added.gif")}
                                 style={styles.gif}
                             />
                             <Text style={styles.name}>{name}</Text>

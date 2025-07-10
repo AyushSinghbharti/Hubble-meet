@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,16 @@ type Props = {
 };
 
 const PopUpNotification = ({ visible, onClose, name, closeFriend }: Props) => {
+  useEffect(() => {
+    if (visible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 2600);
+
+      return () => clearTimeout(timer);
+    }
+  }, [visible]);
+
   return (
     <Modal
       animationType="fade"
@@ -33,7 +43,7 @@ const PopUpNotification = ({ visible, onClose, name, closeFriend }: Props) => {
             </View>
           ) : (
             <Image
-              source={require("../../../assets/icons/added.gif")}
+              source={require("../../../assets/gif/added.gif")}
               style={{ height: 52, width: 60 }}
             />
           )}
