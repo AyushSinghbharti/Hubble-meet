@@ -24,7 +24,9 @@ import colourPalette from "../../theme/darkPaletter";
 import RandomBackgroundImages, {
   RandomBGImagesRef,
 } from "../../components/RandomBGImage";
-import ManualBlur from "../../components/BlurComp";
+import { useAuthStore } from "@/src/store/auth";
+import { useCreateUserProfile } from "@/src/hooks/useProfile";
+import { useCreateVbcCard } from "@/src/hooks/useVbc";
 
 const ChipInput = ({
   label,
@@ -36,7 +38,7 @@ const ChipInput = ({
 }) => {
   return (
     <KeyboardAvoidingView
-      // behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.chipContainer}
     >
       <Text style={styles.label}>
@@ -57,41 +59,53 @@ const ChipInput = ({
 export default function ProfileSetup() {
   const router = useRouter();
 
-  const [initScreen, setInitScreen] = useState(true);
+  //Fetch Local info
+  const user = useAuthStore((state) => state.user);
+  const userId = useAuthStore((state) => state.userId);
+
   const [finalScreen, setFinalScreen] = useState(false);
   const [step, setStep] = useState(0);
-  const [image, setImage] = useState(null);
-
-  const [name, setName] = useState("");
+  const [name, setName] = useState<string | null>(null);
   const [dob, setDOB] = useState();
-  const [gender, setGender] = useState("");
-  const [bio, setBio] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [formatedDob, setFromatedDOB] = useState("");
+  const [gender, setGender] = useState(null);
+  const [bio, setBio] = useState<string | null>(null);
+  const [email, setEmail] = useState(user?.email);
+  const [phoneNumber, setPhoneNumber] = useState(user?.phone);
   const [jobTitle, setJobTitle] = useState("");
   const [address, setAddress] = useState("");
   const [shareVBC, setShareVBC] = useState(false);
-  const [worklist, setWorklist] = useState([]); // companies / workplaces
+  const [worklist, setWorklist] = useState([]);
   const [spaces, setSpaces] = useState(["Fintech", "Fashion", "AI"]);
-  const [connectPeople, setConnectPeople] = useState(["fintech", "fashion"]); // kind of people
-  const [radarCities, setRadarCities] = useState(["Banglore", "Pune"]); // interested cities
+  const [connectPeople, setConnectPeople] = useState(["fintech", "fashion"]);
+  const [image, setImage] = useState(null);
+  const [radarCities, setRadarCities] = useState(["Banglore", "Pune"]);
   const [rolesLookingFor, setRolesLookingFor] = useState([
     "Marketing",
     "Mentor",
-  ]); //Roles
+  ]);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const backgroundRef = useRef<RandomBGImagesRef>(null);
 
   const hideDatePicker = () => setDatePickerVisibility(false);
 
-  const handleConfirm = (date: any) => {
-    const formattedDate = `${date.getDate().toString().padStart(2, "0")}/${(
-      date.getMonth() + 1
-    )
+  const handleConfirm = (date: Date) => {
+    // Normalize to UTC midnight (preserving calendar date)
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    const utcMidnightDate = new Date(Date.UTC(year, month, day));
+
+    // Save actual UTC date object (for backend)
+    setDOB(utcMidnightDate);
+
+    // Format for display in DD/MM/YYYY
+    const formattedDate = `${day.toString().padStart(2, "0")}/${(month + 1)
       .toString()
-      .padStart(2, "0")}/${date.getFullYear()}`;
-    setDOB(formattedDate);
+      .padStart(2, "0")}/${year}`;
+    setFromatedDOB(formattedDate);
+
     hideDatePicker();
   };
 
@@ -131,7 +145,55 @@ export default function ProfileSetup() {
     setStep(4);
     setFinalScreen(!finalScreen);
   };
-  const submit = () => router.push("/connect");
+
+  const { mutateAsync: createProfile, isPending: pendingCreateProfile } =
+    useCreateUserProfile();
+  const { mutateAsync: createVbc, isPending: pendingCreateVbc } =
+    useCreateVbcCard();
+
+  const submit = async () => {
+    if (!user || !userId) return;
+    if (!name || !dob || !gender || !bio || !email || !phoneNumber) return;
+
+    try {
+      const profileData = {
+        userId: userId,
+        fullName: name,
+        dateOfBirth: dob.toISOString(),
+        gender: gender,
+        bio: bio,
+        email: email,
+        phone: phoneNumber,
+        currentCompany: worklist.length > 0 ? worklist[0] : undefined,
+        jobTitle: jobTitle,
+        city: address,
+        currentIndustry: spaces,
+        industriesOfInterest: connectPeople,
+        citiesOnRadar: radarCities,
+        connectionPreferences: rolesLookingFor,
+        profilePictureUrl: image ?? undefined,
+        allowVbcSharing: shareVBC,
+      };
+
+      const vbcData = {
+        user_id: userId,
+        display_name: name,
+        job_title: jobTitle,
+        company_name: worklist.length > 0 ? worklist[0] : "",
+        location: address,
+      };
+
+      const [profileRes, vbcRes] = await Promise.all([
+        createProfile(profileData),
+        createVbc(vbcData),
+      ]);
+
+      console.log("Both created successfully:", { profileRes, vbcRes });
+      router.push("/connect");
+    } catch (error) {
+      console.error("Error during creation:", error);
+    }
+  };
 
   const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say"];
 
@@ -160,8 +222,7 @@ export default function ProfileSetup() {
             }}
             placeholder="DD/MM/YYYY"
             placeholderTextColor="#aaa"
-            value={dob}
-            onChangeText={setDOB}
+            value={formatedDob}
           />
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
@@ -226,7 +287,7 @@ export default function ProfileSetup() {
           <Text
             style={{ alignSelf: "flex-end", marginBottom: 8, color: "#aaa" }}
           >
-            {bio.length}/160
+            {bio?.length ? bio.length : 0}/160
           </Text>
         </View>
 
@@ -249,7 +310,6 @@ export default function ProfileSetup() {
           placeholderTextColor="#aaa"
           value={phoneNumber}
           keyboardType="phone-pad"
-          maxLength={10}
           onChangeText={setPhoneNumber}
         />
         <Text style={styles.otpText}>Verify with OTP</Text>
@@ -414,13 +474,11 @@ export default function ProfileSetup() {
   // ----------------------------------------------------------------------------
   // splash first‑time screen ---------------------------------------------------
   // ----------------------------------------------------------------------------
-  // if (step === 0 && initScreen) {
-  //   return <InitialScreen onPress={() => setInitScreen(false)} />;
-  // }
   if (step === 4 && finalScreen) {
     setTimeout(() => {
-      router.replace("/connect");
+      // router.replace("/connect");
       setFinalScreen(!finalScreen);
+      submit();
     }, 3000);
 
     return <FinalSetupPage />;

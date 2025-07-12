@@ -33,6 +33,7 @@ import ProfilePromptModal from "../../../components/Modal/ProfilePromptModal";
 import ProfilePrompt from "../../../components/Modal/ProfilePromptModal";
 import ShareModal from "../../../components/Share/ShareBottomSheet";
 import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
+import { usePitchByUserId } from "@/src/hooks/usePitch";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -62,6 +63,16 @@ const ProfileCard = ({
   const [thumbImageAlertVisible, setThumbImageAlertVisible] = useState(false);
   const [flippedProfiles, setFlippedProfiles] = useState({});
   const [showShare, setShowShare] = useState(false);
+
+  //Backend Testing
+
+
+
+
+
+
+
+
 
   const undoTimeoutRef = useRef(null);
 

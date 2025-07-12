@@ -10,7 +10,7 @@ export default function StackLayout() {
 
   useEffect(() => {
     if (isCheckingFirstLaunch) return;
-    
+
     const timeout = setTimeout(() => {
       if (token) {
         router.replace("/connect");

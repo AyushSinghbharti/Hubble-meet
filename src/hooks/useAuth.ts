@@ -1,32 +1,33 @@
 import { useMutation } from '@tanstack/react-query';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login, signup, socialLogin, resendOTP, verifyOTP } from '../api/auth';
 import { useAuthStore } from '../store/auth';
+import { saveTokenToStorage, removeTokenFromStorage, removeUserFromStorage, saveUserIdToStorage } from '../store/localStorage';
 
 export const useSignup = () => {
   const setToken = useAuthStore((state) => state.setToken);
 
   return useMutation({
     mutationFn: signup,
-    onSuccess: async (data) => {
-      const token = data?.token;
-      if (token) {
-        await AsyncStorage.setItem('@token', token);
-        setToken(token);
-      }
-    },
+    onSuccess: async (data) => { },
   });
 };
 
 export const useVerifyOTP = () => {
   const setToken = useAuthStore((state) => state.setToken);
+  const setUser = useAuthStore((state) => state.setUser);
+  const setUserId = useAuthStore((state) => state.setUserId);
 
   return useMutation({
     mutationFn: verifyOTP,
     onSuccess: async (data) => {
+      const user: { id: string, email: string, phone: string } = data.user;
+      setUser(user);
+      setUserId(user.id);
       const token = data?.token;
+
       if (token) {
-        await AsyncStorage.setItem('@token', token);
+        saveTokenToStorage(token);
+        saveUserIdToStorage(user.id);
         setToken(token);
       }
     },
@@ -34,27 +35,16 @@ export const useVerifyOTP = () => {
 };
 
 export const useResendOTP = () => {
-  const setToken = useAuthStore((state) => state.setToken);
-
   return useMutation({
     mutationFn: resendOTP,
-    onSuccess: async (data) => {},
+    onSuccess: async (data) => { },
   });
 };
 
 export const useLogin = () => {
-  const setToken = useAuthStore((state) => state.setToken);
-
   return useMutation({
     mutationFn: login,
-    onSuccess: async (data) => {
-      // console.log("login data", data);
-      const token = data?.token;
-      if (token) {
-        await AsyncStorage.setItem('@token', token);
-        setToken(token);
-      }
-    },
+    onSuccess: async (data) => { },
   });
 };
 
@@ -64,10 +54,9 @@ export const useSocialLogin = () => {
   return useMutation({
     mutationFn: socialLogin,
     onSuccess: async (data) => {
-      // console.log("login via social data", data);
       const token = data?.token;
       if (token) {
-        await AsyncStorage.setItem('@token', token);
+        saveTokenToStorage(token);
         setToken(token);
       }
     },
@@ -76,7 +65,8 @@ export const useSocialLogin = () => {
 
 export const logout = async () => {
   try {
-    await AsyncStorage.removeItem('@token');
+    removeTokenFromStorage();
+    removeUserFromStorage({ removeId: true });
 
     const setToken = useAuthStore.getState().setToken;
     const clearToken = useAuthStore.getState().clearToken;

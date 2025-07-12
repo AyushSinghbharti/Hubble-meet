@@ -13,6 +13,7 @@ import { Ionicons, Feather, Entypo } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useRouter } from "expo-router";
 import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
+import { usePitchByUserId } from "@/src/hooks/usePitch";
 
 let VideoUri =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";

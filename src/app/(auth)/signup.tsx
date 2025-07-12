@@ -54,6 +54,7 @@ export default function SignUp() {
   const [phoneError, setPhoneError] = useState(false);
   const { mutate: signup, isPending } = useSignup();
   const { mutate: socialLogin } = useSocialLogin();
+  const { signInWithGoogle, loading } = useSocialAuth();
 
   const handleSignUp = () => {
     if (!termAccept) {
@@ -73,13 +74,13 @@ export default function SignUp() {
     }
 
     signup(
-      { phone: phoneNumber, email: email },
+      { phone: selectedFlag.dial_code + phoneNumber, email: email },
       {
         onSuccess: (res) => {
           router.push({
             pathname: "/otpVerify",
             params: {
-              phone: phoneNumber,
+              phone: selectedFlag.dial_code + phoneNumber,
               res: JSON.stringify(res),
               type: "signup",
             },
@@ -112,7 +113,6 @@ export default function SignUp() {
     }
   };
 
-  const { signInWithGoogle, loading } = useSocialAuth();
   const handleGoogleButtonPress = async () => {
     const payload = await signInWithGoogle();
     console.log("payload", payload);

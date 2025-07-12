@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   StyleSheet,
@@ -10,6 +10,13 @@ import {
 } from "react-native";
 import { Tabs } from "expo-router";
 import TabBarBackground from "../../components/TabBarBackground";
+import {
+  getUserIdFromStorage,
+  getVBCIdFromStorage,
+} from "@/src/store/localStorage";
+import { useUserProfile } from "@/src/hooks/useProfile";
+import { useCreateVbcCard, useGetVbcCard } from "@/src/hooks/useVbc";
+import { useAuthStore } from "@/src/store/auth";
 
 const baseUrl = "../../../assets/icons";
 
@@ -27,7 +34,15 @@ const icons = {
 
 const getIcon = (iconKey: keyof typeof icons, focused: boolean) =>
   focused && iconKey !== "connect" ? (
-    <View style={{ borderTopWidth: 1.5, borderColor: "red", paddingTop: 5, position: "absolute", top: -4.5 }}>
+    <View
+      style={{
+        borderTopWidth: 1.5,
+        borderColor: "red",
+        paddingTop: 5,
+        position: "absolute",
+        top: -4.5,
+      }}
+    >
       <Image source={icons[`${iconKey}Fill`]} style={[styles.icon]} />
     </View>
   ) : (
@@ -38,6 +53,37 @@ const getIcon = (iconKey: keyof typeof icons, focused: boolean) =>
   );
 
 export default function StackLayout() {
+  //Calling backend function
+  const [userId, setUserId] = useState<string | null>(null);
+  const [vbcId, setVbcId] = useState<string | null>(null);
+  const user = useAuthStore((state) => state.user);
+
+  useEffect(() => {
+    const fetchStoredData = async () => {
+      const storedUserId = await getUserIdFromStorage();
+      const storedVbcId = await getVBCIdFromStorage();
+      setUserId(storedUserId);
+      setVbcId(storedVbcId);
+    };
+    fetchStoredData();
+  }, []);
+
+  useUserProfile(userId);
+  useGetVbcCard(vbcId);
+  const { mutate: createVbcCard } = useCreateVbcCard();
+  useEffect(() => {
+    if (!vbcId && user) {
+      createVbcCard({
+        user_id: user.user_id,
+        display_name: user.full_name,
+        job_title: user.job_title,
+        company_name: user.current_company,
+        location: user.city,
+        allow_vbc_sharing: user.allow_vbc_sharing,
+      });
+    }
+  }, [vbcId, user]);
+
   return (
     <>
       <StatusBar barStyle="dark-content" />

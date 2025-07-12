@@ -17,8 +17,13 @@ import {
   requestNotificationPermission,
 } from "../api/notification";
 import { Alert } from "react-native";
-import * as WebBrowser from "expo-web-browser"
+import * as WebBrowser from "expo-web-browser";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import {
+  getTokenFromStorage,
+  getUserIdFromStorage,
+} from "../store/localStorage";
+import { useUserProfile } from "../hooks/useProfile";
 
 //Global runners
 WebBrowser.maybeCompleteAuthSession();
@@ -67,8 +72,6 @@ function RootLayoutNav() {
     const fixNotification = async () => {
       requestNotificationPermission();
       initializeFirebaseMessaging();
-      const FCMToken = await getFirebaseToken();
-      console.log("FCMToken", FCMToken);
     };
 
     fixNotification();
@@ -80,7 +83,7 @@ function RootLayoutNav() {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const token = await AsyncStorage.getItem("@token");
+        const token = await getTokenFromStorage();
         if (token) {
           setToken(token);
         }

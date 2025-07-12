@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,17 +8,20 @@ import {
   Image,
   Modal,
   Pressable,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import NavHeader from '../../../components/NavHeader';
-import { FONT } from '../../../../assets/constants/fonts';
-import Button from '../../../components/Button';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import NavHeader from "../../../components/NavHeader";
+import { FONT } from "../../../../assets/constants/fonts";
+import Button from "../../../components/Button";
+import { useAuthStore } from "@/src/store/auth";
+import { UserProfile } from "@/src/interfaces/profileInterface";
 
 export default function SettingsScreen() {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const profileData: UserProfile | null = useAuthStore((state) => state.user);
 
-  const phoneNumber = '(814) 413-9191';
-  const email = 'patricia651@outlook.com';
+  const phoneNumber = profileData?.phone;
+  const email = profileData?.email;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -27,7 +30,11 @@ export default function SettingsScreen() {
       {/* Avatar */}
       <View style={styles.avatarContainer}>
         <Image
-          source={{ uri: 'https://randomuser.me/api/portraits/women/81.jpg' }}
+          source={{
+            uri:
+              profileData?.profilePictureUrl ||
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
+          }}
           style={styles.avatar}
         />
       </View>
@@ -62,7 +69,10 @@ export default function SettingsScreen() {
         animationType="fade"
         onRequestClose={() => setDeleteModalVisible(false)}
       >
-        <Pressable style={styles.modalOverlay} onPress={() => setDeleteModalVisible(false)}>
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setDeleteModalVisible(false)}
+        >
           <View style={styles.modalContent}>
             <TouchableOpacity
               onPress={() => setDeleteModalVisible(false)}
@@ -72,11 +82,14 @@ export default function SettingsScreen() {
             </TouchableOpacity>
             <Image
               style={styles.trashIcon}
-              source={require('../../../../assets/icons/Delete1.png')}
+              source={require("../../../../assets/icons/Delete1.png")}
             />
-            <Text style={styles.modalTitle}>Thinking about deleting your account?</Text>
+            <Text style={styles.modalTitle}>
+              Thinking about deleting your account?
+            </Text>
             <Text style={styles.modalText}>
-              Your account will be permanently removed after a 30-day grace period.
+              Your account will be permanently removed after a 30-day grace
+              period.
             </Text>
 
             <Button label="Delete account" onPress={() => {}} width="80%" />
@@ -90,14 +103,14 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#3E3E3E',
+    backgroundColor: "#3E3E3E",
   },
   content: {
     padding: 20,
     paddingBottom: 60,
   },
   avatarContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 16,
     marginBottom: 24,
   },
@@ -107,65 +120,65 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   label: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
     marginBottom: 6,
     fontFamily: FONT.MEDIUM,
   },
   readOnlyInput: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 10,
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
   readOnlyPhone: {
     fontSize: 16,
-    color: 'rgba(0, 0, 0, 0.5)',
+    color: "rgba(0, 0, 0, 0.5)",
     fontFamily: FONT.ITALICMEDIUM,
   },
   readOnlyEmail: {
     fontSize: 16,
     fontFamily: FONT.SEMIBOLD,
-    color: 'rgba(0, 0, 0, 0.5)',
+    color: "rgba(0, 0, 0, 0.5)",
   },
   note: {
-    color: '#aaa',
+    color: "#aaa",
     fontSize: 12,
     marginTop: 6,
     fontFamily: FONT.MEDIUM,
   },
   deleteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff5f5',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff5f5",
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ffe0e0',
+    borderColor: "#ffe0e0",
     marginTop: 40,
   },
   deleteButtonText: {
-    color: '#e53935',
+    color: "#e53935",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    width: '85%',
-    backgroundColor: '#fff',
+    width: "85%",
+    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 24,
-    alignItems: 'center',
-    position: 'relative',
+    alignItems: "center",
+    position: "relative",
   },
   modalClose: {
-    position: 'absolute',
+    position: "absolute",
     right: 12,
     top: 12,
   },
@@ -176,15 +189,15 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
-    textAlign: 'center',
-    color: '#222',
+    textAlign: "center",
+    color: "#222",
   },
   modalText: {
     fontSize: 14,
-    textAlign: 'center',
-    color: '#555',
+    textAlign: "center",
+    color: "#555",
     marginBottom: 20,
   },
 });

@@ -17,13 +17,11 @@ import { useVerifyOTP, useResendOTP } from "../../hooks/useAuth";
 
 const OtpVerificationUI = () => {
   const params = useLocalSearchParams();
-  // console.log("params", params.res);
   let { phone, res, type } = params;
   if (Array.isArray(phone)) {
     phone = phone[0];
   }
   const data = JSON.parse(res as string);
-  console.log(type);
 
   const router = useRouter();
   const [error, setError] = useState<String | null>();
@@ -106,6 +104,7 @@ const OtpVerificationUI = () => {
             pinCodeTextStyle: styles.pinCodeText,
           }}
           onTextChange={(text) => setOTP(text)}
+          autoFocus={false}
         />
 
         <TouchableOpacity style={styles.continueBtn} onPress={handleVerify}>

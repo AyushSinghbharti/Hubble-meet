@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import UserInterface from '../interfaces/userInterface';
+import {UserProfile} from '../interfaces/profileInterface';
 
 type AuthState = {
     //Token and related function
@@ -9,7 +9,7 @@ type AuthState = {
 
     //user info
     userId: string | null;
-    user: UserInterface | null;
+    user: UserProfile | null;
     setUserId: (id: string) => void;
     setUser: (data: any) => void;
     resetUser: () => void;
@@ -31,5 +31,4 @@ export const useAuthStore = create<AuthState>((set) => ({
     resetUser: () => {
         set({ userId: null, user: null });
     },
-    
 }));

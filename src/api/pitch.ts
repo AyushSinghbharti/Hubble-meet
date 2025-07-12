@@ -1,48 +1,61 @@
 import axios from './axios';
-import { Pitch, CreatePitchPayload, UpdatePitchPayload } from '../interfaces/pitchInterface';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  Pitch,
+  CreatePitchPayload,
+  UpdatePitchPayload,
+  ReactToPitchPayload,
+  PitchWithLikeStatus,
+} from '../interfaces/pitchInterface';
 
-// 1. Create a pitch
-export const createPitch = async (data: CreatePitchPayload): Promise<Pitch> => {
-  const response = await axios.post<Pitch>('/api/pitch/create', data);
-  return response.data;
+const withAuth = async () => {
+  const token = await AsyncStorage.getItem('@token');
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 };
 
-// 2. Get a pitch by ID
-export const getPitchById = async (id: string): Promise<Pitch> => {
-  const response = await axios.get<Pitch>(`/api/pitch/getDetail/${id}`);
-  return response.data;
+export const createPitch = async (formData: FormData): Promise<Pitch> => {
+  const config = await withAuth();
+  const res = await axios.post('/api/pitch/create', formData, config);
+  console.log("res", res);
+  return res.data.data;
 };
 
-// 3. Get current user’s pitches
-export const getMyPitches = async (): Promise<Pitch[]> => {
-  const response = await axios.get<Pitch[]>('/api/pitch/mine');
-  return response.data;
+export const getPitchByUserId = async (userId: string): Promise<Pitch> => {
+  // const config = await withAuth();
+  const res = await axios.get(`/api/pitch/getDetails/${userId}`);
+  return res.data.data;
 };
 
-// 4. Get another user’s pitches
-export const getUserPitches = async (userId: string): Promise<Pitch[]> => {
-  const response = await axios.get<Pitch[]>(`/api/pitch/user/${userId}`);
-  return response.data;
+export const updatePitch = async (
+  pitchId: string,
+  data: UpdatePitchPayload
+): Promise<Pitch> => {
+  const config = await withAuth();
+  const res = await axios.put(`/api/pitch/update/${pitchId}`, data, config);
+  return res.data.data;
 };
 
-// 5. Get recommended pitches
-export const getRecommendedPitches = async (): Promise<Pitch[]> => {
-  const response = await axios.get<Pitch[]>('/api/pitch/recommended');
-  return response.data;
+export const reactToPitch = async (
+  pitchId: string,
+  data: ReactToPitchPayload
+): Promise<string> => {
+  const config = await withAuth();
+  const res = await axios.post(`/api/pitch/${pitchId}/reaction`, data, config);
+  return res.data.message;
 };
 
-// 6. Update a pitch
-export const updatePitch = async (id: string, data: UpdatePitchPayload): Promise<Pitch> => {
-  const response = await axios.put<Pitch>(`/api/pitch/update/${id}`, data);
-  return response.data;
-};
-
-// 7. Delete (close) a pitch
-export const closePitch = async (id: string): Promise<void> => {
-  await axios.put(`/api/pitch/close/${id}`);
-};
-
-// 8. Approve pitch (admin only)
-export const approvePitch = async (id: string): Promise<void> => {
-  await axios.put(`/api/pitch/approve/${id}`);
+export const getPitchList = async (
+  targetUserIds: string[],
+  currentUserId?: string
+): Promise<(string | PitchWithLikeStatus)[]> => {
+  const config = await withAuth();
+  const params = new URLSearchParams();
+  targetUserIds.forEach((id) => params.append('targetUserId', id));
+  if (currentUserId) params.append('userId', currentUserId);
+  const res = await axios.get(`/api/pitch/getDetails?${params}`, config);
+  return res.data.data;
 };

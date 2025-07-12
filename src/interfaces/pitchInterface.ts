@@ -1,22 +1,34 @@
-export type PitchStatus = 'open' | 'approved' | 'closed';
+export type PitchStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Pitch {
   id: string;
-  userId: string; // Add this for user-based filtering
-  title: string;
-  description: string;
+  user_id: string;
   status: PitchStatus;
-  createdAt: string;
-  updatedAt?: string;
+  url: string;
+  // display_name: string;
+  // caption: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CreatePitchPayload {
-  title: string;
-  description: string;
+  user_id: string;
+  video: any;
 }
 
 export interface UpdatePitchPayload {
-  title?: string;
-  description?: string;
-  status?: PitchStatus;
+  status: PitchStatus;
+}
+
+export interface ReactToPitchPayload {
+  userId: string;
+}
+
+export interface getUserById {
+  userId: string;
+}
+
+export interface PitchWithLikeStatus {
+  pitch: string;
+  has_liked: boolean;
 }

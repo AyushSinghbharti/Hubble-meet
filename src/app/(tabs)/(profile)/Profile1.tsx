@@ -19,22 +19,37 @@ import TagDropdown from "../../../components/TagDropdown";
 import { FONT } from "../../../../assets/constants/fonts";
 import colorTheme from "../../../theme/colourTheme";
 import Button from "../../../components/Button";
+import { useAuthStore } from "@/src/store/auth";
+import { UserProfile } from "@/src/interfaces/profileInterface";
+import { useUpdateUserProfile } from "@/src/hooks/useProfile";
+import { useUpdateVbcCard } from "@/src/hooks/useVbc";
+import { useVbcStore } from "@/src/store/vbc";
 
 export default function SettingsScreen() {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [location, setLocation] = useState("");
-  const [jobTitle, setJobTitle] = useState("");
-  const [bio, setBio] = useState("");
-  const [companies, setCompanies] = useState([]);
-  const [industries, setIndustries] = useState([]);
-  const [dob, setDob] = useState(null);
+  const profileData: UserProfile | null = useAuthStore((state) => state.user);
+  const vbcStore = useVbcStore((state) => state.vbcId);
+  const { mutate: updateUserProfile, isPending: pendingUpdateUserProfile } = useUpdateUserProfile();
+  const { mutate: updateVbcCard, isPending: pendingUpdateVbcCard } = useUpdateVbcCard();
+
+  const [name, setName] = useState(profileData?.full_name);
+  const [phone, setPhone] = useState(profileData?.phone.slice(3));
+  const [email, setEmail] = useState(profileData?.email);
+  const [location, setLocation] = useState(profileData?.city);
+  const [jobTitle, setJobTitle] = useState(profileData?.job_title || null);
+  const [bio, setBio] = useState(profileData?.bio || null);
+  const [companies, setCompanies] = useState(["Google", "Netflix"]);
+  const [industries, setIndustries] = useState(
+    profileData?.current_industry || []
+  );
+  const [dob, setDob] = useState<Date | null>(
+    profileData?.date_of_birth ? new Date(profileData.date_of_birth) : null
+  );
+
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const [selectedFlag, setSelectedFlag] = useState({
-    flag: "https://flagcdn.com/w40/us.png",
-    dial_code: "+1",
+    flag: "https://flagcdn.com/w40/in.png",
+    dial_code: profileData?.phone.slice(0, 3),
   });
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -59,20 +74,52 @@ export default function SettingsScreen() {
   };
 
   const handleSave = () => {
+    if(!profileData?.user_id) return;
     const formData = {
-      name,
-      dob: dob ? dob.toISOString().split("T")[0] : "",
-      phone,
-      email,
-      location,
-      bio,
-      companies,
-      jobTitle,
-      industries,
-      countryCode: selectedFlag.dial_code,
+      fullName: name ?? undefined,
+      bio: bio ?? undefined,
+      currentCompany: companies.length > 0 ? companies[0] : "",
+      jobTitle: jobTitle ?? undefined,
+      city: location ?? undefined,
+      currentIndustry: industries ?? undefined,
+      industriesOfInterest: profileData?.industries_of_interest ?? undefined,
+      citiesOnRadar: profileData?.cities_on_radar ?? undefined,
+      connectionPreferences: profileData?.connection_preferences ?? undefined,
+      profilePictureUrl: profileData?.profile_picture_url ?? undefined,
+      dateOfBirth: dob?.toISOString().split("T")[0] ?? undefined,
     };
 
-    console.log("Form data:", JSON.stringify(formData, null, 2));
+  const vbcData = {
+    display_name: name,
+    job_title: jobTitle ?? undefined,
+    company_name: companies.length > 0 ? companies[0] : undefined,
+    location: location,
+    allow_vbc_sharing: true,
+  };
+
+    updateUserProfile(
+      { userId: profileData?.user_id, data: formData },
+      {
+        onSuccess: (res) => {
+          console.log("Profile updated successfully", res);
+        },
+        onError: (err) => {
+          console.error("Error updating profile", err);
+        },
+      }
+    );
+    
+    updateVbcCard({
+      id: vbcStore || "",
+      data: vbcData,
+    }, {
+      onSuccess: (res) => {
+        console.log("Vbc updated successfully", res);
+      }, 
+      onError: (error) => {
+        console.log("error on profile1 page, vbc fetch error", error);
+      }
+    })
   };
 
   return (
@@ -85,10 +132,14 @@ export default function SettingsScreen() {
 
       <View style={styles.profileContainer}>
         <Image
-          source={{ uri: "https://randomuser.me/api/portraits/men/41.jpg" }}
+          source={{
+            uri:
+              profileData?.profile_picture_url ||
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
+          }}
           style={styles.profileImage}
         />
-        <Text style={styles.profileName}>Dennis Callis</Text>
+        <Text style={styles.profileName}>{profileData?.full_name}</Text>
         <TouchableOpacity style={{ marginTop: 2 }}>
           <Text
             style={{
@@ -144,7 +195,9 @@ export default function SettingsScreen() {
                 source={{ uri: selectedFlag.flag }}
                 style={{ width: 24, height: 18, marginRight: 6 }}
               />
-              <Text>{selectedFlag.dial_code}</Text>
+              <Text style={[styles.input, { flex: 0 }]}>
+                {selectedFlag.dial_code}
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -187,6 +240,7 @@ export default function SettingsScreen() {
         selected={companies}
         onChange={setCompanies}
         placeholder="Select companies"
+        mode="Light"
       />
 
       <FormLabel label="Job Title" />
@@ -244,7 +298,7 @@ const Input = ({
         }, // Ensure vertical alignment
       ]}
       placeholder={placeholder}
-      placeholderTextColor="#000"
+      placeholderTextColor="#aaa"
       multiline={multiline}
       numberOfLines={numberOfLines}
       maxLength={maxLength}

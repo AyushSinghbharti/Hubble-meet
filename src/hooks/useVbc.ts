@@ -1,20 +1,70 @@
-import { useMutation } from '@tanstack/react-query';
-import { createVbcCard, updateVbcCard, shareVbcCard } from '../api/vbc';
-import { CreateVbcPayload, UpdateVbcPayload, ShareVbcPayload } from '../interfaces/vbcInterface';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { createVbcCard, updateVbcCard, shareVbcCard, getVbcCard, deleteVbcCard } from '../api/vbc';
+import { CreateVbcPayload, UpdateVbcPayload, ShareVbcPayload, VbcCard } from '../interfaces/vbcInterface';
+import { useVbcStore } from '../store/vbc';
+import { saveVBCIdToStorage, removeVBCFromStorage } from '../store/localStorage';
+
+//Get VbcCard
+export const useGetVbcCard = (id: string) => {
+    const setVbcId = useVbcStore((state) => state.setVbcId);
+    const setVbc = useVbcStore((state) => state.setVbc);
+
+    const queryResult = useQuery<VbcCard, Error>({
+        queryKey: ['vbc-card', id],
+        queryFn: () => getVbcCard(id),
+        enabled: !!id,
+    });
+
+    if (queryResult.data) {
+        saveVBCIdToStorage(queryResult.data.id);
+        setVbcId(queryResult.data.id);
+        setVbc(queryResult.data);
+    }
+    return queryResult;
+};
 
 // Create VBC Card
 export const useCreateVbcCard = () => {
+    const setVbcId = useVbcStore((state) => state.setVbcId);
+    const setVbc = useVbcStore((state) => state.setVbc);
+
     return useMutation({
         mutationFn: (data: CreateVbcPayload) => createVbcCard(data),
+        onSuccess: (res) => {
+            saveVBCIdToStorage(res.id);
+            setVbcId(res.id);
+            setVbc(res);
+        }
     });
 };
 
 // Update VBC Card
 export const useUpdateVbcCard = () => {
+    const setVbcId = useVbcStore((state) => state.setVbcId);
+    const setVbc = useVbcStore((state) => state.setVbc);
+
     return useMutation({
         mutationFn: ({ id, data }: { id: string; data: UpdateVbcPayload }) =>
             updateVbcCard(id, data),
+        onSuccess: (res) => {
+            saveVBCIdToStorage(res.id);
+            setVbcId(res.id);
+            setVbc(res);
+        }
     });
+};
+
+// Remove VBC Card
+export const useDeleteVbcCard = () => {
+  const resetVbc = useVbcStore((state) => state.clearVbc);
+
+  return useMutation({
+    mutationFn: (id: string) => deleteVbcCard(id),
+    onSuccess: () => {
+      removeVBCFromStorage({removeId: true});
+      resetVbc();
+    },
+  });
 };
 
 // Share VBC Card

@@ -14,9 +14,11 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import MyInviteModal from "../../../components/Alerts/MyInviteModal";
 import ProfileCard from "../../../components/profileSetupComps/profileCard";
+import { useAuthStore } from "@/src/store/auth";
+import { UserProfile } from "@/src/interfaces/profileInterface";
 
 // Profile Data
-const profileData = {
+const dummyData = {
   name: "Robin Gupta",
   title: "Head of Product at Amazon",
   location: "Bengaluru, India",
@@ -33,6 +35,7 @@ export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [MyInviteModalVisible, setMyInviteModalVisible] = useState(false);
   const router = useRouter();
+  const profileData: UserProfile | null = useAuthStore((state) => state.user);
 
   return (
     <ScrollView style={styles.container}>
@@ -46,16 +49,20 @@ export default function ProfileScreen() {
 
       <View style={styles.profileContainer}>
         <Image
-          source={{ uri: profileData.avatar }}
+          source={{
+            uri:
+              profileData?.profile_picture_url ||
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
+          }}
           style={styles.profileImage}
         />
-        <Text style={styles.name}>{profileData.name}</Text>
-        <Text style={styles.subtitle}>{profileData.title}</Text>
+        <Text style={styles.name}>{profileData?.full_name || "New User"}</Text>
+        <Text style={styles.subtitle}>{profileData?.job_title || "Working undefined"}</Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Expand your Hubble Circle</Text>
-        <Text style={styles.cardText}>{profileData.inviteMessage}</Text>
+        <Text style={styles.cardText}>{dummyData.inviteMessage}</Text>
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
           style={styles.inviteButton}
@@ -66,7 +73,7 @@ export default function ProfileScreen() {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>About</Text>
-        <Text style={styles.cardText}>{profileData.about}</Text>
+        <Text style={styles.cardText}>{profileData?.bio}</Text>
       </View>
 
       <View style={styles.card}>
@@ -84,7 +91,7 @@ export default function ProfileScreen() {
 
           <View>
             <Text style={styles.contactLabel}>Email</Text>
-            <Text style={styles.contactEmail}>{profileData.email}</Text>
+            <Text style={styles.contactEmail}>{profileData?.email || "Error fetching email"}</Text>
           </View>
         </View>
 
@@ -99,16 +106,16 @@ export default function ProfileScreen() {
           </LinearGradient>
           <View>
             <Text style={styles.contactLabel}>Mobile</Text>
-            <Text style={styles.contactEmail}>{profileData.phone}</Text>
+            <Text style={styles.contactEmail}>{profileData?.phone || "Error fetching phone number"}</Text>
           </View>
         </View>
       </View>
 
       <ProfileCard
-        avatar={profileData.avatar}
-        name="Robin Gupta and sons"
-        title="Design Lead at Microsoft"
-        location="Bengaluru, India"
+        avatar={profileData?.profile_picture_url}
+        name={profileData?.full_name}
+        title={profileData?.job_title}
+        location={profileData?.city}
         onVideoPress={() => {}}
         onChatPress={() => {}}
         onBlockPress={() => {}}

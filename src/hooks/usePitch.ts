@@ -1,85 +1,53 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import * as pitchApi from '../api/pitch';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-  Pitch,
-  CreatePitchPayload,
+  createPitch,
+  getPitchByUserId,
+  updatePitch,
+  reactToPitch,
+  getPitchList,
+} from '../api/pitch';
+import {
   UpdatePitchPayload,
+  ReactToPitchPayload,
+  PitchWithLikeStatus,
+  Pitch,
 } from '../interfaces/pitchInterface';
-import { usePitchStore } from '../store/pitchStore';
 
-// Fetch all recommended pitches
-export const useRecommendedPitches = () => {
-  const setPitches = usePitchStore((state) => state.setPitches);
-  return useQuery({
-    queryKey: ['recommended-pitches'],
-    queryFn: pitchApi.getRecommendedPitches,
-    onSuccess: (data) => setPitches(data),
-  });
-};
-
-// Fetch current user's pitches
-export const useMyPitches = () => {
-  return useQuery({
-    queryKey: ['my-pitches'],
-    queryFn: pitchApi.getMyPitches,
-  });
-};
-
-// Fetch another user's pitches
-export const useUserPitches = (userId: string) => {
-  return useQuery({
-    queryKey: ['user-pitches', userId],
-    queryFn: () => pitchApi.getUserPitches(userId),
-  });
-};
-
-// Fetch a pitch by ID
-export const usePitchById = (id: string) => {
-  return useQuery({
-    queryKey: ['pitch', id],
-    queryFn: () => pitchApi.getPitchById(id),
-  });
-};
-
-// Create a new pitch
+// Create pitch
 export const useCreatePitch = () => {
-  const addPitch = usePitchStore((state) => state.addPitch);
   return useMutation({
-    mutationFn: (payload: CreatePitchPayload) => pitchApi.createPitch(payload),
-    onSuccess: (data) => addPitch(data),
+    mutationFn: (formData: FormData) => createPitch(formData),
   });
 };
 
-// Update a pitch
+// Get pitch by user ID
+export const usePitchByUserId = (userId: string) => {
+  return useQuery({
+    queryKey: ['pitch', userId],
+    queryFn: () => getPitchByUserId(userId),
+  });
+};
+
+// Update pitch
 export const useUpdatePitch = () => {
-  const updatePitch = usePitchStore((state) => state.updatePitch);
   return useMutation({
-    mutationFn: ({
-      id,
-      payload,
-    }: {
-      id: string;
-      payload: UpdatePitchPayload;
-    }) => pitchApi.updatePitch(id, payload),
-    onSuccess: (data) => updatePitch(data),
+    mutationFn: ({ pitchId, data }: { pitchId: string; data: UpdatePitchPayload }) =>
+      updatePitch(pitchId, data),
   });
 };
 
-// Close/Delete a pitch
-export const useClosePitch = () => {
-  const setPitches = usePitchStore((state) => state.setPitches);
+// Like/unlike pitch
+export const useReactToPitch = () => {
   return useMutation({
-    mutationFn: (id: string) => pitchApi.closePitch(id),
-    onSuccess: async () => {
-      const refreshed = await pitchApi.getMyPitches();
-      setPitches(refreshed);
-    },
+    mutationFn: ({ pitchId, data }: { pitchId: string; data: ReactToPitchPayload }) =>
+      reactToPitch(pitchId, data),
   });
 };
 
-// Approve a pitch (admin)
-export const useApprovePitch = () => {
-  return useMutation({
-    mutationFn: (id: string) => pitchApi.approvePitch(id),
+// Get multiple pitch URLs
+export const usePitchList = (targetUserIds: string[], currentUserId?: string) => {
+  return useQuery<(string | PitchWithLikeStatus)[]>({
+    queryKey: ['pitch-list', targetUserIds, currentUserId],
+    queryFn: () => getPitchList(targetUserIds, currentUserId),
   });
 };

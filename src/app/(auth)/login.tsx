@@ -100,13 +100,13 @@ export default function Login() {
     }
 
     login(
-      { phone: phoneNumber, email: "testuser@email.com" },
+      { phone: selectedFlag.dial_code + phoneNumber},
       {
         onSuccess: (res) => {
           router.push({
             pathname: "/otpVerify",
             params: {
-              phone: phoneNumber,
+              phone: selectedFlag.dial_code + phoneNumber,
               res: JSON.stringify(res),
               type: "login",
             },

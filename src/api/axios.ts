@@ -9,14 +9,22 @@ const api = axios.create({
   },
 });
 
-// Optional: Add interceptors for requests (e.g., to attach token from AsyncStorage)
-
+// Add interceptor to attach Authorization token (skipping /auth routes)
 api.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem('@token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const token = await AsyncStorage.getItem('@token');
+
+      const isAuthRoute = config.url?.includes('/api/auth');
+      const hasAuthHeader = !!config.headers?.Authorization;
+
+      if (token && !isAuthRoute && !hasAuthHeader) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.warn('Error reading token from AsyncStorage:', error);
     }
+
     return config;
   },
   (error) => {
