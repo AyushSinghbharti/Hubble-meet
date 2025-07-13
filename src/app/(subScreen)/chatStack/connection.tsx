@@ -64,7 +64,7 @@ export default function Connections() {
             <TextInput
               value={searchText}
               onChangeText={(t) => setSearchText(t)}
-              placeholder="Seach"
+              placeholder="Search"
               placeholderTextColor={"#aaa"}
               style={styles.searchText}
             />

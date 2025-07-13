@@ -29,7 +29,8 @@ const pitches = [
       id: "1",
       thumbnail: "https://source.unsplash.com/1080x1920/?startup,office",
       videoUri:
-        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        // "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        "https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4",
       user: {
         name: "Hellen Whilliams",
         avatar: "https://randomuser.me/api/portraits/women/76.jpg",

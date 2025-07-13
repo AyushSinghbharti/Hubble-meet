@@ -16,7 +16,6 @@ import {
   initializeFirebaseMessaging,
   requestNotificationPermission,
 } from "../api/notification";
-import { Alert } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import {
@@ -24,6 +23,7 @@ import {
   getUserIdFromStorage,
 } from "../store/localStorage";
 import { useUserProfile } from "../hooks/useProfile";
+import axios from "axios";
 
 //Global runners
 WebBrowser.maybeCompleteAuthSession();
@@ -68,6 +68,18 @@ function RootLayoutNav() {
   const [ready, setReady] = useState(false);
 
   // Notification Logic
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await getFirebaseToken();
+        const res = await axios.post("https://crudcrud.com/api/8a3f09c7d0ac4694a6b4c7062d6af131/mobileToken", { token });
+        console.log("Saved token", res.data);
+      } catch (err) {
+        console.warn("Token save failed:", err);
+      }
+    })();
+  }, []);
+
   useEffect(() => {
     const fixNotification = async () => {
       requestNotificationPermission();

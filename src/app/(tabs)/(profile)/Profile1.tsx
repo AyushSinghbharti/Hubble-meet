@@ -10,8 +10,10 @@ import {
   Image,
   findNodeHandle,
   UIManager,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import NavHeader from "../../../components/NavHeader";
 import SelectCountryModal from "../../../components/selectCountryModal";
@@ -24,19 +26,26 @@ import { UserProfile } from "@/src/interfaces/profileInterface";
 import { useUpdateUserProfile } from "@/src/hooks/useProfile";
 import { useUpdateVbcCard } from "@/src/hooks/useVbc";
 import { useVbcStore } from "@/src/store/vbc";
+import { uploadToCloudinary } from "@/src/api/cloudinary";
+import ErrorAlert from "@/src/components/errorAlert";
 
 export default function SettingsScreen() {
   const profileData: UserProfile | null = useAuthStore((state) => state.user);
   const vbcStore = useVbcStore((state) => state.vbcId);
-  const { mutate: updateUserProfile, isPending: pendingUpdateUserProfile } = useUpdateUserProfile();
-  const { mutate: updateVbcCard, isPending: pendingUpdateVbcCard } = useUpdateVbcCard();
+  const { mutate: updateUserProfile, isPending: pendingUpdateUserProfile } =
+    useUpdateUserProfile();
+  const { mutate: updateVbcCard, isPending: pendingUpdateVbcCard } =
+    useUpdateVbcCard();
 
+  const [error, setError] = useState<string | null>();
   const [name, setName] = useState(profileData?.full_name);
   const [phone, setPhone] = useState(profileData?.phone.slice(3));
   const [email, setEmail] = useState(profileData?.email);
   const [location, setLocation] = useState(profileData?.city);
   const [jobTitle, setJobTitle] = useState(profileData?.job_title || null);
   const [bio, setBio] = useState(profileData?.bio || null);
+  const [image, setImage] = useState(profileData?.profile_picture_url || null);
+  const [uploadingImage, setUploadImage] = useState(false);
   const [companies, setCompanies] = useState(["Google", "Netflix"]);
   const [industries, setIndustries] = useState(
     profileData?.current_industry || []
@@ -63,6 +72,27 @@ export default function SettingsScreen() {
     hideDatePicker();
   };
 
+  const pickImage = async () => {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      aspect: [4, 4],
+      quality: 1,
+    });
+    if (!res.canceled) {
+      try {
+        setUploadImage(true);
+        const url = await uploadToCloudinary(res.assets[0].uri);
+        setImage(url);
+      } catch (err) {
+        console.log(error);
+        setError("Error Uploading error to backend, Please try again");
+      } finally {
+        setUploadImage(false);
+      }
+    }
+  };
+
   const handleOpenModal = () => {
     const handle = findNodeHandle(flagBoxRef.current);
     if (handle) {
@@ -74,7 +104,7 @@ export default function SettingsScreen() {
   };
 
   const handleSave = () => {
-    if(!profileData?.user_id) return;
+    if (!profileData?.user_id) return;
     const formData = {
       fullName: name ?? undefined,
       bio: bio ?? undefined,
@@ -89,13 +119,13 @@ export default function SettingsScreen() {
       dateOfBirth: dob?.toISOString().split("T")[0] ?? undefined,
     };
 
-  const vbcData = {
-    display_name: name,
-    job_title: jobTitle ?? undefined,
-    company_name: companies.length > 0 ? companies[0] : undefined,
-    location: location,
-    allow_vbc_sharing: true,
-  };
+    const vbcData = {
+      display_name: name,
+      job_title: jobTitle ?? undefined,
+      company_name: companies.length > 0 ? companies[0] : undefined,
+      location: location,
+      allow_vbc_sharing: true,
+    };
 
     updateUserProfile(
       { userId: profileData?.user_id, data: formData },
@@ -108,18 +138,21 @@ export default function SettingsScreen() {
         },
       }
     );
-    
-    updateVbcCard({
-      id: vbcStore || "",
-      data: vbcData,
-    }, {
-      onSuccess: (res) => {
-        console.log("Vbc updated successfully", res);
-      }, 
-      onError: (error) => {
-        console.log("error on profile1 page, vbc fetch error", error);
+
+    updateVbcCard(
+      {
+        id: vbcStore || "",
+        data: vbcData,
+      },
+      {
+        onSuccess: (res) => {
+          console.log("Vbc updated successfully", res);
+        },
+        onError: (error) => {
+          console.log("error on profile1 page, vbc fetch error", error);
+        },
       }
-    })
+    );
   };
 
   return (
@@ -130,17 +163,28 @@ export default function SettingsScreen() {
     >
       <NavHeader title="Profile" />
 
-      <View style={styles.profileContainer}>
-        <Image
-          source={{
-            uri:
-              profileData?.profile_picture_url ||
-              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
-          }}
-          style={styles.profileImage}
-        />
+      <View style={[styles.profileContainer]}>
+        {uploadingImage ? (
+          <View
+            style={[
+              styles.profileImage,
+              { justifyContent: "center", alignItems: "center" },
+            ]}
+          >
+            <ActivityIndicator color={"#f7f7f7"} size={"large"} />
+          </View>
+        ) : (
+          <Image
+            source={{
+              uri:
+                image ||
+                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
+            }}
+            style={styles.profileImage}
+          />
+        )}
         <Text style={styles.profileName}>{profileData?.full_name}</Text>
-        <TouchableOpacity style={{ marginTop: 2 }}>
+        <TouchableOpacity style={{ marginTop: 2 }} onPress={pickImage}>
           <Text
             style={{
               color: "#fff",
@@ -269,6 +313,8 @@ export default function SettingsScreen() {
         }}
         position={flagBoxPosition}
       />
+
+      {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
     </ScrollView>
   );
 }
