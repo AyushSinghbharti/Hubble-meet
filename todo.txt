@@ -5,8 +5,9 @@ ChatScreen Bugs
 - Add screen that popup after select photos and document to send --- DONE
 
 PitchScreen bugs
- - MainCardWrapper showing on press on wrapper after unmounting of video as Video cleanup error --- DONE
+ - MainCardWrapper showing on press on wrapper after unmounting of video as Video cleanup error --- DONE (Without remove useCallBackFunction)
  - My pitch Screen to be add into route later --- DONE
+ - Added Scroll Feature to pitches --- DONE
 
  OverAll Updates To be done
 - Icons in menu old --- DONE
@@ -34,3 +35,11 @@ PitchScreen bugs
 
  Pitch screen:
 - Change swipe button height to 50 --- DONE
+
+
+//MisMatch or Changes In Backend side
+1. User Profile picture input as image not as string
+2. Backend user database dont have option to add companies as a list but as a string
+3. vbc card dont have option to add image
+4. vbc card should have option of background colour (random alloted)
+5. vbc card can't be search with userId but only with card id and need to clear it as a doubt

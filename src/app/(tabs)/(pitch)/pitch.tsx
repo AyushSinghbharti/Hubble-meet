@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,21 @@ import {
   TouchableOpacity,
   Animated,
   Easing,
-  ScrollView,
   FlatList,
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import FlipCardWrapper from "../../../components/pitchScreenComps/flipCardWrapper";
 import MainCardWrapper from "../../../components/pitchScreenComps/mainCardWrapper";
+
+import { Dimensions } from "react-native";
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+const TAB_BAR_HEIGHT = 100; // your custom tab bar height
+const TOP_PADDING = 15; // from your container paddingTop
+const SAFE_MARGIN = 18 * 2; // you want 18 top and bottom spacing
+
+const ITEM_HEIGHT = SCREEN_HEIGHT - TAB_BAR_HEIGHT - TOP_PADDING - SAFE_MARGIN;
 
 // Dummy pitch and user
 const pitch = {
@@ -50,19 +58,19 @@ const pitches = [
   { pitch, dummyUser },
 ];
 
-import { Dimensions } from "react-native";
-
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const HEADER_HEIGHT = 70;
-const TAB_BAR_HEIGHT = 55;
-const ITEM_HEIGHT = SCREEN_HEIGHT - HEADER_HEIGHT - TAB_BAR_HEIGHT;
-
 export default function PitchScreen() {
   const router = useRouter();
   const [flipped, setFlipped] = useState(false);
   const rotateAnim = useRef(new Animated.Value(0)).current;
-  const flatListRef = useRef(null);
+  const [currentPitch, setCurrentPitch] = useState(pitches[0].pitch);
+  const [currentProfile, setCurrentProfile] = useState(pitches[0].dummyUser);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const current = pitches[currentIndex];
+    setCurrentPitch(current.pitch);
+    setCurrentProfile(current.dummyUser);
+  }, [currentIndex]);
 
   const handleFlip = () => {
     Animated.timing(rotateAnim, {
@@ -71,6 +79,19 @@ export default function PitchScreen() {
       easing: Easing.ease,
       useNativeDriver: true,
     }).start(() => setFlipped(!flipped));
+  };
+
+  const onScrollEnd = (e) => {
+    const offsetY = e.nativeEvent.contentOffset.y;
+    const index = Math.round(offsetY / ITEM_HEIGHT);
+
+    // index === 0 => user swiped up (to go to previous pitch)
+    // index === 2 => user swiped down (to go to next pitch)
+    if (index === 0 && currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+    } else if (index === 2 && currentIndex < pitches.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    }
   };
 
   const navigateToMyPitch = () => {
@@ -100,46 +121,6 @@ export default function PitchScreen() {
     extrapolate: "clamp",
   });
 
-  const RenderCard = ({ pitch, dummyUser, isActive }) => {
-    return (
-      <View style={styles.cardArea}>
-        {/* Front Card */}
-        <Animated.View
-          style={[
-            styles.flipCard,
-            {
-              transform: [{ rotateY: frontRotation }],
-              opacity: frontOpacity,
-              zIndex: flipped ? 0 : 1,
-            },
-          ]}
-        >
-          <MainCardWrapper
-            pitch={pitch}
-            onPress={handleFlip}
-            isActive={isActive}
-            isFlipped={flipped}
-          />
-        </Animated.View>
-
-        {/* Back Card */}
-        <Animated.View
-          style={[
-            styles.flipCard,
-            styles.absoluteFill,
-            {
-              transform: [{ rotateY: backRotation }],
-              opacity: backOpacity,
-              zIndex: flipped ? 1 : 0,
-            },
-          ]}
-        >
-          <FlipCardWrapper item={dummyUser} onPress={handleFlip} />
-        </Animated.View>
-      </View>
-    );
-  };
-
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -156,36 +137,68 @@ export default function PitchScreen() {
       </View>
 
       {/* Flip Card Area */}
-      <FlatList
-        ref={flatListRef}
-        data={pitches}
-        keyExtractor={(_, index) => index.toString()}
-        renderItem={({ item, index }) => (
-          <RenderCard
-            pitch={item.pitch}
-            dummyUser={item.dummyUser}
-            isActive={index === currentIndex}
+      <View style={styles.cardArea}>
+        {/* Front Card */}
+        <Animated.View
+          style={[
+            styles.flipCard,
+            {
+              transform: [{ rotateY: frontRotation }],
+              opacity: frontOpacity,
+              zIndex: flipped ? 0 : 1,
+            },
+          ]}
+        >
+          <FlatList
+            style={{ flex: 1 }}
+            contentContainerStyle={{ flexGrow: 1 }}
+            data={pitches}
+            keyExtractor={(_, i) => i.toString()}
+            pagingEnabled
+            showsVerticalScrollIndicator={false}
+            onMomentumScrollEnd={(e) => {
+              const offsetY = e.nativeEvent.contentOffset.y;
+              const newIndex = Math.round(offsetY / ITEM_HEIGHT);
+              if (newIndex !== currentIndex) setCurrentIndex(newIndex);
+            }}
+            renderItem={({ item, index }) => {
+              const isVisible = Math.abs(index - currentIndex) <= 1;
+              const scale = index === currentIndex ? 1 : 0.97;
+              const opacity = index === currentIndex ? 1 : 0.5;
+
+              return (
+                <Animated.View
+                  style={{ transform: [{scale}], opacity, height: ITEM_HEIGHT, marginVertical: 18 }}
+                >
+                  {isVisible ? (
+                    <MainCardWrapper
+                      pitch={item.pitch}
+                      onPress={handleFlip}
+                      // isActive={index === currentIndex}
+                      isActive={index === currentIndex && !flipped}
+                    />
+                  ) : null}
+                </Animated.View>
+              );
+            }}
           />
-        )}
-        pagingEnabled
-        showsVerticalScrollIndicator={false}
-        decelerationRate="fast"
-        onViewableItemsChanged={
-          useRef(({ viewableItems }) => {
-            if (viewableItems.length > 0) {
-              setCurrentIndex(viewableItems[0].index);
-            }
-          }).current
-        }
-        viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
-        style={{ height: ITEM_HEIGHT }}
-        snapToInterval={ITEM_HEIGHT}
-        getItemLayout={(_, index) => ({
-          length: ITEM_HEIGHT,
-          offset: ITEM_HEIGHT * index,
-          index,
-        })}
-      />
+        </Animated.View>
+
+        {/* Back Card */}
+        <Animated.View
+          style={[
+            styles.flipCard,
+            styles.absoluteFill,
+            {
+              transform: [{ rotateY: backRotation }],
+              opacity: backOpacity,
+              zIndex: flipped ? 1 : 0,
+            },
+          ]}
+        >
+          <FlipCardWrapper item={currentProfile} onPress={handleFlip} />
+        </Animated.View>
+      </View>
     </View>
   );
 }
@@ -195,7 +208,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     paddingHorizontal: 18,
-    paddingTop: 32,
+    paddingTop: 16,
     paddingBottom: 100,
   },
   headerContainer: {
@@ -221,11 +234,15 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
   cardArea: {
-    height: ITEM_HEIGHT,
-    width: "100%",
+    flex: 1,
+    position: "relative",
   },
   flipCard: {
-    flex: 1,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backfaceVisibility: "hidden",
   },
   absoluteFill: {

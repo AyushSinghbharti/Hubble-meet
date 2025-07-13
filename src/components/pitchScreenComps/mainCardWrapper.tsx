@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -10,58 +10,117 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
-import { useIsFocused } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 
 // Dummy video
 const VideoUri =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
-const MainCardWrapper = ({ pitch, onPress, isActive, isFlipped }) => {
+const MainCardWrapper = ({
+  pitch,
+  onPress,
+  isActive,
+}: {
+  pitch: any;
+  onPress: () => void;
+  isActive: boolean;
+}) => {
   const [options, setOptions] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isLiked, setLiked] = useState(false);
-  const isFocused = useIsFocused();
+
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const player = useVideoPlayer(VideoUri, (p) => {
     p.loop = true;
   });
 
-  useEffect(() => {
-    if (!player) return;
+  // Control play/pause based on focus + isActive
+  useFocusEffect(
+    useCallback(() => {
+      if (!player || typeof player.play !== "function") return;
 
-    if (isActive && !isFlipped && isFocused) {
-      player.play();
-      setIsPaused(false);
-    } else {
-      player.pause();
-      setIsPaused(true);
-    }
-  }, [isActive, isFlipped, isFocused, player]);
+      if (isActive) {
+        try {
+          player.play?.();
+          setIsPaused(false);
+        } catch (err) {
+          console.warn("Play error:", err.message);
+        }
+      } else {
+        try {
+          player.pause?.();
+          setIsPaused(true);
+        } catch (err) {
+          console.warn("Pause error (inactive):", err.message);
+        }
+      }
+
+      return () => {
+        if (!isMounted.current || !player || typeof player.pause !== "function")
+          return;
+        try {
+          player.pause();
+        } catch (err) {
+          console.warn("Safe cleanup error:", err.message);
+        }
+      };
+    }, [player, isActive])
+  );
+
+  // Manual tap-to-play/pause toggle
+  // const togglePlayPause = () => {
+  //   if (!player) return;
+  //   try {
+  //     if (isPaused) {
+  //       player.play?.();
+  //     } else {
+  //       player.pause?.();
+  //     }
+  //     setIsPaused(!isPaused);
+  //   } catch (err) {
+  //     console.warn("Video toggle error:", err);
+  //   }
+  // };
 
   const togglePlayPause = () => {
-    if (!player) return;
-    if (isPaused) {
-      player.play();
-    } else {
-      player.pause();
+    if (
+      !player ||
+      typeof player.play !== "function" ||
+      typeof player.pause !== "function"
+    )
+      return;
+
+    try {
+      if (isPaused) {
+        player.play?.();
+      } else {
+        player.pause?.();
+      }
+      setIsPaused(!isPaused);
+    } catch (err) {
+      console.warn("Video toggle error:", err.message);
     }
-    setIsPaused(!isPaused);
   };
 
   return (
     <View style={styles.cardWrapper}>
-      {/* Video layer */}
-      {isActive && !isFlipped && (
-        <VideoView
-          style={StyleSheet.absoluteFillObject}
-          player={player}
-          nativeControls={false}
-          startsPictureInPictureAutomatically={false}
-          allowsPictureInPicture={false}
-        />
-      )}
+      {/* Video */}
+      <VideoView
+        style={StyleSheet.absoluteFillObject}
+        player={player}
+        nativeControls={false}
+        startsPictureInPictureAutomatically={false}
+        allowsPictureInPicture={false}
+      />
 
-      {/* Overlay gradient and global tap handler */}
+      {/* Tap to pause/play with overlay */}
       <Pressable
         onPress={togglePlayPause}
         style={StyleSheet.absoluteFillObject}
@@ -77,33 +136,16 @@ const MainCardWrapper = ({ pitch, onPress, isActive, isFlipped }) => {
         />
       </Pressable>
 
-      {/* Pause Icon */}
       {isPaused && (
         <View style={styles.pauseIconContainer}>
-          <View
-            style={{
-              height: 55,
-              width: 55,
-              backgroundColor: "rgba(0,0,0,0.5)",
-              borderRadius: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+          <View style={styles.playButton}>
             <FontAwesome5 name="play" size={22} color="#fff" />
           </View>
         </View>
       )}
 
-      {/* Action rail */}
+      {/* Action buttons */}
       <View style={styles.actionRail}>
-        {/* <TouchableOpacity style={styles.actionBtn}>
-          <Image
-            source={require("../../../assets/icons/logo.png")}
-            style={{ height: 30, width: 30 }}
-          />
-        </TouchableOpacity> */}
-
         <TouchableOpacity
           style={styles.likeSection}
           onPress={() => setLiked(!isLiked)}
@@ -117,7 +159,7 @@ const MainCardWrapper = ({ pitch, onPress, isActive, isFlipped }) => {
             style={{ height: 40, width: isLiked ? 32 : 22 }}
           />
           <Text style={styles.likeCount}>
-            {Intl.NumberFormat().format(pitch.likes + isLiked)}
+            {Intl.NumberFormat().format(pitch.likes + (isLiked ? 1 : 0))}
           </Text>
         </TouchableOpacity>
 
@@ -129,7 +171,7 @@ const MainCardWrapper = ({ pitch, onPress, isActive, isFlipped }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Bottom Profile Section (tap triggers onPress only here) */}
+      {/* User Info */}
       <View style={styles.userRow}>
         <View style={styles.typeShown}>
           <Text style={styles.typeText}>Individual:</Text>
@@ -153,7 +195,7 @@ const MainCardWrapper = ({ pitch, onPress, isActive, isFlipped }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Options Popup */}
+      {/* Options Menu */}
       {options && (
         <View style={styles.optionsBox}>
           <Text style={styles.optionText}>Report Pitch</Text>
@@ -169,12 +211,10 @@ const styles = StyleSheet.create({
   cardWrapper: {
     flex: 1,
     marginTop: 18,
-    marginBottom: 18,
     borderRadius: 20,
     overflow: "hidden",
     backgroundColor: "#e5e7eb",
   },
-
   actionRail: {
     position: "absolute",
     right: 26,
@@ -182,7 +222,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 24,
   },
-  actionBtn: {},
   likeSection: {
     alignItems: "center",
     gap: 2,
@@ -192,7 +231,6 @@ const styles = StyleSheet.create({
     fontFamily: "InterSemiBold",
     fontSize: 12,
   },
-
   userRow: {
     position: "absolute",
     left: 16,
@@ -268,6 +306,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  playButton: {
+    height: 55,
+    width: 55,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: 100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
 
-export default React.memo(MainCardWrapper);
+export default MainCardWrapper;
