@@ -27,6 +27,8 @@ import RandomBackgroundImages, {
 import { useAuthStore } from "@/src/store/auth";
 import { useCreateUserProfile } from "@/src/hooks/useProfile";
 import { useCreateVbcCard } from "@/src/hooks/useVbc";
+import ErrorAlert from "@/src/components/errorAlert";
+import { uploadToCloudinary } from "@/src/api/cloudinary";
 
 const ChipInput = ({
   label,
@@ -63,10 +65,11 @@ export default function ProfileSetup() {
   const user = useAuthStore((state) => state.user);
   const userId = useAuthStore((state) => state.userId);
 
+  const [error, setError] = useState<string | null>();
   const [finalScreen, setFinalScreen] = useState(false);
   const [step, setStep] = useState(0);
   const [name, setName] = useState<string | null>(null);
-  const [dob, setDOB] = useState();
+  const [dob, setDOB] = useState<Date | null>(null);
   const [formatedDob, setFromatedDOB] = useState("");
   const [gender, setGender] = useState(null);
   const [bio, setBio] = useState<string | null>(null);
@@ -78,7 +81,7 @@ export default function ProfileSetup() {
   const [worklist, setWorklist] = useState([]);
   const [spaces, setSpaces] = useState(["Fintech", "Fashion", "AI"]);
   const [connectPeople, setConnectPeople] = useState(["fintech", "fashion"]);
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState<string | null>(null);
   const [radarCities, setRadarCities] = useState(["Banglore", "Pune"]);
   const [rolesLookingFor, setRolesLookingFor] = useState([
     "Marketing",
@@ -136,14 +139,30 @@ export default function ProfileSetup() {
       aspect: [4, 4],
       quality: 1,
     });
-    if (!res.canceled) setImage(res.assets[0].uri);
+    if (!res.canceled) {
+      try{
+        const url = await uploadToCloudinary(res.assets[0].uri);
+        setImage(url);
+      } catch (err) {
+        console.log(error);
+        setError("Error Uploading error to backend, Please try again")
+      }
+    } 
   };
 
-  const next = () => setStep((s) => Math.min(4, s + 1));
+  const next = () => {
+    if (!name || !dob || !gender) {
+      setError("Please fill all feilds");
+      return;
+    } else if (step == 1 && (!bio || !email || !phoneNumber)) {
+      setError("Please fill bio too");
+      return;
+    }
+    setStep((s) => Math.min(4, s + 1));
+  };
   const prev = () => setStep((s) => Math.max(0, s - 1));
   const skip = () => {
     setStep(4);
-    setFinalScreen(!finalScreen);
   };
 
   const { mutateAsync: createProfile, isPending: pendingCreateProfile } =
@@ -152,9 +171,16 @@ export default function ProfileSetup() {
     useCreateVbcCard();
 
   const submit = async () => {
-    if (!user || !userId) return;
-    if (!name || !dob || !gender || !bio || !email || !phoneNumber) return;
-
+    if (!user || !userId) {
+      setError("Error while fetching data from server, please login directly");
+      setFinalScreen(!finalScreen);
+      return;
+    } 
+    if (!name || !dob || !gender || !bio || !email || !phoneNumber) {
+      setError("Please fill all required feilds");
+      setFinalScreen(!finalScreen);
+      return;
+    }
     try {
       const profileData = {
         userId: userId,
@@ -186,12 +212,15 @@ export default function ProfileSetup() {
       const [profileRes, vbcRes] = await Promise.all([
         createProfile(profileData),
         createVbc(vbcData),
-      ]);
+      ])
 
       console.log("Both created successfully:", { profileRes, vbcRes });
       router.push("/connect");
     } catch (error) {
       console.error("Error during creation:", error);
+      setError("Error connecting with server, Please login directly");
+    } finally {
+      setFinalScreen(!finalScreen);
     }
   };
 
@@ -213,8 +242,12 @@ export default function ProfileSetup() {
         />
 
         <Text style={styles.label}>When were you born?</Text>
-        <View style={[styles.input, centerRow]}>
+        <TouchableOpacity
+          style={[styles.input, centerRow]}
+          onPress={() => setDatePickerVisibility(!isDatePickerVisible)}
+        >
           <TextInput
+            editable={false} 
             style={{
               flex: 1,
               color: colourPalette.textPrimary,
@@ -227,7 +260,7 @@ export default function ProfileSetup() {
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
             mode="date"
-            date={new Date(1990, 0, 1)}
+            date={new Date(2000, 0, 1)}
             onConfirm={handleConfirm}
             onCancel={hideDatePicker}
           />
@@ -237,7 +270,7 @@ export default function ProfileSetup() {
             color="#BDBDBD"
             onPress={() => setDatePickerVisibility(!isDatePickerVisible)}
           />
-        </View>
+        </TouchableOpacity>
 
         <Text style={styles.label}>How do you identify?</Text>
         <View style={styles.rowWrap}>
@@ -476,8 +509,6 @@ export default function ProfileSetup() {
   // ----------------------------------------------------------------------------
   if (step === 4 && finalScreen) {
     setTimeout(() => {
-      // router.replace("/connect");
-      setFinalScreen(!finalScreen);
       submit();
     }, 3000);
 
@@ -539,15 +570,13 @@ export default function ProfileSetup() {
       )}
 
       {step >= 2 && step < 4 && (
-        <TouchableOpacity
-          style={styles.skip}
-          onPress={skip}
-          // onPress={() => setFinalScreen(!finalScreen)}
-        >
-          {/* <Entypo name="chevron-left" size={28} color="#fff" /> */}
+        <TouchableOpacity style={styles.skip} onPress={skip}>
           <Text style={styles.skipText}>Skip for now</Text>
         </TouchableOpacity>
       )}
+
+      {/* Error */}
+      {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
     </RandomBackgroundImages>
   );
 }
