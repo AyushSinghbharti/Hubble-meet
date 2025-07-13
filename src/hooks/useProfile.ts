@@ -29,13 +29,14 @@ export const useUserProfile = (userId: string): UseQueryResult<UserProfile, Erro
   useEffect(() => {
     if (queryResult.data) {
       const data = queryResult.data;
+      console.log(data);
       saveUserIdToStorage(data.user_id);
       saveUserToStorage(data);
       setUserId(data.user_id);
       setUser(data);
     }
   }, [queryResult.data]);
-
+  
   return queryResult;
 };
 
@@ -50,6 +51,7 @@ export const useCreateUserProfile = () => {
       saveUserToStorage(data);
       setUserId(data.user_id);
       setUser(data);
+      console.log(data);
     }
   });
 };
@@ -66,6 +68,7 @@ export const useUpdateUserProfile = () => {
       saveUserToStorage(data);
       setUserId(data.user_id);
       setUser(data);
+      console.log(data);
     }
   });
 };
@@ -74,8 +77,9 @@ export const useUpdateUserProfile = () => {
 export const useInactivateUserProfile = () => {
   return useMutation({
     mutationFn: (userId: string) => inactivateUserProfile(userId),
-    onSuccess: () => {
+    onSuccess: (data) => {
       logout();
+      console.log(data);
     },
     onError: (error) => {
       console.log(error);

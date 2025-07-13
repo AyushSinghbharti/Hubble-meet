@@ -17,6 +17,7 @@ export const useGetVbcCard = (id: string) => {
 
     if (queryResult.data) {
         saveVBCIdToStorage(queryResult.data.id);
+        console.log(queryResult.data.id);
         setVbcId(queryResult.data.id);
         setVbc(queryResult.data);
     }
@@ -27,10 +28,11 @@ export const useGetVbcCard = (id: string) => {
 export const useCreateVbcCard = () => {
     const setVbcId = useVbcStore((state) => state.setVbcId);
     const setVbc = useVbcStore((state) => state.setVbc);
-
+    
     return useMutation({
         mutationFn: (data: CreateVbcPayload) => createVbcCard(data),
         onSuccess: (res) => {
+            console.log("useCreateVbcCard", res);
             saveVBCIdToStorage(res.id);
             setVbcId(res.id);
             setVbc(res);
@@ -42,11 +44,12 @@ export const useCreateVbcCard = () => {
 export const useUpdateVbcCard = () => {
     const setVbcId = useVbcStore((state) => state.setVbcId);
     const setVbc = useVbcStore((state) => state.setVbc);
-
+    
     return useMutation({
         mutationFn: ({ id, data }: { id: string; data: UpdateVbcPayload }) =>
             updateVbcCard(id, data),
         onSuccess: (res) => {
+            console.log("useUpdateVbcCard", res);
             saveVBCIdToStorage(res.id);
             setVbcId(res.id);
             setVbc(res);

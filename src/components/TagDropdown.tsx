@@ -102,7 +102,7 @@ export default function TagDropdown({
             style={[
               styles.input,
               {
-                color: mode === "Dark" ? colourPalette.textPrimary : "#000",
+                color: mode !== "Dark" ? colourPalette.textPrimary : "#000",
                 fontFamily: "InterMedium",
               },
             ]}

@@ -39,7 +39,6 @@ const OtpVerificationUI = () => {
       { phone: phone, otp: otp },
       {
         onSuccess: (res) => {
-          console.log(res);
           if (type === "login") router.push("/connect");
           else router.push("/profileSetup");
         },

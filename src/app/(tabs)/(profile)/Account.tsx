@@ -32,7 +32,7 @@ export default function SettingsScreen() {
         <Image
           source={{
             uri:
-              profileData?.profilePictureUrl ||
+              profileData?.profile_picture_url ||
               "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
           }}
           style={styles.avatar}

@@ -8,7 +8,9 @@ export const useSignup = () => {
 
   return useMutation({
     mutationFn: signup,
-    onSuccess: async (data) => { },
+    onSuccess: async (data) => {
+      console.log(data);
+    },
   });
 };
 
@@ -30,6 +32,7 @@ export const useVerifyOTP = () => {
         saveUserIdToStorage(user.id);
         setToken(token);
       }
+      console.log(data);
     },
   });
 };
@@ -37,14 +40,18 @@ export const useVerifyOTP = () => {
 export const useResendOTP = () => {
   return useMutation({
     mutationFn: resendOTP,
-    onSuccess: async (data) => { },
+    onSuccess: async (data) => {
+      console.log(data);
+    },
   });
 };
 
 export const useLogin = () => {
   return useMutation({
     mutationFn: login,
-    onSuccess: async (data) => { },
+    onSuccess: async (data) => {
+      console.log(data);
+    },
   });
 };
 
@@ -59,6 +66,7 @@ export const useSocialLogin = () => {
         saveTokenToStorage(token);
         setToken(token);
       }
+      console.log(data);
     },
   });
 };

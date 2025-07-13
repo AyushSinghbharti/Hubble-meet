@@ -11,6 +11,7 @@ import {
   Animated,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Entypo, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -88,6 +89,7 @@ export default function ProfileSetup() {
     "Mentor",
   ]);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [uploadingImage, setUploadImage] = useState(false);
 
   const backgroundRef = useRef<RandomBGImagesRef>(null);
 
@@ -140,14 +142,17 @@ export default function ProfileSetup() {
       quality: 1,
     });
     if (!res.canceled) {
-      try{
+      try {
+        setUploadImage(true);
         const url = await uploadToCloudinary(res.assets[0].uri);
         setImage(url);
       } catch (err) {
         console.log(error);
-        setError("Error Uploading error to backend, Please try again")
+        setError("Error Uploading error to backend, Please try again");
+      } finally {
+        setUploadImage(false);
       }
-    } 
+    }
   };
 
   const next = () => {
@@ -175,53 +180,52 @@ export default function ProfileSetup() {
       setError("Error while fetching data from server, please login directly");
       setFinalScreen(!finalScreen);
       return;
-    } 
+    }
     if (!name || !dob || !gender || !bio || !email || !phoneNumber) {
       setError("Please fill all required feilds");
       setFinalScreen(!finalScreen);
       return;
     }
-    try {
-      const profileData = {
-        userId: userId,
-        fullName: name,
-        dateOfBirth: dob.toISOString(),
-        gender: gender,
-        bio: bio,
-        email: email,
-        phone: phoneNumber,
-        currentCompany: worklist.length > 0 ? worklist[0] : undefined,
-        jobTitle: jobTitle,
-        city: address,
-        currentIndustry: spaces,
-        industriesOfInterest: connectPeople,
-        citiesOnRadar: radarCities,
-        connectionPreferences: rolesLookingFor,
-        profilePictureUrl: image ?? undefined,
-        allowVbcSharing: shareVBC,
-      };
+    const profileData = {
+      userId: userId,
+      fullName: name,
+      dateOfBirth: dob.toISOString(),
+      gender: gender,
+      bio: bio,
+      email: email,
+      phone: phoneNumber,
+      currentCompany: worklist.length > 0 ? worklist[0] : undefined,
+      jobTitle: jobTitle,
+      city: address,
+      currentIndustry: spaces,
+      industriesOfInterest: connectPeople,
+      citiesOnRadar: radarCities,
+      connectionPreferences: rolesLookingFor,
+      profilePictureUrl: image ?? undefined,
+      allowVbcSharing: shareVBC,
+    };
 
-      const vbcData = {
-        user_id: userId,
-        display_name: name,
-        job_title: jobTitle,
-        company_name: worklist.length > 0 ? worklist[0] : "",
-        location: address,
-      };
+    const vbcData = {
+      user_id: userId,
+      display_name: name,
+      job_title: jobTitle,
+      company_name: worklist.length > 0 ? worklist[0] : "",
+      location: address,
+    };
 
-      const [profileRes, vbcRes] = await Promise.all([
-        createProfile(profileData),
-        createVbc(vbcData),
-      ])
+    const [profileRes, vbcRes] = await Promise.all([
+      createProfile(profileData),
+      createVbc(vbcData),
+    ]);
+    console.log("✅ Profile created:", profileRes);
+    console.log("✅ VBC created:", vbcRes);
+    
+    console.log(profileRes, vbcRes);
 
-      console.log("Both created successfully:", { profileRes, vbcRes });
-      router.push("/connect");
-    } catch (error) {
-      console.error("Error during creation:", error);
-      setError("Error connecting with server, Please login directly");
-    } finally {
-      setFinalScreen(!finalScreen);
+    if(profileRes && vbcRes){
+      router.replace("/connect");
     }
+    setFinalScreen(!finalScreen);
   };
 
   const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say"];
@@ -247,7 +251,7 @@ export default function ProfileSetup() {
           onPress={() => setDatePickerVisibility(!isDatePickerVisible)}
         >
           <TextInput
-            editable={false} 
+            editable={false}
             style={{
               flex: 1,
               color: colourPalette.textPrimary,
@@ -469,6 +473,8 @@ export default function ProfileSetup() {
         <TouchableOpacity style={styles.imageBox} onPress={pickImage}>
           {image ? (
             <Image source={{ uri: image }} style={styles.image} />
+          ) : uploadingImage ? (
+            <ActivityIndicator animating={true} color={"#A2BF71"} size={50} />
           ) : (
             <Ionicons name="add" size={40} color="#A2BF71" />
           )}
