@@ -13,8 +13,8 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import { useFocusEffect } from "expo-router";
 
 // Dummy video
-const VideoUri =
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
+// const VideoUri =
+// "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
 const MainCardWrapper = ({
   pitch,
@@ -28,6 +28,7 @@ const MainCardWrapper = ({
   const [options, setOptions] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isLiked, setLiked] = useState(false);
+  const VideoUri = pitch.videoUri;
 
   const isMounted = useRef(true);
 

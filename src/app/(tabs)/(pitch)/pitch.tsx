@@ -23,39 +23,161 @@ const SAFE_MARGIN = 18 * 2; // you want 18 top and bottom spacing
 const ITEM_HEIGHT = SCREEN_HEIGHT - TAB_BAR_HEIGHT - TOP_PADDING - SAFE_MARGIN;
 
 // Dummy pitch and user
-const pitch = {
-  id: "1",
-  thumbnail:
-    "https://www.google.com/url?sa=i&url=https%3A%2F%2Funsplash.com%2Fs%2Fphotos%2F9%253A16&psig=AOvVaw292RLKOhdyyYphWZibBzPd&ust=1750270110186000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCJCIu7OG-Y0DFQAAAAAdAAAAABAE",
-  user: {
-    name: "Hellen Whilliams",
-    avatar: "https://randomuser.me/api/portraits/women/76.jpg",
-    tagline: "Lorem ipsum dolor sit amet",
-  },
-  likes: 1580,
-};
-
-const dummyUser = {
-  name: "Ashley Joe",
-  position: "Head of Product at Amazon",
-  location: "Bengaluru, India",
-  about:
-    "I am a passionate and details oriented Product designer with a strong focus on creating user-centric designs that enhances usability and deliver seamless digital experiences",
-  industries: [
-    "Computers & Electronics",
-    "Government",
-    "Manufacturing",
-    "Marketing & Advertising",
-  ],
-  interests: ["UI Design", "Leadership", "Product Strategy", "Research"],
-  image:
-    "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=60",
-};
-
 const pitches = [
-  { pitch, dummyUser },
-  { pitch, dummyUser },
-  { pitch, dummyUser },
+  {
+    pitch: {
+      id: "1",
+      thumbnail: "https://source.unsplash.com/1080x1920/?startup,office",
+      videoUri:
+        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      user: {
+        name: "Hellen Whilliams",
+        avatar: "https://randomuser.me/api/portraits/women/76.jpg",
+        tagline: "Building the next-gen commerce app",
+      },
+      likes: 1580,
+    },
+    dummyUser: {
+      name: "Ashley Joe",
+      position: "Head of Product at Amazon",
+      location: "Bengaluru, India",
+      about:
+        "I am a passionate and detail-oriented Product designer with a strong focus on creating user-centric designs that enhance usability.",
+      industries: [
+        "Computers & Electronics",
+        "Government",
+        "Marketing & Advertising",
+      ],
+      interests: ["UI Design", "Leadership", "Product Strategy"],
+      image:
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=60",
+    },
+  },
+  {
+    pitch: {
+      id: "2",
+      thumbnail: "https://source.unsplash.com/1080x1920/?technology,code",
+      videoUri:
+        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+      user: {
+        name: "Daniel Smith",
+        avatar: "https://randomuser.me/api/portraits/men/45.jpg",
+        tagline: "Passionate about AI & ML",
+      },
+      likes: 2350,
+    },
+    dummyUser: {
+      name: "Sara Bright",
+      position: "CTO at FintechLabs",
+      location: "Mumbai, India",
+      about:
+        "Focused on building scalable financial infrastructure through cutting-edge technology.",
+      industries: ["Finance", "AI", "Startups"],
+      interests: ["Fintech", "Cloud", "Data Engineering"],
+      image:
+        "https://xsgames.co/randomusers/assets/avatars/male/31.jpg",
+    },
+  },
+  {
+    pitch: {
+      id: "3",
+      thumbnail: "https://source.unsplash.com/1080x1920/?design,workspace",
+      videoUri:
+        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      user: {
+        name: "Monica Geller",
+        avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+        tagline: "Designing delightful user journeys",
+      },
+      likes: 890,
+    },
+    dummyUser: {
+      name: "John Doe",
+      position: "UX Researcher at Google",
+      location: "San Francisco, USA",
+      about:
+        "I specialize in understanding user behavior and creating intuitive experiences that resonate.",
+      industries: ["Tech", "Education", "Healthcare"],
+      interests: ["UX Research", "Accessibility", "Psychology"],
+      image:
+        "https://images.unsplash.com/photo-1546456073-6712f79251bb?auto=format&fit=crop&w=800&q=60",
+    },
+  },
+  {
+    pitch: {
+      id: "4",
+      thumbnail: "https://source.unsplash.com/1080x1920/?entrepreneur,startup",
+      videoUri:
+        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+      user: {
+        name: "Rajeev Anand",
+        avatar: "https://randomuser.me/api/portraits/men/78.jpg",
+        tagline: "SaaS product builder",
+      },
+      likes: 1240,
+    },
+    dummyUser: {
+      name: "Nisha Reddy",
+      position: "Co-Founder at Healthify",
+      location: "Hyderabad, India",
+      about:
+        "Healthcare is evolving rapidly. I build products that make healthcare accessible and intuitive.",
+      industries: ["Healthcare", "Biotech"],
+      interests: ["Wellness Tech", "Product Strategy", "Operations"],
+      image:
+        "https://images.unsplash.com/photo-1552058544-f2b08422138a?auto=format&fit=crop&w=800&q=60",
+    },
+  },
+  {
+    pitch: {
+      id: "5",
+      thumbnail: "https://source.unsplash.com/1080x1920/?developer,remote",
+      videoUri:
+        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+      user: {
+        name: "Alina Carter",
+        avatar: "https://randomuser.me/api/portraits/women/65.jpg",
+        tagline: "Remote dev advocate",
+      },
+      likes: 1923,
+    },
+    dummyUser: {
+      name: "Ankit Sharma",
+      position: "Engineering Manager at Zoho",
+      location: "Chennai, India",
+      about:
+        "Leading distributed teams to build high-performance, scalable web applications.",
+      industries: ["Software", "Remote Work"],
+      interests: ["DevOps", "Team Management", "Microservices"],
+      image:
+        "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=800&q=60",
+    },
+  },
+  {
+    pitch: {
+      id: "6",
+      thumbnail: "https://source.unsplash.com/1080x1920/?business,team",
+      videoUri:
+        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
+      user: {
+        name: "Carlos Mendes",
+        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+        tagline: "Let’s scale your business together",
+      },
+      likes: 3201,
+    },
+    dummyUser: {
+      name: "Ritika Varma",
+      position: "Marketing Lead at Razorpay",
+      location: "Pune, India",
+      about:
+        "Driving brand growth and user acquisition through data-backed creative marketing.",
+      industries: ["Marketing", "SaaS", "Payments"],
+      interests: ["Growth Hacking", "Performance Ads", "Consumer Psychology"],
+      image:
+        "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=60",
+    },
+  },
 ];
 
 export default function PitchScreen() {
@@ -168,7 +290,12 @@ export default function PitchScreen() {
 
               return (
                 <Animated.View
-                  style={{ transform: [{scale}], opacity, height: ITEM_HEIGHT, marginVertical: 18 }}
+                  style={{
+                    transform: [{ scale }],
+                    opacity,
+                    height: ITEM_HEIGHT,
+                    marginVertical: 18,
+                  }}
                 >
                   {isVisible ? (
                     <MainCardWrapper
