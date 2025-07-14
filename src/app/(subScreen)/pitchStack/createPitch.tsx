@@ -28,6 +28,11 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import { useEvent } from "expo";
 import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
 import ManualBlur from "../../../components/BlurComp";
+import { useCreatePitch, useUpdatePitch } from "@/src/hooks/usePitch";
+import { useAuthStore } from "@/src/store/auth";
+import { usePitchStore } from "@/src/store/pitchStore";
+import { ActivityIndicator } from "react-native-paper";
+import * as FileSystem from "expo-file-system";
 
 interface Item {
   name: string;
@@ -38,7 +43,10 @@ interface Item {
   videoUrl: string | null;
 }
 
+const MAX_SIZE = 10 * 1024 * 1000; //5MB
+
 export default function CreatePitch() {
+  const router = useRouter();
   const params = useLocalSearchParams();
   const item: Item = JSON.parse(params.item as string);
 
@@ -50,15 +58,26 @@ export default function CreatePitch() {
   const [error, setError] = useState<string>();
   const [typeModal, setTypeModal] = useState(false);
 
-  const router = useRouter();
-
-  //Media State
-  const [status, setStatus] = useState<"pending" | "success" | "error">();
+  const [status, setStatus] = useState<"pending" | "success" | "error">(
+    "pending"
+  );
   const [media, setMedia] = useState<string | null>(item.videoUrl);
+  const [mediaType, setMediaType] = useState<string | undefined>("video/mp4");
+  const [loading, setLoading] = useState<boolean | undefined>(false);
   const [popUp, setPopUp] = useState(false);
+
+  const userId = useAuthStore((state) => state.userId);
+  const pitchId = usePitchStore((state) => state.pitchId);
+
+  const { mutate: createPitch, isPending: createPitchPending } =
+    useCreatePitch();
+  const { mutate: updatePitch, isPending: createUpdatePitch } =
+    useUpdatePitch();
 
   //Media Props
   const pickImage = async () => {
+    if (media) return;
+
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["videos"],
       allowsEditing: true,
@@ -68,10 +87,12 @@ export default function CreatePitch() {
 
     if (!result.canceled && result.assets && result.assets[0]) {
       setMedia(result.assets[0].uri);
+      setMediaType(result.assets[0].mimeType);
       if (
         result.assets[0].fileSize !== undefined &&
-        result.assets[0].fileSize >= 5000 * 1024
+        result.assets[0].fileSize >= MAX_SIZE
       ) {
+        console.log(result.assets[0].fileSize);
         setStatus("error");
         setError("Media size is larger than limit");
       } else {
@@ -102,6 +123,82 @@ export default function CreatePitch() {
     }
   };
 
+  const handleSubmit = async () => {
+    if (!name || !desc) {
+      setError("Please fill all Fields");
+      return;
+    }
+
+    if (media) {
+      const size = await FileSystem.getInfoAsync(media);
+      console.log(size.size / 1024000);
+      if (size.exists && size.size && size.size > MAX_SIZE) {
+        setError("Video too large, Please select another");
+        setStatus("error");
+        return;
+      }
+    }
+
+    if (!userId) {
+      setError("Error fetching user info, please login again!!!");
+      return;
+    }
+
+    if (!media) {
+      setError("Media is not selected, select one now");
+      return;
+    }
+
+    if (status === "error") {
+      setError("Media size is too big");
+      setPopUp(!popUp);
+      return;
+    }
+
+    setLoading(true);
+
+    const payload = {
+      video: {
+        uri: media,
+        type: mediaType || "video/mp4",
+        name: `${userId}_createdPitchat_${Date.now()}.mp4`,
+      },
+      user_id: userId,
+      display_name: name,
+      pitch_caption: desc,
+    };
+
+    if (pitchId) {
+      await updatePitch(
+        { pitchId, data: payload },
+        {
+          onSuccess: (res) => {
+            setLoading(false);
+            setPopUp(!popUp);
+          },
+          onError: (err) => {
+            setError("Errow when uploading the pitch, Please try again!!!");
+            console.error("❌ Update failed:", err);
+            setLoading(false);
+          },
+        }
+      );
+    } else {
+      await createPitch(payload, {
+        onSuccess: (res) => {
+          console.log("✅ Created pitch:", res);
+          setLoading(false);
+          setPopUp(!popUp);
+        },
+        onError: (err) => {
+          setError("Errow when uploading the pitch, Please try again!!!");
+          console.error("❌ Creation failed:", err);
+          setLoading(false);
+        },
+      });
+    }
+  };
+
   const player = useVideoPlayer(media, (player) => {
     player.loop = true;
     player.play();
@@ -119,19 +216,6 @@ export default function CreatePitch() {
     } else {
       router.push("/connect");
     }
-  };
-
-  const handleRoutes = () => {
-    if (!name || !desc) {
-      setError("Please fill all Fields");
-      return;
-    }
-    if (!media) {
-      setError("Media is not selected, select one now");
-      return;
-    }
-
-    setPopUp(!popUp);
   };
 
   const handleTypeSelect = (text: string) => {
@@ -202,7 +286,7 @@ export default function CreatePitch() {
               Please Upload Your Pitch Here.
             </Text>
             <Text style={styles.uploadHint}>
-              You can upload your 30 second video in maximum{"\n"}size of 50mb
+              You can upload your 30 second video in maximum{"\n"}size of 10mb
               here…
             </Text>
           </View>
@@ -347,7 +431,7 @@ export default function CreatePitch() {
         style={{
           flex: 1,
           justifyContent: "space-between",
-          marginBottom: 30,
+          marginBottom: 45,
         }}
       >
         <View>
@@ -371,11 +455,15 @@ export default function CreatePitch() {
             {error && <Text style={styles.errorText}>{error}</Text>}
           </View>
         </View>
-        <SwipeButton
-          hasError={error}
-          onSwipeSuccess={handleRoutes}
-          text={"Swipe to Submit"}
-        />
+        {loading ? (
+          <ActivityIndicator size={"large"} color="skyblue" />
+        ) : (
+          <SwipeButton
+            hasError={error}
+            onSwipeSuccess={handleSubmit}
+            text={"Swipe to Submit"}
+          />
+        )}
       </View>
 
       {error && <ErrorAlert message={error} onClose={() => setError("")} />}

@@ -2,20 +2,25 @@ import { create } from 'zustand';
 import { Pitch } from '../interfaces/pitchInterface';
 
 interface PitchState {
-  pitches: Pitch[];
-  setPitches: (list: Pitch[]) => void;
-  addPitch: (p: Pitch) => void;
-  updatePitch: (p: Pitch) => void;
-  clearPitches: () => void;
+  // pitch object
+  pitch: Pitch | null;
+  setPitch: (data: Pitch) => void;
+  clearPitch: () => void;
+
+  // pitch ID separately
+  pitchId: string | null;
+  setPitchId: (id: string) => void;
+  clearPitchId: () => void;
 }
 
 export const usePitchStore = create<PitchState>((set) => ({
-  pitches: [],
-  setPitches: (list) => set({ pitches: list }),
-  addPitch: (p) => set((state) => ({ pitches: [p, ...state.pitches] })),
-  updatePitch: (p) =>
-    set((state) => ({
-      pitches: state.pitches.map((x) => (x.id === p.id ? p : x)),
-    })),
-  clearPitches: () => set({ pitches: [] }),
+  // pitch object state
+  pitch: null,
+  setPitch: (data) => set({ pitch: data }),
+  clearPitch: () => set({ pitch: null }),
+
+  // pitch ID state
+  pitchId: null,
+  setPitchId: (id) => set({ pitchId: id }),
+  clearPitchId: () => set({ pitchId: null }),
 }));

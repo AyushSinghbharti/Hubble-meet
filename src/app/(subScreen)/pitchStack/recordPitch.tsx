@@ -18,10 +18,11 @@ import {
 } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import ErrorAlert from "../../../components/errorAlert";
+import * as FileSystem from "expo-file-system";
 
 //Global Variable
 const MAX_DURATION = 30;
-const MAX_SIZE = 50 * 1024 * 1000;
+const MAX_SIZE = 10 * 1024 * 1000; //10MB
 const buttonSize = (Dimensions.get("window").width * 13) / 100;
 
 export default function RecordPitch() {
@@ -34,7 +35,7 @@ export default function RecordPitch() {
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
-  const [error, setError] = useState("This is test error");
+  const [error, setError] = useState<string | null>();
   const [cameraFace, setCameraFace] = useState(true);
   const [videoPlaying, setVideoPlaying] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
@@ -76,16 +77,21 @@ export default function RecordPitch() {
     if (!cameraRef.current) return;
 
     try {
-      setError("");
+      setError(null);
       setIsRecording(true);
 
       const result = await cameraRef.current.recordAsync({
-        quality: "144p", ///Need to fix this in future
+        quality: Camera?.Constants?.VideoQuality["144p"], ///Need to fix this in future
         maxDuration: MAX_DURATION,
         maxFileSize: MAX_SIZE,
         mute: false,
       });
 
+      const size = await FileSystem.getInfoAsync(result?.uri || "");
+      if (size.exists && size.size && size.size > MAX_SIZE) {
+        setError("Video too large");
+        return;
+      }
       setVideoUri(result?.uri ?? null);
     } catch (e: any) {
       setError(e.message ?? "Recording failed");

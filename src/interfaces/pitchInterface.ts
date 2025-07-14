@@ -1,34 +1,23 @@
-export type PitchStatus = 'pending' | 'approved' | 'rejected';
+export type PitchStatus = 'open' | 'approved' | 'closed';
 
 export interface Pitch {
   id: string;
   user_id: string;
-  status: PitchStatus;
+  status: 'pending' | 'processing' | 'complete';
   url: string;
-  // display_name: string;
-  // caption: string;
+  display_name: string;
+  pitch_caption?: string;
   created_at: string;
   updated_at: string;
 }
 
-export interface CreatePitchPayload {
+export interface PitchFormData {
+  video: {
+    uri: string;
+    name?: string;
+    type?: string;
+  };
   user_id: string;
-  video: any;
-}
-
-export interface UpdatePitchPayload {
-  status: PitchStatus;
-}
-
-export interface ReactToPitchPayload {
-  userId: string;
-}
-
-export interface getUserById {
-  userId: string;
-}
-
-export interface PitchWithLikeStatus {
-  pitch: string;
-  has_liked: boolean;
+  display_name: string;
+  pitch_caption: string;
 }

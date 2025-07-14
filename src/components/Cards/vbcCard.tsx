@@ -90,7 +90,6 @@ const CustomCard = memo(
         <View style={[styles.bottomSection, { backgroundColor: bgColor }]}>
           <View style={styles.nameRow}>
             <Text style={[styles.name, { color: textColor }]}>{name}</Text>
-            <View style={styles.statusDot} />
           </View>
           <Text style={[styles.role, { color: textColor }]}>{role}</Text>
           <Text style={[styles.location, { color: textColor }]}>{location}</Text>

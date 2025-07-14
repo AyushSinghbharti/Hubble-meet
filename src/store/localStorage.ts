@@ -8,6 +8,7 @@ const keys = {
   user: "@user",
   vbcId: "@vbcId",
   vbc: "@vbc",
+  pitchId: "@myPitchId",
   pitch: "@myPitch",
 };
 
@@ -72,6 +73,15 @@ export const removeVBCFromStorage = async ({ removeId }: { removeId?: boolean } 
   if (removeId) await AsyncStorage.removeItem(keys.vbcId);
 }
 
+// ---------- Pitch Id Info ----------
+export const savePitchIdToStorage = async (pitchId: string) => {
+  await AsyncStorage.setItem(keys.pitchId, pitchId);
+};
+
+export const getPitchIdFromStorage = async (): Promise<string | null> => {
+  return await AsyncStorage.getItem(keys.pitchId);
+};
+
 // ---------- Pitch Info ----------
 export const savePitchToStorage = async (pitch: Pitch) => {
   await AsyncStorage.setItem(keys.pitch, JSON.stringify(pitch));
@@ -82,6 +92,10 @@ export const getPitchFromStorage = async (): Promise<Pitch | null> => {
   return json ? JSON.parse(json) : null;
 };
 
+export const removePitchFromStorage = async ({ removeId }: { removeId?: boolean } = {}) => {
+  await AsyncStorage.removeItem(keys.pitch);
+  if (removeId) await AsyncStorage.removeItem(keys.pitchId);
+}
 // ---------- Clear All ----------
 export const clearAllAppStorage = async () => {
   await AsyncStorage.multiRemove(Object.values(keys));

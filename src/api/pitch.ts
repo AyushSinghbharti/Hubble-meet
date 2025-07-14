@@ -1,47 +1,63 @@
-import axios from './axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  Pitch,
-  CreatePitchPayload,
-  UpdatePitchPayload,
-  ReactToPitchPayload,
-  PitchWithLikeStatus,
-} from '../interfaces/pitchInterface';
+import api from './axios';
+import { Pitch, PitchFormData } from '../interfaces/pitchInterface';
 
-export const createPitch = async (formData: FormData): Promise<Pitch> => {
-  const res = await axios.post('/api/pitch/create', formData);
-  console.log("res", res);
-  return res.data.data;
+// Get pitch details for a user
+export const getUserPitch = async (userId: string): Promise<Pitch> => {
+  const response = await api.get(`/api/pitch/getDetails/${userId}`);
+  return response.data.data;
 };
 
-export const getPitchByUserId = async (userId: string): Promise<Pitch> => {
-  const res = await axios.get(`/api/pitch/getDetails/${userId}`);
-  return res.data.data;
+// Create a new pitch
+export const createPitch = async (data: PitchFormData): Promise<Pitch> => {
+  const formData = new FormData();
+
+  formData.append('video', {
+    uri: data.video.uri,
+    name: data.video.name ?? `${data.user_id}_updated_pitch _${Date.now().toString()}.mp4`,
+    type: data.video.type ?? 'video/mp4',
+  } as any);
+  formData.append('user_id', data.user_id);
+  formData.append('display_name', data.display_name);
+  formData.append('pitch_caption', data.pitch_caption);
+
+  const response = await api.post('/api/pitch/create', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  
+  return response.data.data;
 };
 
+
+// Update an existing pitch
 export const updatePitch = async (
   pitchId: string,
-  data: UpdatePitchPayload
+  data: Partial<PitchFormData>
 ): Promise<Pitch> => {
-  const res = await axios.put(`/api/pitch/update/${pitchId}`);
-  return res.data.data;
+
+  const formData = new FormData();
+  if (data.video) {
+    formData.append('video', {
+      uri: data.video.uri,
+      name: data.video.name ?? `${data.user_id}_updated_pitch _${Date.now().toString()}.mp4`,
+      type: data.video.type ?? 'video/mp4',
+    } as any);
+  }
+  if (data.display_name) formData.append('display_name', data.display_name);
+  if (data.pitch_caption) formData.append('pitch_caption', data.pitch_caption);
+
+  const response = await api.put(`/api/pitch/update/${pitchId}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data.data;
 };
 
-export const reactToPitch = async (
-  pitchId: string,
-  data: ReactToPitchPayload
-): Promise<string> => {
-  const res = await axios.post(`/api/pitch/${pitchId}/reaction`, data);
-  return res.data.message;
-};
-
-export const getPitchList = async (
-  targetUserIds: string[],
-  currentUserId?: string
-): Promise<(string | PitchWithLikeStatus)[]> => {
-  const params = new URLSearchParams();
-  targetUserIds.forEach((id) => params.append('targetUserId', id));
-  if (currentUserId) params.append('userId', currentUserId);
-  const res = await axios.get(`/api/pitch/getDetails?${params}`);
-  return res.data.data;
+// React to a pitch (like)
+export const reactToPitch = async (pitchId: string, userId: string) => {
+  const response = await api.post(`/api/pitch/${pitchId}/reaction`, {
+    userId,
+  });
+  return response.data;
 };
