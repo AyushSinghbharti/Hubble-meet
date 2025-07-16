@@ -24,6 +24,7 @@ import {
 } from "../store/localStorage";
 import { useUserProfile } from "../hooks/useProfile";
 import axios from "axios";
+import { logout } from "../hooks/useAuth";
 
 //Global runners
 WebBrowser.maybeCompleteAuthSession();
@@ -72,7 +73,7 @@ function RootLayoutNav() {
   //   (async () => {
   //     try {
   //       const token = await getFirebaseToken();
-  //       const res = await axios.post("https://crudcrud.com/api/7eb6d88f812c45f798d69e616e663a58/mobileToken", { token });
+  //       const res = await axios.post("https://crudcrud.com/api/4483e9cfe2a24022b93dfb1f95b19aa5/mobileToken", { token });
   //       console.log("Notification Token to CURD Saved token", res.data);
   //     } catch (err) {
   //       console.warn("Notification Token to CURD save failed:", err);

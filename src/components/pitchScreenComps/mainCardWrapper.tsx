@@ -12,10 +12,6 @@ import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useFocusEffect } from "expo-router";
 
-// Dummy video
-// const VideoUri =
-// "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
-
 const MainCardWrapper = ({
   pitch,
   onPress,
@@ -117,6 +113,7 @@ const MainCardWrapper = ({
         style={StyleSheet.absoluteFillObject}
         player={player}
         nativeControls={false}
+        contentFit="contain"
         startsPictureInPictureAutomatically={false}
         allowsPictureInPicture={false}
       />

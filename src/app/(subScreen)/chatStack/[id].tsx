@@ -72,8 +72,8 @@ export default function ChatDetailsScreen() {
     const messages = useChatStore.getState().messages;
     if (!user) return;
     if (!currentChat && messages.length <= 0) {
-      console.log("user", user);
-      console.log("profile", profile);
+      // console.log("user", user);
+      // console.log("profile", profile);
       createChat(
         {
           users: [
@@ -237,10 +237,8 @@ export default function ChatDetailsScreen() {
         router.back();
       }}
     >
-      <KeyboardAvoidingView
+      <View
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         {/* Modals */}
         <HeaderPopupMenu
@@ -336,7 +334,7 @@ export default function ChatDetailsScreen() {
         </View>
 
         {error && <ErrorAlert message={error} onClose={() => setError("")} />}
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

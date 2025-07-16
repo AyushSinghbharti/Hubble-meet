@@ -29,7 +29,6 @@ const pitches = [
       id: "1",
       thumbnail: "https://source.unsplash.com/1080x1920/?startup,office",
       videoUri:
-        // "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
         "https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4",
       user: {
         name: "Hellen Whilliams",
@@ -75,8 +74,7 @@ const pitches = [
         "Focused on building scalable financial infrastructure through cutting-edge technology.",
       industries: ["Finance", "AI", "Startups"],
       interests: ["Fintech", "Cloud", "Data Engineering"],
-      image:
-        "https://xsgames.co/randomusers/assets/avatars/male/31.jpg",
+      image: "https://xsgames.co/randomusers/assets/avatars/male/31.jpg",
     },
   },
   {
@@ -84,7 +82,7 @@ const pitches = [
       id: "3",
       thumbnail: "https://source.unsplash.com/1080x1920/?design,workspace",
       videoUri:
-        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        "https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4",
       user: {
         name: "Monica Geller",
         avatar: "https://randomuser.me/api/portraits/women/44.jpg",
@@ -134,7 +132,7 @@ const pitches = [
       id: "5",
       thumbnail: "https://source.unsplash.com/1080x1920/?developer,remote",
       videoUri:
-        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+        "https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4",
       user: {
         name: "Alina Carter",
         avatar: "https://randomuser.me/api/portraits/women/65.jpg",
@@ -159,7 +157,7 @@ const pitches = [
       id: "6",
       thumbnail: "https://source.unsplash.com/1080x1920/?business,team",
       videoUri:
-        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
       user: {
         name: "Carlos Mendes",
         avatar: "https://randomuser.me/api/portraits/men/32.jpg",

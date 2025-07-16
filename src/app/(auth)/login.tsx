@@ -21,6 +21,7 @@ import RandomBackgroundImages from "../../components/RandomBGImage";
 import { useLogin, useSocialLogin } from "../../hooks/useAuth";
 import { useSocialAuth } from "@/src/hooks/useSocialAuth";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
+import { fetchUserProfile } from "@/src/api/profile";
 
 type Country = {
   name: string;
@@ -67,19 +68,34 @@ export default function Login() {
 
   const { signInWithGoogle, loading } = useSocialAuth();
   const [userId, setUserId] = useState<string | null>(null);
-  const userProfile = useOtherUserProfile(userId);
 
   useEffect(() => {
-    if (userProfile.isSuccess) {
-      if (userProfile.data) {
-        router.replace("/connect");
-      } else {
-        router.push("/profileSetup");
+    const fetchProfileAndNavigate = async () => {
+      if (!userId) return;
+      try {
+        const profile = await fetchUserProfile(userId);
+        if (profile) {
+          router.replace("/connect");
+        } else {
+          router.push("/profileSetup");
+        }
+      } catch (err: any) {
+        const status = err?.response?.status;
+
+        if (status === 404) {
+          router.push("/profileSetup");
+        } else {
+          console.error("Failed to fetch user profile after social login", err);
+          setError("Failed to complete login. Please try again.");
+        }
       }
-    }
-  }, [userProfile.data, userProfile.isSuccess]);
+    };
+
+    fetchProfileAndNavigate();
+  }, [userId]);
 
   const handleGoogleButtonPress = async () => {
+    setUserId(null);
     const payload = await signInWithGoogle();
     console.log("payload", JSON.stringify(payload, null, 2));
 

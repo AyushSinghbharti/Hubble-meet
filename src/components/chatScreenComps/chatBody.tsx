@@ -132,12 +132,12 @@ const ChatBubble = ({
               })}
             </Text>
 
-            {me && (
+            {/* {me && (
               <Image
                 source={require("../../../assets/icons/tick.png")}
                 style={{ height: 16, width: 16, marginLeft: 2 }}
               />
-            )}
+            )} */}
           </View>
         </View>
       </Pressable>

@@ -40,13 +40,12 @@ const VbcCard = ({ spacing }: { spacing?: any }) => {
   const currentUser = useAuthStore((state) => state.user);
 
   const handleChatPress = async (user: UserProfile) => {
-    console.log(user);
     console.log(currentUser);
     await resolveChatAndNavigate({ currentUser, targetUser: user });
   };
-  const handleSharePress = (user: UserProfile) =>{
-    Share.share({message: `Hey see my VBC card here ${user.full_name}`});
-  }
+  const handleSharePress = (user: UserProfile) => {
+    Share.share({ message: `Hey see my VBC card here ${user.full_name}` });
+  };
   const handleBlockPress = (user: UserProfile) => {
     setBlockModal(true);
     setSelectedUser(user);

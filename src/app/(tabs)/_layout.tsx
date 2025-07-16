@@ -8,7 +8,7 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import TabBarBackground from "../../components/TabBarBackground";
 import {
   getUserIdFromStorage,
@@ -21,7 +21,12 @@ import { useConnectionStore } from "@/src/store/connectionStore";
 import { dummyUserId } from "@/src/dummyData/dummyUserId";
 import { useQueries } from "@tanstack/react-query";
 import { fetchUserProfile } from "@/src/api/profile";
-import { useConnectionRequests, useUserConnections } from "@/src/hooks/useConnection";
+import {
+  useConnectionRequests,
+  useUserConnections,
+} from "@/src/hooks/useConnection";
+import { logout } from "@/src/hooks/useAuth";
+import { useAuthGuard } from "@/src/utility/useAuthGuard";
 
 const baseUrl = "../../../assets/icons";
 
@@ -58,10 +63,13 @@ const getIcon = (iconKey: keyof typeof icons, focused: boolean) =>
   );
 
 export default function StackLayout() {
+  //Logout user if user doesn't logged in
+  const user = useAuthStore((state) => state.user);
+  const router = useRouter();
+
   //Calling backend function
   const [userId, setUserId] = useState<string | null>(null);
   const [vbcId, setVbcId] = useState<string | null>(null);
-  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     const fetchStoredData = async () => {
@@ -98,7 +106,7 @@ export default function StackLayout() {
   //Adding dummy users to recommendations
   const useLoadDummyRecommendations = () => {
     const addRecommendation = useConnectionStore((s) => s.addRecommendation);
-    
+
     useEffect(() => {
       const fetchAndStore = async () => {
         for (const id of dummyUserId) {
@@ -115,8 +123,6 @@ export default function StackLayout() {
     }, []);
   };
   useLoadDummyRecommendations();
-
-  console.log(userId);
 
   return (
     <>
