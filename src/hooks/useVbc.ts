@@ -16,8 +16,8 @@ export const useGetVbcCard = (id: string) => {
     });
 
     if (queryResult.data) {
+        console.log("VBC card fetched succesfully");
         saveVBCIdToStorage(queryResult.data.id);
-        console.log(queryResult.data.id);
         setVbcId(queryResult.data.id);
         setVbc(queryResult.data);
     }
@@ -32,7 +32,6 @@ export const useCreateVbcCard = () => {
     return useMutation({
         mutationFn: (data: CreateVbcPayload) => createVbcCard(data),
         onSuccess: (res) => {
-            console.log("useCreateVbcCard", res);
             saveVBCIdToStorage(res.id);
             setVbcId(res.id);
             setVbc(res);
@@ -49,7 +48,7 @@ export const useUpdateVbcCard = () => {
         mutationFn: ({ id, data }: { id: string; data: UpdateVbcPayload }) =>
             updateVbcCard(id, data),
         onSuccess: (res) => {
-            console.log("useUpdateVbcCard", res);
+            console.log("VBC card updated successfully");
             saveVBCIdToStorage(res.id);
             setVbcId(res.id);
             setVbc(res);

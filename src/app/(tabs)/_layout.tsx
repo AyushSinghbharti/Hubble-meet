@@ -21,7 +21,7 @@ import { useConnectionStore } from "@/src/store/connectionStore";
 import { dummyUserId } from "@/src/dummyData/dummyUserId";
 import { useQueries } from "@tanstack/react-query";
 import { fetchUserProfile } from "@/src/api/profile";
-import { useConnectionRequests } from "@/src/hooks/useConnection";
+import { useConnectionRequests, useUserConnections } from "@/src/hooks/useConnection";
 
 const baseUrl = "../../../assets/icons";
 
@@ -91,6 +91,30 @@ export default function StackLayout() {
 
   //Fetching all requests
   useConnectionRequests({ userId: userId, enabled: true });
+
+  //Fetching all connections
+  useUserConnections(userId || "", true);
+
+  //Adding dummy users to recommendations
+  const useLoadDummyRecommendations = () => {
+    const addRecommendation = useConnectionStore((s) => s.addRecommendation);
+    
+    useEffect(() => {
+      const fetchAndStore = async () => {
+        for (const id of dummyUserId) {
+          try {
+            const profile = await fetchUserProfile(id);
+            addRecommendation(profile);
+          } catch (err) {
+            console.warn("Failed to fetch dummy profile:", id, err);
+          }
+        }
+      };
+
+      fetchAndStore();
+    }, []);
+  };
+  useLoadDummyRecommendations();
 
   return (
     <>

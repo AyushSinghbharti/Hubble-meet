@@ -17,6 +17,7 @@ interface ConnectionStore {
   removeRecommendation: (userId: string) => void;
   addRecommendation: (user: ConnectionUser) => void;
   updateRecommendationStatus: (userId: string, status: ConnectionUser['connection_status']) => void;
+  addRecommendationsBulk: (users: ConnectionUser[]) => void;
 
   // Requests
   requests: ConnectionRequest[];
@@ -73,6 +74,14 @@ export const useConnectionStore = create<ConnectionStore>((set) => ({
         rec.user_id === userId ? { ...rec, connection_status: status } : rec
       ),
     })),
+  addRecommendationsBulk: (newUsers: ConnectionUser[]) =>
+    set((state) => {
+      const existingIds = new Set(state.recommendations.map((u) => u.user_id));
+      const uniqueNew = newUsers.filter((u) => !existingIds.has(u.user_id));
+      return {
+        recommendations: [...state.recommendations, ...uniqueNew],
+      };
+    }),
 
   // Requests
   requests: [],

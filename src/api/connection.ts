@@ -67,3 +67,11 @@ export const getConnectionRequests = async (userId: string): Promise<ConnectionR
     });
     return response.data;
 };
+
+//Get recommended profiles
+export const getRecommendedProfiles = async (
+  userId: string
+): Promise<ConnectionUser[]> => {
+  const response = await api.get(`/user/profiles/${userId}/recommendations`);
+  return response.data;
+};

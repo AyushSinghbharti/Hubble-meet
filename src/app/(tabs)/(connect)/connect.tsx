@@ -41,7 +41,6 @@ import { useAuthStore } from "@/src/store/auth";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useConnectionStore } from "@/src/store/connectionStore";
-import { useRecommendations } from "@/src/hooks/useRecommendations";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -84,7 +83,6 @@ const ProfileCard = ({
   //Store data
   const userId = useAuthStore((state) => state.userId);
   const connections = useAuthStore((state) => state.userId);
-  console.log(userId);
   //Backend Testing
   const { mutate: sendConnection } = useSendConnection();
   const { mutate: acceptConnection } = useAcceptConnection();
@@ -268,7 +266,6 @@ const ProfileCard = ({
   // Combine gestures: pan for the entire card, tap for the image
   const cardGesture = Gesture.Simultaneous(panGesture);
   const detailGesture = Gesture.Simultaneous(imageTapGesture);
-  // console.log("current profile", profile);
   return (
     <>
       {!isExpanded ? (
@@ -490,7 +487,7 @@ const Connect = () => {
   const [hasFlipped, setHasFlipped] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const connections = useConnectionStore((state) => state.connections);
+  const recommendations = useConnectionStore((state) => state.recommendations);
 
 
   const handleSwipeComplete = useCallback(
@@ -537,8 +534,8 @@ const Connect = () => {
   );
 
   const visibleProfileData = expandedProfileId
-    ? connections.filter((item) => item.user_id === expandedProfileId)
-    : connections
+    ? recommendations.filter((item) => item.user_id === expandedProfileId)
+    : recommendations
         .filter((item) => !swipedIds.includes(item.user_id))
         .slice(0, 1);
 

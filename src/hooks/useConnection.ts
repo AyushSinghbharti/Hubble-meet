@@ -9,6 +9,7 @@ import {
   unblockUser,
   getAllConnections,
   getConnectionRequests,
+  getRecommendedProfiles,
 } from "../api/connection";
 import {
   AcceptConnectionRequestBody,
@@ -140,6 +141,33 @@ export const useConnectionRequests = ({ userId, enabled = true }: { userId: stri
     }
     if (query.error) {
       console.error("Error fetching chat by ID:", query.error);
+    }
+  }, [query.data, query.error]);
+
+  return query;
+};
+
+
+//Get recommendations:
+export const useRecommendedProfiles = ({ userId, enabled = true, }: { userId: string; enabled?: boolean; }) => {
+  const addRecommendationsBulk = useConnectionStore((s) => s.addRecommendationsBulk);
+
+  const query = useQuery<ConnectionUser[]>({
+    queryKey: ["recommended-profiles", userId],
+    queryFn: () => getRecommendedProfiles(userId),
+    enabled: !!userId && enabled,
+    retry: 1,
+    gcTime: 0,
+    refetchInterval: 10000,
+  });
+
+  useEffect(() => {
+    if (query.data) {
+      addRecommendationsBulk(query.data);
+    }
+
+    if (query.error) {
+      console.error("Error fetching recommended profiles:", query.error);
     }
   }, [query.data, query.error]);
 
