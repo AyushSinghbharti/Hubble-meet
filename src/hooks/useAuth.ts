@@ -57,14 +57,19 @@ export const useLogin = () => {
 
 export const useSocialLogin = () => {
   const setToken = useAuthStore((state) => state.setToken);
+  const setUserId = useAuthStore((state) => state.setUserId);
+  const setUser = useAuthStore((state) => state.setUser);
 
   return useMutation({
     mutationFn: socialLogin,
     onSuccess: async (data) => {
       const token = data?.token;
       if (token) {
+        console.log(JSON.stringify(data, null, 2))
         saveTokenToStorage(token);
         setToken(token);
+        saveUserIdToStorage(data.user.id);
+        setUserId(data.user.id);
       }
       console.log(data);
     },

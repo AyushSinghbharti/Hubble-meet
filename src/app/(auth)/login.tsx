@@ -20,6 +20,7 @@ import ErrorAlert from "../../components/errorAlert";
 import RandomBackgroundImages from "../../components/RandomBGImage";
 import { useLogin, useSocialLogin } from "../../hooks/useAuth";
 import { useSocialAuth } from "@/src/hooks/useSocialAuth";
+import { useOtherUserProfile } from "@/src/hooks/useProfile";
 
 type Country = {
   name: string;
@@ -65,23 +66,32 @@ export default function Login() {
   const { mutate: socialLogin } = useSocialLogin();
 
   const { signInWithGoogle, loading } = useSocialAuth();
+  const [userId, setUserId] = useState<string | null>(null);
+  const userProfile = useOtherUserProfile(userId);
+
+  useEffect(() => {
+    if (userProfile.isSuccess) {
+      if (userProfile.data) {
+        router.replace("/connect");
+      } else {
+        router.push("/profileSetup");
+      }
+    }
+  }, [userProfile.data, userProfile.isSuccess]);
 
   const handleGoogleButtonPress = async () => {
     const payload = await signInWithGoogle();
-    console.log("payload", payload);
+    console.log("payload", JSON.stringify(payload, null, 2));
 
     socialLogin(
       {
         provider: "google",
-        providerId: payload?.idToken ?? "",
+        providerId: payload?.data.user.id ?? "",
         email: payload?.email ?? "",
       },
       {
-        onSuccess: (res) => {
-          console.log(res);
-          router.push({
-            pathname: "/profileSetup",
-          });
+        onSuccess: async (res) => {
+          setUserId(res.user.id);
         },
         onError: (err: any) => {
           console.log(err);
@@ -100,7 +110,7 @@ export default function Login() {
     }
 
     login(
-      { phone: selectedFlag.dial_code + phoneNumber},
+      { phone: selectedFlag.dial_code + phoneNumber },
       {
         onSuccess: (res) => {
           router.push({

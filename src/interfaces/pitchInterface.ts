@@ -1,5 +1,12 @@
 export type PitchStatus = 'open' | 'approved' | 'closed';
 
+export interface PitchResponse {
+  success: boolean;
+  message: string;
+  data: Pitch;
+}
+
+
 export interface Pitch {
   id: string;
   user_id: string;

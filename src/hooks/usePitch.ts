@@ -1,21 +1,42 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, UseQueryResult } from '@tanstack/react-query';
 import {
   createPitch,
   getUserPitch,
   updatePitch,
   reactToPitch,
 } from '../api/pitch';
-import { PitchFormData } from '../interfaces/pitchInterface';
+import { Pitch, PitchFormData, PitchResponse } from '../interfaces/pitchInterface';
 import { AxiosError } from 'axios';
 import { savePitchIdToStorage, savePitchToStorage } from '../store/localStorage';
 import { usePitchStore } from '../store/pitchStore';
+import { useEffect } from 'react';
 
-export const useGetUserPitch = (userId: string) => {
-  return useQuery({
+export const useGetUserPitch = (userId: string): UseQueryResult<Pitch, Error> => {
+  const setPitch = usePitchStore((state) => state.setPitch);
+  const setPitchId = usePitchStore((state) => state.setPitchId);
+
+  const queryResult = useQuery<PitchResponse, Error, Pitch, [string, string]>({
     queryKey: ['pitch', userId],
     queryFn: () => getUserPitch(userId),
     enabled: !!userId,
   });
+
+  useEffect(() => {
+    if (queryResult.data) {
+      savePitchToStorage(queryResult.data);
+      savePitchIdToStorage(queryResult.data.id);
+      setPitch(queryResult.data);
+      setPitchId(queryResult.data.id);
+    }
+    if (queryResult.error) {
+      const axiosError = queryResult.error as AxiosError<any>;
+      const errorMessage =
+        axiosError.response?.data?.message || axiosError.message;
+      console.error("Error fetching pitch:", errorMessage);
+    }
+  }, [queryResult.data, queryResult.error]);
+
+  return queryResult;
 };
 
 export const useCreatePitch = () => {

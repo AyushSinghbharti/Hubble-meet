@@ -8,21 +8,60 @@ import {
   StyleSheet,
   SafeAreaView,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, Feather, Entypo } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useRouter } from "expo-router";
 import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
-import { usePitchByUserId } from "@/src/hooks/usePitch";
-
-let VideoUri =
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
+import { useAuthStore } from "@/src/store/auth";
+import { usePitchStore } from "@/src/store/pitchStore";
+import { useGetUserPitch } from "@/src/hooks/usePitch";
+import { AxiosError } from "axios";
+import ErrorAlert from "@/src/components/errorAlert";
+import { removePitchFromStorage } from "@/src/store/localStorage";
 
 export default function MyPitchScreen() {
+  const router = useRouter();
   const [isPlaying, setIsPlaying] = useState(false);
   const [viewModal, setViewModal] = useState(false);
+  const [videoUri, setVideoUri] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const player = useVideoPlayer(VideoUri, (player) => {
+  const userId = useAuthStore((state) => state.userId);
+  const user = useAuthStore((state) => state.user);
+  const pitch = usePitchStore((state) => state.pitch);
+  const clearPitch = usePitchStore((state) => state.clearPitch);
+  const clearPitchId = usePitchStore((state) => state.clearPitchId);
+
+  const result = useGetUserPitch(userId || "");
+
+  useEffect(() => {
+    setLoading(result.isLoading);
+  }, [result.isLoading]);
+
+  useEffect(() => {
+    if (result.error) {
+      const axiosError = result.error as AxiosError<any>;
+      const status = axiosError.response?.status;
+      const message =
+        status === 404
+          ? `No pitches found for user ${user?.full_name}`
+          : "Failed to fetch pitch details, please try again.";
+
+      setError(message);
+      console.error("Pitch fetch error:", message);
+    }
+  }, [result.error]);
+
+  useEffect(() => {
+    if (pitch) {
+      setVideoUri(pitch.url);
+    }
+  }, [pitch]);
+
+  const player = useVideoPlayer(videoUri, (player) => {
     player.loop = true;
     player.pause();
   });
@@ -36,8 +75,6 @@ export default function MyPitchScreen() {
       setIsPlaying(true);
     }
   };
-
-  const router = useRouter();
 
   const handleRouter = (type) => {
     if (type === "Upload") {
@@ -71,6 +108,13 @@ export default function MyPitchScreen() {
     }
   };
 
+  const handleDeletePitch = () => {
+    setViewModal(!viewModal);
+    removePitchFromStorage({ removeId: true });
+    clearPitch();
+    clearPitchId();
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -86,42 +130,50 @@ export default function MyPitchScreen() {
       </View>
 
       <View style={styles.videoContainer}>
-        <VideoView
-          style={StyleSheet.absoluteFillObject}
-          player={player}
-          nativeControls={false}
-          startsPictureInPictureAutomatically={true}
-          allowsPictureInPicture={true}
-          onTouchStart={handlePlayPause}
-        />
-        {!isPlaying && (
-          <TouchableOpacity
-            onPress={handlePlayPause}
-            style={[styles.playButton]}
-          >
-            <Entypo name="controller-play" size={32} color="white" />
-          </TouchableOpacity>
+        {loading ? (
+          <ActivityIndicator size={50} color={"skyblue"} />
+        ) : pitch ? (
+          <>
+            <VideoView
+              style={StyleSheet.absoluteFillObject}
+              player={player}
+              nativeControls={false}
+              startsPictureInPictureAutomatically={true}
+              allowsPictureInPicture={true}
+              onTouchStart={handlePlayPause}
+            />
+            {!isPlaying && (
+              <TouchableOpacity
+                onPress={handlePlayPause}
+                style={[styles.playButton]}
+              >
+                <Entypo name="controller-play" size={32} color="white" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.deleteIcon}
+              onPress={handleDeletePitch}
+            >
+              <Image
+                source={require("../../../../assets/icons/delete.png")}
+                style={[styles.icon, { tintColor: "#fff" }]}
+              />
+            </TouchableOpacity>
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>Individual</Text>
+            </View>
+          </>
+        ) : (
+          <Text>Pitch is not uploaded for you, upload one now!!!</Text>
         )}
-
-        <TouchableOpacity
-          style={styles.deleteIcon}
-          onPress={() => setViewModal(!viewModal)}
-        >
-          <Image
-            source={require("../../../../assets/icons/delete.png")}
-            style={[styles.icon, { tintColor: "#fff" }]}
-          />
-        </TouchableOpacity>
-
-        <View style={styles.tag}>
-          <Text style={styles.tagText}>Individual</Text>
-        </View>
       </View>
 
       <View style={styles.inputSection}>
-        <Text style={styles.input}>John William</Text>
+        <Text style={styles.input}>
+          {pitch?.display_name || user?.full_name}
+        </Text>
         <Text style={[styles.input, { height: 80 }]}>
-          Dummy Corp specialises in innovative digital
+          {pitch?.pitch_caption || user?.bio}
         </Text>
       </View>
 
@@ -150,6 +202,8 @@ export default function MyPitchScreen() {
       </View>
 
       {/* Modal */}
+      {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
+
       <UploadErrorModal
         visible={viewModal}
         onClose={() => handleRouter("Upload")}

@@ -70,7 +70,6 @@ export const useCreateUserProfile = () => {
       saveUserToStorage(data);
       setUserId(data.user_id);
       setUser(data);
-      console.log(data);
     }
   });
 };

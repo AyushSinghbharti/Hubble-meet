@@ -1,8 +1,8 @@
 import api from './axios';
-import { Pitch, PitchFormData } from '../interfaces/pitchInterface';
+import { Pitch, PitchFormData, PitchResponse } from '../interfaces/pitchInterface';
 
 // Get pitch details for a user
-export const getUserPitch = async (userId: string): Promise<Pitch> => {
+export const getUserPitch = async (userId: string): Promise<PitchResponse> => {
   const response = await api.get(`/api/pitch/getDetails/${userId}`);
   return response.data.data;
 };
