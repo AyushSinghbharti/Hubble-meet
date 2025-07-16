@@ -15,6 +15,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import PopUpNotification from "../../../../components/chatScreenComps/popUpNotification";
 import PopUpOption from "../../../../components/chatScreenComps/popUpOption";
 import { UserProfile } from "@/src/interfaces/profileInterface";
+import { resolveChatAndNavigate } from "@/src/utility/resolveChatAndNavigate";
+import { useAuthStore } from "@/src/store/auth";
 
 export default function ViewVBC() {
   const params = useLocalSearchParams();
@@ -56,10 +58,7 @@ export default function ViewVBC() {
     } else if (option === "block") {
       setBlockPopUp(!blockPopUp);
     } else if (option === "chat") {
-      router.replace({
-        pathname: `chatStack/${id}`,
-        params: { item: JSON.stringify(item) }, //Look out for error in future maybe!!!
-      });
+      router.back();
     }
   };
 

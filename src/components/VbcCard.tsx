@@ -15,6 +15,8 @@ import { useRouter } from "expo-router";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import profileData from "../dummyData/dummyProfiles";
 import { useConnectionStore } from "../store/connectionStore";
+import { useAuthStore } from "../store/auth";
+import { resolveChatAndNavigate } from "../utility/resolveChatAndNavigate";
 
 interface User {
   id: string;
@@ -29,18 +31,18 @@ const CARD_GAP = 10;
 const CARD_WIDTH = (width - CARD_GAP * 2 - 8) / 2.15; // 8px total horizontal margin (4 + 4)
 
 const VbcCard = ({ spacing }: { spacing?: any }) => {
+  const router = useRouter();
   const [addModal, setAddModal] = useState(false);
   const [blockModal, setBlockModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const router = useRouter();
   const connections = useConnectionStore((state) => state.connections);
   const users: UserProfile[] = connections;
+  const currentUser = useAuthStore((state) => state.user);
 
-  const handleChatPress = (user: UserProfile) => {
-    router.push({
-      pathname: `chatStack/${user.user_id}`,
-      params: { item: JSON.stringify(user) },
-    });
+  const handleChatPress = async (user: UserProfile) => {
+    console.log(user);
+    console.log(currentUser);
+    await resolveChatAndNavigate({ currentUser, targetUser: user });
   };
   const handleSharePress = (user: UserProfile) =>{
     Share.share({message: `Hey see my VBC card here ${user.full_name}`});
