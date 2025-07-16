@@ -56,3 +56,13 @@ export interface ConnectionUser extends UserProfile {
   connection_status: ConnectionStatus;
 }
 
+export interface ConnectionRequest {
+  user_id: string;
+  full_name: string;
+  bio: string;
+  job_title: string;
+  industries_of_interest: string[];
+  cities_on_radar: string[];
+  profile_picture_url: string;
+  request_status: "SENT" | "RECEIVED" | "ACCEPTED" | "REJECTED";
+}

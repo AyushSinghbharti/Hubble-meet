@@ -11,6 +11,7 @@ import {
     ConnectionUser,
     DefaultSuccessResponse,
     ErrorResponse,
+    ConnectionRequest,
 } from "../interfaces/connectionInterface";
 
 // Send Connection Request
@@ -57,4 +58,12 @@ export const getAllConnections = async (
 ): Promise<ConnectionUser[]> => {
     const res = await api.post("/api/connection/all/", data);
     return res.data;
+};
+
+//Get all requests
+export const getConnectionRequests = async (userId: string): Promise<ConnectionRequest[]> => {
+    const response = await api.get(`api/connection/requests`, {
+        params: { userId },
+    });
+    return response.data;
 };

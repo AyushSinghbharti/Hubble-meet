@@ -4,15 +4,17 @@ import SearchBar from "../../../components/SearchBar";
 import VBCCard from "../../../components/VbcCard";
 import HubbleCard from "../../../components/HubbleCard";
 import RequestsCard from "./RequestsCard";
+import { useConnectionStore } from "@/src/store/connectionStore";
 
 export default function VBCScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("VBC");
+  const requestCount = useConnectionStore((s) => s.requestCount);
 
   const tabs = [
     { label: "VBC", number: 0, showLabel: false },
     { label: "Hubble Circle", number: 0, showLabel: false },
-    { label: "Requests", number: 5, showLabel: true },
+    { label: "Requests", number: requestCount, showLabel: true },
   ];
 
   return (

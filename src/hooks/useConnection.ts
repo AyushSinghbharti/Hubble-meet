@@ -8,6 +8,7 @@ import {
   blockUser,
   unblockUser,
   getAllConnections,
+  getConnectionRequests,
 } from "../api/connection";
 import {
   AcceptConnectionRequestBody,
@@ -19,7 +20,11 @@ import {
   SendConnectionRequestBody,
   UnblockUserRequestBody,
   ConnectionUser,
+  ConnectionRequest,
 } from "../interfaces/connectionInterface";
+import { useConnectionStore } from "../store/connectionStore";
+import { saveConnectionsToStorage } from "../store/localStorage";
+import { useEffect } from "react";
 
 // Utility handlers (optional: customize per project)
 const handleSuccess = (action: string) => {
@@ -84,17 +89,59 @@ export const useUnblockUser = () =>
 // --- Query ---
 
 export const useUserConnections = (userId: string, enabled = true) => {
+  const setConnections = useConnectionStore((state) => state.setConnections);
   const query = useQuery<ConnectionUser[]>({
     queryKey: ["user-connections", userId],
     queryFn: () => getAllConnections({ userId }),
     enabled: !!userId && enabled,
     retry: 1, // Optional: don't retry failed POSTs too aggressively
     gcTime: 0, // Optional: prevent auto garbage collection
+    refetchInterval: 1000, //Optional: fetch data after 0.5 sec
   });
 
-  // side effect: handle query state transitions
-  if (query.isSuccess) handleSuccess("Fetch Connections");
-  if (query.isError) handleError("Fetch Connections", query.error);
+  useEffect(() => {
+    if (query.data) {
+      setConnections(query.data);
+      saveConnectionsToStorage(query.data);
+      handleSuccess("Fetch Connections");
+    }
+    if (query.error) {
+      handleError("Fetch Connections", query.error);;
+    }
+  }, [query.data, query.error]);
+
+  return query;
+};
+
+
+export const useConnectionRequests = ({ userId, enabled = true }: { userId: string, enabled?: boolean }) => {
+  const setRequests = useConnectionStore((state) => state.setRequests);
+  const setSentRequests = useConnectionStore((state) => state.setSentRequests);
+
+  const query = useQuery<ConnectionRequest[]>({
+    queryKey: ["connection-requests", userId],
+    queryFn: () => getConnectionRequests(userId),
+    enabled: !!userId && enabled,
+    retry: 1, // Optional: don't retry failed POSTs too aggressively
+    gcTime: 0, // Optional: prevent auto garbage collection
+    refetchInterval: 200, //Optional: fetch data after 0.5 sec
+  });
+
+  useEffect(() => {
+    if (query.data) {
+      const received = query.data.filter(
+        (req) => req.request_status === "RECEIVED"
+      );
+      const sent = query.data.filter(
+        (req) => req.request_status !== "RECEIVED"
+      );
+      setRequests(received.reverse());
+      setSentRequests(sent.reverse());
+    }
+    if (query.error) {
+      console.error("Error fetching chat by ID:", query.error);
+    }
+  }, [query.data, query.error]);
 
   return query;
 };

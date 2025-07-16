@@ -25,8 +25,6 @@ import { useRouter } from "expo-router";
 import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
 import logo from "../../../../assets/logo/logo.png";
-// import profileData from "../../../dummyData/profileData";
-// import profileData from "@/src/dummyData/dummyProfiles";
 import { FONT } from "../../../../assets/constants/fonts";
 import styles from "./Styles/Styles";
 import BlockUserModal from "../../../components/Modal/BlockUserModal";
@@ -43,6 +41,7 @@ import { useAuthStore } from "@/src/store/auth";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useConnectionStore } from "@/src/store/connectionStore";
+import { useRecommendations } from "@/src/hooks/useRecommendations";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -84,6 +83,8 @@ const ProfileCard = ({
 
   //Store data
   const userId = useAuthStore((state) => state.userId);
+  const connections = useAuthStore((state) => state.userId);
+  console.log(userId);
   //Backend Testing
   const { mutate: sendConnection } = useSendConnection();
   const { mutate: acceptConnection } = useAcceptConnection();

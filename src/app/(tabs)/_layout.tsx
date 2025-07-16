@@ -21,6 +21,7 @@ import { useConnectionStore } from "@/src/store/connectionStore";
 import { dummyUserId } from "@/src/dummyData/dummyUserId";
 import { useQueries } from "@tanstack/react-query";
 import { fetchUserProfile } from "@/src/api/profile";
+import { useConnectionRequests } from "@/src/hooks/useConnection";
 
 const baseUrl = "../../../assets/icons";
 
@@ -62,51 +63,6 @@ export default function StackLayout() {
   const [vbcId, setVbcId] = useState<string | null>(null);
   const user = useAuthStore((state) => state.user);
 
-
-
-
-
-
-  const UserIds = dummyUserId;
-
-  const addConnection = useConnectionStore((state) => state.addConnection);
-  const clearConnections = useConnectionStore(
-    (state) => state.clearConnections
-  );
-
-  const profileQueries = useQueries({
-    queries: UserIds.map((id) => ({
-      queryKey: ["other-user-profile", id],
-      queryFn: () => fetchUserProfile(id),
-      enabled: !!id,
-    })),
-  });
-
-  useEffect(() => {
-    const successfulProfiles = profileQueries
-      .filter((q) => q.status === "success" && q.data)
-      .map((q) => q.data);
-
-    if (successfulProfiles.length > 0) {
-      clearConnections(); // clear old
-      successfulProfiles.forEach((profile) => {
-        addConnection(profile);
-      });
-    }
-
-    const errors = profileQueries.filter((q) => q.status === "error");
-    if (errors.length > 0) {
-      console.warn("Some profiles failed to load");
-    }
-  }, [profileQueries.map((q) => q.status).join(",")]);
-
-
-
-
-
-
-
-
   useEffect(() => {
     const fetchStoredData = async () => {
       const storedUserId = await getUserIdFromStorage();
@@ -117,8 +73,8 @@ export default function StackLayout() {
     fetchStoredData();
   }, []);
 
-  useUserProfile(userId);
-  useGetVbcCard(vbcId);
+  useUserProfile(userId || "");
+  useGetVbcCard(vbcId || "");
   const { mutate: createVbcCard } = useCreateVbcCard();
   useEffect(() => {
     if (!vbcId && user) {
@@ -132,6 +88,9 @@ export default function StackLayout() {
       });
     }
   }, [vbcId, user]);
+
+  //Fetching all requests
+  useConnectionRequests({ userId: userId, enabled: true });
 
   return (
     <>

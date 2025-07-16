@@ -28,13 +28,14 @@ import {
 } from "@/src/hooks/useConnection";
 import { useAuthStore } from "@/src/store/auth";
 import { useConnectionStore } from "@/src/store/connectionStore";
+import { ConnectionRequest } from "@/src/interfaces/connectionInterface";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
 const SWIPE_THRESHOLD = 120;
 
 interface ProfileCardProps {
-  profile: UserProfile;
+  profile: ConnectionRequest;
   setError: any;
   onSwipeComplete: (id: string) => void;
 }
@@ -193,7 +194,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           >
             <Text style={styles.name}>{profile.full_name}</Text>
             <Text style={styles.title}>{profile.job_title}</Text>
-            <Text style={styles.location}>{profile.city}</Text>
+            <Text style={styles.location}>{profile.bio}</Text>
           </LinearGradient>
         </Animated.View>
       </GestureDetector>
@@ -218,14 +219,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   );
 };
 
-interface ProfileListProps {
-  profiles: UserProfile[];
-}
-
-const ProfileList: React.FC<ProfileListProps> = ({}) => {
+const ProfileList = ({}) => {
   const [swipedIds, setSwipedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const connections = useConnectionStore((state) => state.connections);
+  const requests = useConnectionStore((state) => state.requests);
 
   useEffect(() => {
     if (error) {
@@ -243,7 +240,7 @@ const ProfileList: React.FC<ProfileListProps> = ({}) => {
   }, []);
 
   const renderItem = useCallback(
-    ({ item }: { item: UserProfile }) => {
+    ({ item }: { item: ConnectionRequest }) => {
       if (swipedIds.includes(item.user_id)) return null;
       return (
         <ProfileCard
@@ -259,10 +256,13 @@ const ProfileList: React.FC<ProfileListProps> = ({}) => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={connections}
+        data={requests}
         renderItem={renderItem}
         keyExtractor={(item) => item.user_id}
         showsVerticalScrollIndicator={false}
+        initialNumToRender={3}
+        removeClippedSubviews
+        windowSize={5}
         contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
