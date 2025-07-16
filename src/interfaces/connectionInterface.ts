@@ -1,22 +1,58 @@
-export interface CreateConnectionPayload {
-  sender_id: string;
-}
+import { UserProfile } from "./profileInterface";
+export type ConnectionStatus = 'CONNECTED' | 'PENDING' | 'BLOCKED';
 
-export interface RemoveConnectionPayload {
+// ---------- Request Interfaces ----------
+export interface SendConnectionRequestBody {
+  user_id: string;
   receiver_id: string;
 }
 
-export interface RejectConnectionPayload {
+export interface RejectConnectionRequestBody {
+  user_id: string;
+  receiver_id: string;
+}
+
+export interface RemoveRequestBody {
+  user_id: string;
+  receiver_id: string;
+}
+
+export interface AcceptConnectionRequestBody {
+  user_id: string;
   sender_id: string;
 }
 
-export interface CloseConnectionPayload {
+export interface CloseConnectionRequestBody {
+  user_id: string;
   closed_user_id: string;
 }
 
-export interface RecommendedUser {
-  id: string;
-  name: string;
-  interests: string[];
-  mutualConnections?: number;
+export interface BlockUserRequestBody {
+  user_id: string;
+  blocked_user_id: string;
 }
+
+export interface UnblockUserRequestBody {
+  user_id: string;
+  blocked_user_id: string;
+}
+
+export interface GetUserConnectionsRequestBody {
+  userId: string;
+}
+
+// ---------- Response Interfaces ----------
+export interface DefaultSuccessResponse {
+  message: string;
+}
+
+export interface ErrorResponse {
+  message: string;
+  error: string;
+  statusCode: number;
+}
+
+export interface ConnectionUser extends UserProfile {
+  connection_status: ConnectionStatus;
+}
+

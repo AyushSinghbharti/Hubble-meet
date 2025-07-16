@@ -14,13 +14,12 @@ import Swipeable, {
   SwipeableMethods,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
 import PopUpOption from "../../../components/chatScreenComps/popUpOption";
-import {
-  useUserChats,
-} from "@/src/hooks/useChat";
+import { useUserChats } from "@/src/hooks/useChat";
 import { useAuthStore } from "@/src/store/auth";
 import { Chat } from "@/src/interfaces/chatInterface";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { useChatStore } from "@/src/store/chatStore";
+import { getChatFromStorage } from "@/src/store/localStorage";
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -28,9 +27,25 @@ export default function ChatScreen() {
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showdeleteModal, setDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Chat | null>(null);
+  const [chats, setChats] = useState<Chat[] | null>(null);
+
+  const updatedChats = useChatStore((state) => state.chat);
+
+  // Load chats from localStorage on initial render
+  useEffect(() => {
+    const loadChatsFromStorage = async () => {
+      const localChats = await getChatFromStorage();
+      setChats(localChats);
+    };
+    loadChatsFromStorage();
+  }, []);
+
+  // Update chats when store updates
+  useEffect(() => {
+    setChats(updatedChats);
+  }, [updatedChats]);
 
   useUserChats(user?.user_id);
-  const chats = useChatStore((state) => state.chat);
 
   const SwipeActionBar = () => {
     return (

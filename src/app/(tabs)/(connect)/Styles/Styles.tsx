@@ -11,7 +11,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f7f7f7",
   },
   flatListContent: {
-    paddingVertical: 10,
     paddingHorizontal: 10,
     paddingBottom: 20,
     alignItems: "center",
@@ -68,7 +67,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontFamily: FONT.BOLD,
     color: "#fff",
   },
   title: {

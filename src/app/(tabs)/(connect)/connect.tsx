@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -25,7 +25,8 @@ import { useRouter } from "expo-router";
 import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
 import logo from "../../../../assets/logo/logo.png";
-import profileData from "../../../dummyData/profileData";
+// import profileData from "../../../dummyData/profileData";
+import profileData from "@/src/dummyData/dummyProfiles";
 import { FONT } from "../../../../assets/constants/fonts";
 import styles from "./Styles/Styles";
 import BlockUserModal from "../../../components/Modal/BlockUserModal";
@@ -33,7 +34,14 @@ import ProfilePromptModal from "../../../components/Modal/ProfilePromptModal";
 import ProfilePrompt from "../../../components/Modal/ProfilePromptModal";
 import ShareModal from "../../../components/Share/ShareBottomSheet";
 import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
-import { usePitchByUserId } from "@/src/hooks/usePitch";
+import {
+  useAcceptConnection,
+  useSendConnection,
+  useUserConnections,
+} from "@/src/hooks/useConnection";
+import { useAuthStore } from "@/src/store/auth";
+import { UserProfile } from "@/src/interfaces/profileInterface";
+import ErrorAlert from "@/src/components/errorAlert";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -49,6 +57,15 @@ const ProfileCard = ({
   isExpanded,
   onToggleDetails,
   hasFlipped,
+  setError,
+}: {
+  profile: UserProfile;
+  onSwipeComplete: any;
+  rightSwipeCount: any;
+  isExpanded: boolean;
+  onToggleDetails: any;
+  hasFlipped: boolean;
+  setError: any;
 }) => {
   const translateX = useSharedValue(0);
   const rotate = useSharedValue(0);
@@ -64,15 +81,42 @@ const ProfileCard = ({
   const [flippedProfiles, setFlippedProfiles] = useState({});
   const [showShare, setShowShare] = useState(false);
 
+  //Store data
+  const userId = useAuthStore((state) => state.userId);
   //Backend Testing
+  const { mutate: sendConnection } = useSendConnection();
+  const { mutate: acceptConnection } = useAcceptConnection();
+  const handleSendConnection = () => {
+    if (!userId || !profile?.user_id) {
+      console.warn("Missing user or receiver id");
+      return;
+    }
 
+    sendConnection(
+      {
+        user_id: userId,
+        receiver_id: profile.user_id,
+      },
+      {
+        onSuccess: (res) => console.log(res),
+        onError: (error) => {
+          const message =
+            error?.response?.data?.message ?? "Something went wrong";
+          setError(message);
+        },
+      }
+    );
+  };
 
+  // useEffect(() => {
+  //   acceptConnection({
+  //     user_id: "8ba41d7e-a293-4dab-b6b3-efc0ce67685f",
+  //     receiver_id: userId
+  //   })
+  // }, [])
 
-
-
-
-
-
+  // const result = useUserConnections(userId, true);
+  // console.log("all connections", JSON.stringify(result.data, null, 2));
 
   const undoTimeoutRef = useRef(null);
 
@@ -127,7 +171,7 @@ const ProfileCard = ({
   }, []);
 
   const completeSwipe = useCallback(
-    (profileId, direction) => {
+    (profileId: string, direction: string) => {
       onSwipeComplete(profileId, direction);
     },
     [onSwipeComplete]
@@ -178,8 +222,8 @@ const ProfileCard = ({
   );
 
   const handleImageTap = useCallback(() => {
-    onToggleDetails(profile.id);
-  }, [onToggleDetails, profile.id]);
+    onToggleDetails(profile);
+  }, [onToggleDetails, profile.user_id]);
 
   // Pan gesture for swiping
   const panGesture = Gesture.Pan()
@@ -199,7 +243,7 @@ const ProfileCard = ({
         translateX.value = withSpring(-width);
         rotate.value = withSpring(-ROTATION_DEGREE);
         runOnJS(showUndoModal)();
-        runOnJS(startUndoTimer)(profile.id);
+        runOnJS(startUndoTimer)(profile.user_id);
       } else if (swipedRight) {
         if (rightSwipeCount >= MAX_RIGHT_SWIPES) {
           runOnJS(showRightSwipeAlert)();
@@ -207,13 +251,14 @@ const ProfileCard = ({
           rotate.value = withSpring(0);
           return;
         }
+        runOnJS(handleSendConnection)();
         runOnJS(showRequestSentModal)();
         translateX.value = withSpring(width);
         rotate.value = withSpring(ROTATION_DEGREE);
         opacity.value = withTiming(0, { duration: 300 }, (finished) => {
           "worklet";
           if (finished) {
-            runOnJS(completeSwipe)(profile.id, "right");
+            runOnJS(completeSwipe)(profile.user_id, "right");
           }
         });
       } else {
@@ -231,7 +276,7 @@ const ProfileCard = ({
   // Combine gestures: pan for the entire card, tap for the image
   const cardGesture = Gesture.Simultaneous(panGesture);
   const detailGesture = Gesture.Simultaneous(imageTapGesture);
-
+  // console.log("current profile", profile);
   return (
     <>
       {!isExpanded ? (
@@ -239,7 +284,7 @@ const ProfileCard = ({
           <Animated.View style={[styles.card, cardStyle]}>
             <GestureDetector gesture={imageTapGesture}>
               <Image
-                source={profile.image}
+                source={{ uri: profile.profile_picture_url }}
                 style={styles.image}
                 resizeMode="cover"
               />
@@ -250,7 +295,10 @@ const ProfileCard = ({
               onPress={handleThumbImagePress}
               activeOpacity={0.7}
             >
-              <Image source={profile.image} style={styles.thumbImage} />
+              <Image
+                source={{ uri: profile.profile_picture_url }}
+                style={styles.thumbImage}
+              />
               <AntDesign
                 name="arrowsalt"
                 size={16}
@@ -263,9 +311,9 @@ const ProfileCard = ({
               colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,0.9)"]}
               style={styles.gradient}
             >
-              <Text style={styles.name}>{profile.name}</Text>
-              <Text style={styles.title}>{profile.title}</Text>
-              <Text style={styles.location}>{profile.location}</Text>
+              <Text style={styles.name}>{profile.full_name}</Text>
+              <Text style={styles.title}>{profile.job_title}</Text>
+              <Text style={styles.location}>{profile.city}</Text>
             </LinearGradient>
 
             <View style={styles.bottomActions}>
@@ -305,7 +353,7 @@ const ProfileCard = ({
               contentContainerStyle={styles.backCardScrollContent}
             >
               <ImageBackground
-                source={profile.image}
+                source={{ uri: profile.profile_picture_url }}
                 style={styles.backCardContent}
               >
                 <LinearGradient
@@ -325,7 +373,7 @@ const ProfileCard = ({
                         { color: "#000", fontFamily: FONT.BOLD },
                       ]}
                     >
-                      {profile.name}
+                      {profile.full_name}
                     </Text>
                     <Text
                       style={[
@@ -333,7 +381,7 @@ const ProfileCard = ({
                         { color: "#000", fontFamily: FONT.SEMIBOLD },
                       ]}
                     >
-                      {profile.title}
+                      {profile.job_title}
                     </Text>
                     <Text
                       style={[
@@ -341,7 +389,7 @@ const ProfileCard = ({
                         { color: "#000", fontFamily: FONT.BOLD },
                       ]}
                     >
-                      {profile.location}
+                      {profile.city}
                     </Text>
 
                     <View style={styles.section}>
@@ -349,14 +397,14 @@ const ProfileCard = ({
                       <Text
                         style={[styles.backText, { fontFamily: FONT.MEDIUM }]}
                       >
-                        {profile.about}
+                        {profile.bio}
                       </Text>
                     </View>
 
                     <View style={styles.section}>
                       <Text style={styles.sectionTitle}>Industries</Text>
                       <View style={styles.tagsContainer}>
-                        {profile.industries?.map((industry, index) => (
+                        {profile.current_industry?.map((industry, index) => (
                           <View key={index} style={styles.tagBox}>
                             <Text style={styles.tagText}>{industry}</Text>
                           </View>
@@ -367,11 +415,13 @@ const ProfileCard = ({
                     <View style={styles.section}>
                       <Text style={styles.sectionTitle}>Areas of Interest</Text>
                       <View style={styles.tagsContainer}>
-                        {profile.areasOfInterest?.map((interest, index) => (
-                          <View key={index} style={styles.tagBox}>
-                            <Text style={styles.tagText}>{interest}</Text>
-                          </View>
-                        ))}
+                        {profile.industries_of_interest?.map(
+                          (interest, index) => (
+                            <View key={index} style={styles.tagBox}>
+                              <Text style={styles.tagText}>{interest}</Text>
+                            </View>
+                          )
+                        )}
                       </View>
                     </View>
                   </View>
@@ -433,7 +483,7 @@ const ProfileCard = ({
           onSubmit={() => setBlockAlertVisible(false)}
           label="Profile Blocked"
           buttonText="OK"
-          userName={profile?.name || "This user"}
+          userName={profile?.full_name || "This user"}
         />
       </View>
     </>
@@ -447,6 +497,7 @@ const Connect = () => {
   const [expandedProfileId, setExpandedProfileId] = useState(null);
   const [hasFlipped, setHasFlipped] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSwipeComplete = useCallback(
     (id, direction) => {
@@ -468,24 +519,24 @@ const Connect = () => {
     [showLimitModal]
   );
 
-  const handleToggleDetails = useCallback((profileId) => {
-    setExpandedProfileId((prev) => {
-      const newId = prev === profileId ? null : profileId;
-      if (newId) setHasFlipped(true); // set flipped only when expanding
-      return newId;
-    });
+  const handleToggleDetails = useCallback((profile) => {
+    const profileId = profile.user_id;
+    setExpandedProfileId((prev) => (prev === profileId ? null : profileId));
+    if (profileId) setHasFlipped(true);
   }, []);
 
   const renderItem = useCallback(
-    ({ item }) => {
+    ({ item }: { item: UserProfile }) => {
+      console.log("item", item);
       return (
         <ProfileCard
           profile={item}
           onSwipeComplete={handleSwipeComplete}
           rightSwipeCount={rightSwipeCount}
-          isExpanded={expandedProfileId === item.id}
+          isExpanded={expandedProfileId === item.user_id}
           onToggleDetails={handleToggleDetails}
           hasFlipped={hasFlipped}
+          setError={setError}
         />
       );
     },
@@ -493,11 +544,14 @@ const Connect = () => {
   );
 
   const visibleProfileData = expandedProfileId
-    ? profileData.filter((item) => item.id === expandedProfileId)
-    : profileData.filter((item) => !swipedIds.includes(item.id)).slice(0, 1);
+    ? profileData.filter((item) => item.user_id === expandedProfileId)
+    : profileData
+        .filter((item) => !swipedIds.includes(item.user_id))
+        .slice(0, 1);
 
   return (
     <View style={styles.container}>
+      {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
       <Header
         logoSource={logo}
         onSearch={(text) => console.log("Search:", text)}
@@ -505,7 +559,7 @@ const Connect = () => {
       <FlatList
         data={visibleProfileData}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.user_id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={

@@ -1,34 +1,60 @@
-import axios from './axios';
+import api from "./axios";
 import {
-    CreateConnectionPayload,
-    RemoveConnectionPayload,
-    RejectConnectionPayload,
-    CloseConnectionPayload,
-    RecommendedUser,
-} from '../interfaces/connectionInterface';
+    SendConnectionRequestBody,
+    RejectConnectionRequestBody,
+    RemoveRequestBody,
+    AcceptConnectionRequestBody,
+    CloseConnectionRequestBody,
+    BlockUserRequestBody,
+    UnblockUserRequestBody,
+    GetUserConnectionsRequestBody,
+    ConnectionUser,
+    DefaultSuccessResponse,
+    ErrorResponse,
+} from "../interfaces/connectionInterface";
 
-// Create a connection
-export const createConnection = async (data: CreateConnectionPayload): Promise<void> => {
-    await axios.post('/connections/make', data);
+// Send Connection Request
+export const sendConnectionRequest = async (data: SendConnectionRequestBody): Promise<DefaultSuccessResponse> => {
+    const res = await api.post("/api/connection/request", data);
+    return res.data;
 };
 
-// Remove an existing connection
-export const removeConnection = async (data: RemoveConnectionPayload): Promise<void> => {
-    await axios.delete('/connections/request/remove', { data });
+// Reject Connection Request
+export const rejectConnectionRequest = async (data: RejectConnectionRequestBody): Promise<DefaultSuccessResponse> => {
+    const res = await api.post("/api/connection/request/reject", data);
+    return res.data;
 };
 
-// Cancel or reject a connection request
-export const rejectConnectionRequest = async (data: RejectConnectionPayload): Promise<void> => {
-    await axios.post('/connections/request/reject', data);
+// Remove Sent Request
+export const removeConnectionRequest = async (data: RemoveRequestBody): Promise<void> => {
+    await api.post("/api/connection/request/remove", data);
 };
 
-// Close a connection
-export const closeConnection = async (data: CloseConnectionPayload): Promise<void> => {
-    await axios.post('/connections/close', data);
+// Accept / Make Connection
+export const acceptConnectionRequest = async (data: AcceptConnectionRequestBody): Promise<void> => {
+    await api.post("/api/connection/make", data);
 };
 
-// Get recommended users
-export const getRecommendedUsers = async (): Promise<RecommendedUser[]> => {
-    const response = await axios.get<RecommendedUser[]>('/connections/recommend');
-    return response.data;
+// Close Existing Connection
+export const closeConnection = async (data: CloseConnectionRequestBody): Promise<void> => {
+    await api.post("/api/connection/close", data);
+};
+
+// Block User
+export const blockUser = async (data: BlockUserRequestBody): Promise<void> => {
+    await api.post("/api/connection/block", data);
+};
+
+// Unblock User
+export const unblockUser = async (data: UnblockUserRequestBody): Promise<DefaultSuccessResponse | ErrorResponse> => {
+    const res = await api.post("/api/connection/unblock", data);
+    return res.data;
+};
+
+// Get All Connections (for a user)
+export const getAllConnections = async (
+    data: GetUserConnectionsRequestBody
+): Promise<ConnectionUser[]> => {
+    const res = await api.post("/api/connection/all/", data);
+    return res.data;
 };

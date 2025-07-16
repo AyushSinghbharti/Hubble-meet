@@ -72,10 +72,12 @@ export const useUserChats = (userId: string): UseQueryResult<Chat[], Error> => {
     queryKey: ['chats', userId],
     queryFn: () => getUserChats(userId) as Promise<Chat[]>,
     enabled: !!userId,
+    refetchInterval: 1000,
   });
 
   useEffect(() => {
     if (queryResult.data) {
+      console.log(queryResult.data);
       saveChatToStorage(queryResult.data);
       setChat(queryResult.data);
     }
@@ -142,6 +144,7 @@ export const useChatMessages = (chatId: string): UseQueryResult<Chat, Error> => 
     queryKey: ['messages', chatId],
     queryFn: () => getChatMessages(chatId),
     enabled: !!chatId,
+    refetchInterval: 10,
   });
 
   useEffect(() => {
