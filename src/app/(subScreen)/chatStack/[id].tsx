@@ -23,6 +23,7 @@ import { UserProfile } from "@/src/interfaces/profileInterface";
 import {
   useChatById,
   useChatMessages,
+  useCreateChat,
   useDeleteMessage,
   useRemoveUserFromChat,
   useSendMessage,
@@ -31,70 +32,6 @@ import { useChatStore } from "@/src/store/chatStore";
 import { ChatMessage } from "@/src/interfaces/chatInterface";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useAuthStore } from "@/src/store/auth";
-
-export interface ChatMsg {
-  id: string;
-  text: string;
-  timestamp: Date;
-  isMe: boolean;
-  delivered?: boolean;
-}
-
-let messageList: ChatMsg[] = [
-  { id: "1", text: "Hello!", timestamp: new Date(), isMe: false },
-  {
-    id: "2",
-    text: "Hello!",
-    timestamp: new Date(),
-    isMe: true,
-    delivered: true,
-  },
-  {
-    id: "3",
-    text: "Hey! How's your day going?",
-    timestamp: new Date(),
-    isMe: false,
-  },
-  {
-    id: "4",
-    text: "Hey! It’s going well. Just a bit busy with work. You?",
-    timestamp: new Date(),
-    isMe: true,
-    delivered: true,
-  },
-  {
-    id: "5",
-    text: "Same here. Meetings all day!",
-    timestamp: new Date(),
-    isMe: false,
-  },
-  {
-    id: "6",
-    text: "That sounds exhausting.\nGot any plans for the evening?",
-    timestamp: new Date(),
-    isMe: true,
-    delivered: true,
-  },
-  {
-    id: "7",
-    text: "Probably just relaxing and watching a show. What about you?",
-    timestamp: new Date(),
-    isMe: false,
-  },
-  {
-    id: "8",
-    text: "Thinking of going for a walk.\nNeed some fresh air",
-    timestamp: new Date(),
-    isMe: true,
-    delivered: true,
-  },
-  {
-    id: "9",
-    text: "Sounds like a good idea!\nEnjoy your walk",
-    timestamp: new Date(),
-    isMe: false,
-  },
-];
 
 export default function ChatDetailsScreen() {
   const router = useRouter();
@@ -125,14 +62,46 @@ export default function ChatDetailsScreen() {
 
   const { mutate: sendMessage } = useSendMessage();
   const { mutate: removeUser } = useRemoveUserFromChat();
+  const { mutate: createChat } = useCreateChat();
 
   const onPressSendMessage = (content: string) => {
     if (!content) return;
 
     const user = useAuthStore.getState().user;
     const currentChat = useChatStore.getState().currentChat;
-
-    if (!user || !currentChat) return;
+    const messages = useChatStore.getState().messages;
+    if (!user) return;
+    if (!currentChat && messages.length <= 0) {
+      console.log("user", user);
+      console.log("profile", profile);
+      createChat(
+        {
+          users: [
+            {
+              id: user.user_id,
+              username: user.full_name,
+              email: user.email,
+            },
+            {
+              id: profile.user_id,
+              username: profile.full_name,
+              email: profile.email,
+            },
+          ],
+          name: profile.full_name,
+        },
+        {
+          onSuccess: (res) => {
+            console.log("Chat created successfully");
+          },
+          onError: (err) => {
+            console.error("Chat creation failed", err);
+            setError("Failed to start chat");
+          },
+        }
+      );
+      return;
+    }
 
     const sendMessagePayload = {
       content: content,

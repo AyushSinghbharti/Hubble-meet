@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -20,27 +20,28 @@ import { AntDesign } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import MatchModal from "../../../components/Alerts/RequestModalAlert";
 import AlertModal from "../../../components/Alerts/AlertModal";
-import profileData from "../../../dummyData/profileData";
+import { UserProfile } from "@/src/interfaces/profileInterface";
+import profileData from "@/src/dummyData/dummyProfiles";
+import {
+  useAcceptConnection,
+  useRejectConnection,
+} from "@/src/hooks/useConnection";
+import { useAuthStore } from "@/src/store/auth";
+import { useConnectionStore } from "@/src/store/connectionStore";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
 const SWIPE_THRESHOLD = 120;
 
-interface Profile {
-  id: string;
-  image: any;
-  name: string;
-  title: string;
-  location: string;
-}
-
 interface ProfileCardProps {
-  profile: Profile;
+  profile: UserProfile;
+  setError: any;
   onSwipeComplete: (id: string) => void;
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   profile,
+  setError,
   onSwipeComplete,
 }) => {
   const translateX = useSharedValue(0);
@@ -50,6 +51,61 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const [isSwiped, setIsSwiped] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
+
+  //Backend Integration
+  const { mutate: acceptConnection } = useAcceptConnection();
+  const { mutate: rejectConnection } = useRejectConnection();
+  const userId = useAuthStore((state) => state.userId);
+
+  const handleAcceptConnection = () => {
+    setModalVisible(false);
+    acceptConnection(
+      {
+        user_id: userId || "",
+        sender_id: profile.user_id,
+      },
+      {
+        onSuccess: () => {
+          setIsSwiped(true);
+          setModalVisible(true);
+          onSwipeComplete(profile.user_id);
+        },
+        onError: (error) => {
+          setError(error?.response?.data?.message);
+          // rollback: no setIsSwiped
+          translateX.value = withSpring(0);
+          rotate.value = withSpring(0);
+        },
+      }
+    );
+  };
+
+  const handleRejectConnection = () => {
+    setAlertVisible(false);
+    rejectConnection(
+      {
+        user_id: userId || "",
+        receiver_id: profile.user_id,
+      },
+      {
+        onSuccess: () => {
+          setTimeout(() => {
+            setIsSwiped(true);
+            onSwipeComplete(profile.user_id);
+          }, 1000);
+          setAlertVisible(true);
+          setIsSwiped(true);
+          onSwipeComplete(profile.user_id);
+        },
+        onError: (error) => {
+          setError(error?.response?.data?.message);
+          // rollback: no setIsSwiped
+          translateX.value = withSpring(0);
+          rotate.value = withSpring(0);
+        },
+      }
+    );
+  };
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
@@ -63,29 +119,23 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const handleSwipe = useCallback(
     (direction: string) => {
       if (direction === "left") {
-        setAlertVisible(true);
-        setTimeout(() => {
-          setIsSwiped(true);
-          onSwipeComplete(profile.id);
-        }, 1000); // delay swipe completion
+        handleRejectConnection();
       } else if (direction === "right") {
-        setModalVisible(true);
+        handleAcceptConnection();
       }
     },
-    [profile.id, onSwipeComplete]
+    [profile.user_id, onSwipeComplete]
   );
 
   const panGesture = Gesture.Pan()
-    .activeOffsetX([-10, 10]) // Enable horizontal pan
-    .activeOffsetY([-1000, 1000]) // Disable vertical pan
+    .activeOffsetX([-10, 10])
+    .activeOffsetY([-1000, 1000])
     .onUpdate((event) => {
       if (!isSwiped) {
         translateX.value = event.translationX;
-        // Lock vertical movement by not updating translateY
         rotate.value = (event.translationX / width) * 15;
       }
     })
-
     .onEnd(() => {
       if (isSwiped) return;
       if (translateX.value < -SWIPE_THRESHOLD) {
@@ -105,13 +155,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const handleSendMessage = () => {
     setModalVisible(false);
     setIsSwiped(true);
-    onSwipeComplete(profile.id);
+    onSwipeComplete(profile.user_id);
   };
 
   const handleBackToRequest = () => {
     setModalVisible(false);
     setIsSwiped(true);
-    onSwipeComplete(profile.id);
+    onSwipeComplete(profile.user_id);
   };
 
   if (isSwiped) return null;
@@ -121,12 +171,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.card, cardStyle]}>
           <Image
-            source={profile.image}
+            source={{ uri: profile.profile_picture_url }}
             style={styles.image}
             resizeMode="cover"
           />
           <TouchableOpacity style={styles.expandThumb}>
-            <Image source={profile.image} style={styles.thumbImage} />
+            <Image
+              source={{ uri: profile.profile_picture_url }}
+              style={styles.thumbImage}
+            />
             <AntDesign
               name="arrowsalt"
               size={16}
@@ -138,49 +191,66 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             colors={["transparent", "rgba(255,255,255,0.9)", "#fff"]}
             style={styles.gradient}
           >
-            <Text style={styles.name}>{profile.name}</Text>
-            <Text style={styles.title}>{profile.title}</Text>
-            <Text style={styles.location}>{profile.location}</Text>
+            <Text style={styles.name}>{profile.full_name}</Text>
+            <Text style={styles.title}>{profile.job_title}</Text>
+            <Text style={styles.location}>{profile.city}</Text>
           </LinearGradient>
         </Animated.View>
       </GestureDetector>
 
-      <View>
-        <AlertModal
-          visible={alertVisible}
-          onClose={() => setAlertVisible(false)}
-          imageSource={require("../../../../assets/icons/cross.png")}
-          label="Request Rejected"
-          positionTop
-          positionBottom
-        />
-      </View>
+      <AlertModal
+        visible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        imageSource={require("../../../../assets/icons/cross.png")}
+        label="Request Rejected"
+        positionTop
+        positionBottom
+      />
 
-      <View>
-        <MatchModal
-          visible={modalVisible}
-          onClose={handleBackToRequest}
-          onSendMessage={handleSendMessage}
-          user1Image={Image.resolveAssetSource(profile.image).uri}
-          user2Image={Image.resolveAssetSource(profile.image).uri}
-        />
-      </View>
+      <MatchModal
+        visible={modalVisible}
+        onClose={handleBackToRequest}
+        onSendMessage={handleSendMessage}
+        user1Image={profile.profile_picture_url}
+        user2Image={profile.profile_picture_url}
+      />
     </>
   );
 };
 
-const ProfileList: React.FC = () => {
+interface ProfileListProps {
+  profiles: UserProfile[];
+}
+
+const ProfileList: React.FC<ProfileListProps> = ({}) => {
   const [swipedIds, setSwipedIds] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const connections = useConnectionStore((state) => state.connections);
+
+  useEffect(() => {
+    if (error) {
+      Toast.show({
+        type: "error",
+        text1: "Failed to perform operation",
+        text2: error,
+      });
+      setError(null);
+    }
+  }, [error]);
 
   const handleSwipeComplete = useCallback((id: string) => {
     setSwipedIds((prev) => [...prev, id]);
   }, []);
 
   const renderItem = useCallback(
-    ({ item }: { item: Profile }) => {
-      if (swipedIds.includes(item.id)) return null;
+    ({ item }: { item: UserProfile }) => {
+      if (swipedIds.includes(item.user_id)) return null;
       return (
-        <ProfileCard profile={item} onSwipeComplete={handleSwipeComplete} />
+        <ProfileCard
+          profile={item}
+          setError={setError}
+          onSwipeComplete={handleSwipeComplete}
+        />
       );
     },
     [swipedIds, handleSwipeComplete]
@@ -189,9 +259,9 @@ const ProfileList: React.FC = () => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={profileData}
+        data={connections}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.user_id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={
@@ -221,7 +291,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: width * 0.9,
-    height: CARD_HEIGHT * 1.9,
+    height: CARD_HEIGHT * 1.8,
     borderRadius: 20,
     overflow: "hidden",
     backgroundColor: "#fff",

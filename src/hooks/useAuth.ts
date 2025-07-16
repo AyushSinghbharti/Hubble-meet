@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { login, signup, socialLogin, resendOTP, verifyOTP } from '../api/auth';
 import { useAuthStore } from '../store/auth';
-import { saveTokenToStorage, removeTokenFromStorage, removeUserFromStorage, saveUserIdToStorage } from '../store/localStorage';
+import { saveTokenToStorage, removeTokenFromStorage, removeUserFromStorage, saveUserIdToStorage, clearAllAppStorage } from '../store/localStorage';
 
 export const useSignup = () => {
   const setToken = useAuthStore((state) => state.setToken);
@@ -88,6 +88,8 @@ export const logout = async () => {
 
     const resetUser = useAuthStore.getState().resetUser;
     resetUser?.();
+
+    clearAllAppStorage();
 
   } catch (error) {
     console.error('Logout error:', error);

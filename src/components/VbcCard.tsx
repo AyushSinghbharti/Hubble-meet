@@ -1,9 +1,20 @@
-import React, { useState } from "react";
-import { View, FlatList, Alert, StyleSheet, Dimensions, Text } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  FlatList,
+  Alert,
+  StyleSheet,
+  Dimensions,
+  Text,
+  Share,
+} from "react-native";
 import CustomModal from "./Modal/CustomModal";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomCard from "./Cards/vbcCard";
 import { useRouter } from "expo-router";
+import { UserProfile } from "@/src/interfaces/profileInterface";
+import profileData from "../dummyData/dummyProfiles";
+import { useConnectionStore } from "../store/connectionStore";
 
 interface User {
   id: string;
@@ -15,70 +26,32 @@ interface User {
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
-const CARD_WIDTH = (width - CARD_GAP * 2 - 8) / 2.1; // 8px total horizontal margin (4 + 4)
+const CARD_WIDTH = (width - CARD_GAP * 2 - 8) / 2.15; // 8px total horizontal margin (4 + 4)
 
-const VbcCard = ({ spacing }) => {
+const VbcCard = ({ spacing }: { spacing?: any }) => {
   const [addModal, setAddModal] = useState(false);
   const [blockModal, setBlockModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const router = useRouter();
-  const users: User[] = [
-    {
-      id: "1",
-      name: "Robin Gupta",
-      role: "Design Lead at Amazon",
-      location: "Bengaluru, India",
-      avatar: require("../../assets/images/p1.jpg"),
-    },
-    {
-      id: "2",
-      name: "Ananya Sen",
-      role: "UX Designer at Swiggy",
-      location: "Delhi, India",
-      avatar: require("../../assets/images/p1.jpg"),
-    },
-    {
-      id: "3",
-      name: "Rahul Mehta",
-      role: "PM at Flipkart",
-      location: "Mumbai, India",
-      avatar: require("../../assets/images/p1.jpg"),
-    },
-    {
-      id: "4",
-      name: "Neha Sharma",
-      role: "Engineer at Zomato",
-      location: "Chennai, India",
-      avatar: require("../../assets/images/p1.jpg"),
-    },
-    {
-      id: "5",
-      name: "Neha Sharma",
-      role: "Engineer at Zomato",
-      location: "Chennai, India",
-      avatar: require("../../assets/images/p1.jpg"),
-    },
-    {
-      id: "6",
-      name: "Neha Sharma",
-      role: "Engineer at Zomato",
-      location: "Chennai, India",
-      avatar: require("../../assets/images/p1.jpg"),
-    },
-  ];
+  const connections = useConnectionStore((state) => state.connections);
+  const users: UserProfile[] = connections;
 
-  const handleChatPress = (user: User) => {
+  const handleChatPress = (user: UserProfile) => {
     router.push({
-      pathname: `chatStack/${user.id}`,
+      pathname: `chatStack/${user.user_id}`,
       params: { item: JSON.stringify(user) },
     });
   };
-  const handleSharePress = (user: User) =>
-    Alert.alert("Share", `Share ${user.name}`);
-  const handleAddPress = (user: User) => setBlockModal(true);
-  const handleProfilePress = (user: User) =>
-    Alert.alert("Profile", `Viewing ${user.name}`);
-  const handleBagPress = (user: User) => {
+  const handleSharePress = (user: UserProfile) =>{
+    Share.share({message: `Hey see my VBC card here ${user.full_name}`});
+  }
+  const handleBlockPress = (user: UserProfile) => {
+    setBlockModal(true);
+    setSelectedUser(user);
+  };
+  const handleProfilePress = (user: UserProfile) =>
+    Alert.alert("Profile", `Viewing ${user.full_name}`);
+  const handleBagPress = (user: UserProfile) => {
     setSelectedUser(user);
     setAddModal(true);
   };
@@ -90,8 +63,8 @@ const VbcCard = ({ spacing }) => {
         numColumns={2}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.listContainer, , { spacing }]}
+        keyExtractor={(item) => item.user_id}
+        contentContainerStyle={[styles.listContainer, { spacing }]}
         columnWrapperStyle={styles.row}
         renderItem={({ item, index }) => (
           <View
@@ -101,10 +74,14 @@ const VbcCard = ({ spacing }) => {
             ]}
           >
             <CustomCard
-              {...item}
+              id={item.user_id}
+              name={item.full_name}
+              role={item.job_title}
+              location={item.city}
+              avatar={{ uri: item.profile_picture_url }}
               onChatPress={() => handleChatPress(item)}
               onSharePress={() => handleSharePress(item)}
-              onAddPress={() => handleAddPress(item)}
+              onAddPress={() => handleBlockPress(item)}
               onBagPress={() => handleBagPress(item)}
               onProfilePress={() => handleProfilePress(item)}
             />
@@ -114,7 +91,7 @@ const VbcCard = ({ spacing }) => {
 
       <BlockUserModal
         visible={blockModal}
-        userName="Geetha Reddy"
+        userName={selectedUser?.full_name}
         onClose={() => setBlockModal(false)}
         onSubmit={(reason) => {
           console.log("Blocked with reason:", reason);
@@ -126,14 +103,14 @@ const VbcCard = ({ spacing }) => {
         <CustomModal
           visible={addModal}
           onClose={() => setAddModal(false)}
-          name={selectedUser.name}
+          name={selectedUser.full_name}
           onConfirm={() => {
-            Alert.alert("Open Bag", `Bag opened for ${selectedUser.name}`);
+            Alert.alert("Open Bag", `Bag opened for ${selectedUser.full_name}`);
             setAddModal(false);
           }}
           confirmText="Open Bag"
           cancelText="Close"
-        />  
+        />
       )}
     </>
   );

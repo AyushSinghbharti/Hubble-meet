@@ -29,11 +29,13 @@ import { useChatStore } from '../store/chatStore';
 /* ---------- Create Chat ---------- */
 export const useCreateChat = () => {
   const setCurrentChat = useChatStore((state) => state.setCurrentChat);
+  const setMessages = useChatStore((state) => state.setMessages);
 
   return useMutation({
     mutationFn: (data: CreateChatRequest) => createChat(data),
     onSuccess: async (data: Chat) => {
       setCurrentChat(data);
+      setMessages(data.messages);
     },
     onError: (error) => { console.log(error) }
   });

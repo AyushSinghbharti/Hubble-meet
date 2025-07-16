@@ -38,12 +38,12 @@ export default function SettingsScreen() {
     useUpdateVbcCard();
 
   const [error, setError] = useState<string | null>();
-  const [name, setName] = useState(profileData?.full_name);
-  const [phone, setPhone] = useState(profileData?.phone.slice(3));
-  const [email, setEmail] = useState(profileData?.email);
-  const [location, setLocation] = useState(profileData?.city);
-  const [jobTitle, setJobTitle] = useState(profileData?.job_title || null);
-  const [bio, setBio] = useState(profileData?.bio || null);
+  const [name, setName] = useState(profileData?.full_name || "");
+  const [phone, setPhone] = useState(profileData?.phone?.slice(3) || "");
+  const [email, setEmail] = useState(profileData?.email || "");
+  const [location, setLocation] = useState(profileData?.city || "");
+  const [jobTitle, setJobTitle] = useState(profileData?.job_title || "");
+  const [bio, setBio] = useState(profileData?.bio || "");
   const [image, setImage] = useState(profileData?.profile_picture_url || null);
   const [uploadingImage, setUploadImage] = useState(false);
   const [companies, setCompanies] = useState(["Google", "Netflix"]);
@@ -58,7 +58,7 @@ export default function SettingsScreen() {
 
   const [selectedFlag, setSelectedFlag] = useState({
     flag: "https://flagcdn.com/w40/in.png",
-    dial_code: profileData?.phone.slice(0, 3),
+    dial_code: profileData?.phone?.slice(0, 3) || "+91",
   });
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -79,14 +79,14 @@ export default function SettingsScreen() {
       aspect: [4, 4],
       quality: 1,
     });
-    if (!res.canceled) {
+    if (!res.canceled && res.assets?.[0]?.uri) {
       try {
         setUploadImage(true);
         const url = await uploadToCloudinary(res.assets[0].uri);
         setImage(url);
       } catch (err) {
-        console.log(error);
-        setError("Error Uploading error to backend, Please try again");
+        console.log(err);
+        setError("Error uploading image, please try again");
       } finally {
         setUploadImage(false);
       }
@@ -104,37 +104,42 @@ export default function SettingsScreen() {
   };
 
   const handleSave = () => {
-    if (!profileData?.user_id) return;
+    if (!profileData?.user_id) {
+      setError("Invalid user session. Please re-login.");
+      return;
+    }
+
     const formData = {
-      fullName: name ?? undefined,
-      bio: bio ?? undefined,
-      currentCompany: companies.length > 0 ? companies[0] : "",
-      jobTitle: jobTitle ?? undefined,
-      city: location ?? undefined,
-      currentIndustry: industries ?? undefined,
-      industriesOfInterest: profileData?.industries_of_interest ?? undefined,
-      citiesOnRadar: profileData?.cities_on_radar ?? undefined,
-      connectionPreferences: profileData?.connection_preferences ?? undefined,
-      profilePictureUrl: profileData?.profile_picture_url ?? undefined,
-      dateOfBirth: dob?.toISOString().split("T")[0] ?? undefined,
+      fullName: name || undefined,
+      bio: bio || undefined,
+      currentCompany: companies?.[0] || undefined,
+      jobTitle: jobTitle || undefined,
+      city: location || undefined,
+      currentIndustry: industries?.length ? industries : undefined,
+      industriesOfInterest: profileData?.industries_of_interest || undefined,
+      citiesOnRadar: profileData?.cities_on_radar || undefined,
+      connectionPreferences: profileData?.connection_preferences || undefined,
+      profilePictureUrl: image || undefined,
+      dateOfBirth: dob?.toISOString().split("T")[0] || undefined,
     };
 
     const vbcData = {
       display_name: name,
-      job_title: jobTitle ?? undefined,
-      company_name: companies.length > 0 ? companies[0] : undefined,
+      job_title: jobTitle || undefined,
+      company_name: companies?.[0] || undefined,
       location: location,
       allow_vbc_sharing: true,
     };
 
     updateUserProfile(
-      { userId: profileData?.user_id, data: formData },
+      { userId: profileData.user_id, data: formData },
       {
         onSuccess: (res) => {
           console.log("Profile updated successfully", res);
         },
         onError: (err) => {
           console.error("Error updating profile", err);
+          setError("Failed to update profile. Please try again later.");
         },
       }
     );
@@ -146,10 +151,11 @@ export default function SettingsScreen() {
       },
       {
         onSuccess: (res) => {
-          console.log("Vbc updated successfully", res);
+          console.log("VBC updated successfully", res);
         },
         onError: (error) => {
-          console.log("error on profile1 page, vbc fetch error", error);
+          console.log("VBC update error", error);
+          setError("Failed to update VBC info. Try again.");
         },
       }
     );
@@ -300,6 +306,7 @@ export default function SettingsScreen() {
         selected={industries}
         onChange={setIndustries}
         placeholder="Select industries"
+        mode="Light"
       />
 
       <Button label="Save settings" onPress={handleSave} />

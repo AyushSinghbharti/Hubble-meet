@@ -4,7 +4,6 @@ import SearchBar from "../../../components/SearchBar";
 import VBCCard from "../../../components/VbcCard";
 import HubbleCard from "../../../components/HubbleCard";
 import RequestsCard from "./RequestsCard";
-import { Pressable } from "react-native-gesture-handler";
 
 export default function VBCScreen() {
   const [searchQuery, setSearchQuery] = useState("");

@@ -30,6 +30,13 @@ export default function ChatScreen() {
   const [chats, setChats] = useState<Chat[] | null>(null);
 
   const updatedChats = useChatStore((state) => state.chat);
+  const currentChat = useChatStore((state) => state.currentChat);
+  const clearCurrentChat = useChatStore((state) => state.currentChat);
+  const setMessages = useChatStore((state) => state.setMessages);
+
+  useEffect(() => {
+    clearCurrentChat
+  }, [currentChat])
 
   // Load chats from localStorage on initial render
   useEffect(() => {

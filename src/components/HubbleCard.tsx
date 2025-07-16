@@ -6,123 +6,60 @@ import {
   TouchableOpacity,
   Text,
   Dimensions,
-  Modal,
-  Pressable,
-  ImageBackground,
-  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { Ionicons, Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
-import ProfileCard from "./profileSetupComps/profileCard";
 import ProfileCardVertical from "./ProfileCardVertical";
+import { UserProfile } from "@/src/interfaces/profileInterface";
+import profileData from "../dummyData/dummyProfiles";
+import { useConnectionStore } from "../store/connectionStore";
+import { useAuthStore } from "../store/auth";
 
 const { width } = Dimensions.get("window");
 const CENTER = width / 2;
 
-const outerAvatars = [
-  {
-    src: require("../../assets/images/p1.jpg"),
-    borderColor: "#FF6B6B",
-    name: "Robin Gupta",
-    title: "Design Lead at Amazon",
-    location: "Bengaluru, India",
-  },
-  {
-    src: require("../../assets/images/p1.jpg"),
-    borderColor: "#6BCB77",
-    name: "Sanya Mehta",
-    title: "Product Manager at Meta",
-    location: "Mumbai, India",
-  },
-  {
-    src: require("../../assets/images/p1.jpg"),
-    borderColor: "#4D96FF",
-    name: "Raj Patel",
-    title: "UX Designer at Flipkart",
-    location: "Delhi, India",
-  },
-  {
-    src: require("../../assets/images/p1.jpg"),
-    borderColor: "#FFB703",
-    name: "Aisha Khan",
-    title: "Data Analyst at Google",
-    location: "Hyderabad, India",
-  },
-];
-
-const innerAvatars = [
-  {
-    src: require("../../assets/images/p1.jpg"),
-    borderColor: "#8338EC",
-    name: "Ankit Sharma",
-    title: "Dev Lead at Swiggy",
-    location: "Pune, India",
-  },
-  {
-    src: require("../../assets/images/p1.jpg"),
-    borderColor: "#FB5607",
-    name: "Neha Singh",
-    title: "QA Engineer at Zoho",
-    location: "Chennai, India",
-  },
-  {
-    src: require("../../assets/images/p1.jpg"),
-    borderColor: "#3A86FF",
-    name: "Aman Verma",
-    title: "Mobile Dev at Zomato",
-    location: "Indore, India",
-  },
-  {
-    src: require("../../assets/images/p1.jpg"),
-    borderColor: "#FF006E",
-    name: "Priya Desai",
-    title: "HR at Paytm",
-    location: "Ahmedabad, India",
-  },
-  {
-    src: require("../../assets/images/p1.jpg"),
-    borderColor: "#06D6A0",
-    name: "Kunal Rao",
-    title: "Analyst at Ola",
-    location: "Jaipur, India",
-  },
-];
-
-const ProfileOrbit = () => {
+const ProfileOrbit = ({}: {}) => {
   const router = useRouter();
-  const [selectedProfile, setSelectedProfile] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(
+    null
+  );
+  const connections = useConnectionStore((state) => state.connections);
+  const user = useAuthStore((state) => state.user);
+  const outerProfiles = connections.slice(0, 3);
+  const innerProfiles = connections.slice(3, connections.length - 1);
 
   const handleViewAll = () => {
     router.push("/HubbleCircleViewAll");
   };
 
-  const handleAvatarPress = (profile) => {
+  const handleAvatarPress = (profile: UserProfile) => {
     setSelectedProfile(profile);
-    setModalVisible(true);
   };
 
-  const renderOrbitAvatars = (radius, avatars) =>
+  const renderOrbitAvatars = (
+    radius: number,
+    avatars: UserProfile[],
+    length: number
+  ) =>
     avatars.map((avatar, index) => {
-      const angle = (2 * Math.PI * index) / avatars.length;
+      const angle = (2 * Math.PI * index) / length;
       const imageSize = Math.floor(Math.random() * 30) + 25;
       const x = CENTER + radius * Math.cos(angle) - imageSize / 2;
       const y = CENTER + radius * Math.sin(angle) - imageSize / 2;
 
       return (
         <TouchableOpacity
-          key={index}
+          key={avatar.user_id}
           onPress={() => handleAvatarPress(avatar)}
           activeOpacity={0.8}
           style={[styles.avatarWrapper, { left: x, top: y }]}
         >
           <Image
-            source={avatar.src}
+            source={{ uri: avatar.profile_picture_url }}
             style={[
               styles.avatar,
               {
-                borderColor: avatar.borderColor,
+                borderColor: "#a8d69f", // Default color, or random/given color
                 height: imageSize,
                 width: imageSize,
               },
@@ -154,14 +91,20 @@ const ProfileOrbit = () => {
       </LinearGradient>
 
       {/* Orbit Avatars */}
-      {renderOrbitAvatars(165, outerAvatars)}
-      {renderOrbitAvatars(115, innerAvatars)}
+      {renderOrbitAvatars(165, outerProfiles, outerProfiles.length)}
+      {renderOrbitAvatars(115, innerProfiles, outerProfiles.length + 1)}
 
       {/* Center Avatar */}
-      <Image
-        source={require("../../assets/images/p1.jpg")}
-        style={[styles.centerAvatar, { left: CENTER - 50, top: CENTER - 50 }]}
-      />
+      {outerProfiles[0] && (
+        <Image
+          source={{
+            uri:
+              user?.profile_picture_url ||
+              "https://xsgames.co/randomusers/assets/images/favicon.png",
+          }}
+          style={[styles.centerAvatar, { left: CENTER - 50, top: CENTER - 50 }]}
+        />
+      )}
 
       {/* Button */}
       <TouchableOpacity style={styles.button} onPress={handleViewAll}>
@@ -227,8 +170,6 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   avatar: {
-    width: 50,
-    height: 50,
     borderRadius: 25,
     borderWidth: 3,
     backgroundColor: "#fff",
@@ -238,7 +179,6 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     position: "absolute",
-    // zIndex: 2,
     borderWidth: 2,
     borderColor: "#fff",
   },

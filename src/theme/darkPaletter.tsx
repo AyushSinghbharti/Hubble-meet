@@ -8,12 +8,6 @@ const colourPalette = {
   buttonPrimaryBorder: "#BBCF8D",
   buttonPrimaryBorderDisabled: "#D0D0D0",
 
-  //Old
-  // buttonPrimary: "#F9FAFB",
-  // buttonPrimaryDisabled: "#9CA3AF",
-  // buttonPrimaryBorder: "#E5E7EB",
-  // buttonPrimaryBorderDisabled: "#6B7280",
-
   buttonSecondary: "#F97316",
   buttonSecondaryDisabled: "#92400E",
   buttonSecondaryBorder: "#FB923C",

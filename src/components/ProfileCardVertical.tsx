@@ -9,24 +9,15 @@ import {
   Image,
 } from "react-native";
 import {
-  Ionicons,
   MaterialCommunityIcons,
   Entypo,
-  FontAwesome,
 } from "@expo/vector-icons";
-
-interface Profile {
-  name: string;
-  title: string;
-  location: string;
-  src: any;
-  borderColor: string;
-}
+import { UserProfile } from "@/src/interfaces/profileInterface";
 
 interface ProfileModalProps {
   modalVisible: boolean;
   onClose: () => void;
-  selectedProfile: Profile;
+  selectedProfile: UserProfile;
 }
 
 export const lightenColor = (hex: string, percent: number): string => {
@@ -34,23 +25,19 @@ export const lightenColor = (hex: string, percent: number): string => {
     g = 0,
     b = 0;
 
-  // Expand shorthand like #abc → #aabbcc
   if (hex.length === 4) {
     hex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
   }
 
-  // Convert hex to RGB
   const bigint = parseInt(hex.slice(1), 16);
   r = (bigint >> 16) & 255;
   g = (bigint >> 8) & 255;
   b = bigint & 255;
 
-  // Increase each component toward white by percent
   r = Math.min(255, Math.round(r + ((255 - r) * percent) / 100));
   g = Math.min(255, Math.round(g + ((255 - g) * percent) / 100));
   b = Math.min(255, Math.round(b + ((255 - b) * percent) / 100));
 
-  // Convert back to hex
   const toHex = (val: number) => val.toString(16).padStart(2, "0");
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 };
@@ -60,6 +47,9 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
   onClose,
   selectedProfile,
 }) => {
+  const bgColor = "#cbeaa3";
+  const lightBg = lightenColor(bgColor, 50);
+
   return (
     <Modal
       visible={modalVisible}
@@ -71,11 +61,10 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
         <View style={styles.card}>
           <View style={styles.imageContainer}>
             <ImageBackground
-              source={selectedProfile.src}
+              source={{ uri: selectedProfile.profile_picture_url }}
               style={styles.image}
               imageStyle={{ borderTopLeftRadius: 30, borderTopRightRadius: 30 }}
             >
-              {/* Top Left & Right Icons */}
               <View style={styles.topIcons}>
                 <View style={styles.iconWrapper}>
                   <Image
@@ -83,7 +72,7 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
                     style={styles.icon}
                   />
                 </View>
-                <View style={[styles.iconWrapper]}>
+                <View style={styles.iconWrapper}>
                   <Image
                     source={require("../../assets/icons/pitch2.png")}
                     style={styles.icon}
@@ -94,32 +83,28 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
           </View>
         </View>
 
-        <View
-          style={[
-            styles.profileInfo,
-            { backgroundColor: selectedProfile.borderColor },
-          ]}
-        >
-          <Text style={styles.name}>{selectedProfile.name}</Text>
-          <Text style={styles.title}>{selectedProfile.title}</Text>
-          <Text style={styles.location}>{selectedProfile.location}</Text>
+        <View style={[styles.profileInfo, { backgroundColor: bgColor }]}>
+          <Text style={styles.name}>{selectedProfile.full_name}</Text>
+          <Text style={styles.title}>{selectedProfile.job_title}</Text>
+          <Text style={styles.location}>{selectedProfile.city}</Text>
 
           <View style={styles.actionRow}>
-            <TouchableOpacity style={[styles.actionCircle,{backgroundColor: lightenColor(selectedProfile.borderColor,50)}]}>
+            <TouchableOpacity style={[styles.actionCircle, { backgroundColor: lightBg }]}>
               <Image source={require("../../assets/icons/chat.png")} style={styles.icon} />
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionCircle,{backgroundColor: lightenColor(selectedProfile.borderColor,50)}]}>
+            <TouchableOpacity style={[styles.actionCircle, { backgroundColor: lightBg }]}>
               <MaterialCommunityIcons
                 name="share-variant"
                 size={22}
                 color="#000"
               />
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionCircle,{backgroundColor: lightenColor(selectedProfile.borderColor,50)}]}>
+            <TouchableOpacity style={[styles.actionCircle, { backgroundColor: lightBg }]}>
               <Image source={require("../../assets/icons/block2.png")} style={styles.icon} />
             </TouchableOpacity>
           </View>
         </View>
+
         <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
           <Entypo name="cross" size={24} color="#fff" />
         </TouchableOpacity>
@@ -175,7 +160,6 @@ const styles = StyleSheet.create({
   profileInfo: {
     paddingTop: 8,
     paddingBottom: 20,
-    backgroundColor: "#FEF9C3",
     borderRadius: 30,
     width: "85%",
     paddingHorizontal: 16,
@@ -203,7 +187,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   actionCircle: {
-    backgroundColor: "#fff",
     padding: 12,
     borderRadius: 30,
   },

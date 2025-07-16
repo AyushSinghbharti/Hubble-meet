@@ -14,9 +14,13 @@ import {
   getUserIdFromStorage,
   getVBCIdFromStorage,
 } from "@/src/store/localStorage";
-import { useUserProfile } from "@/src/hooks/useProfile";
+import { useOtherUserProfile, useUserProfile } from "@/src/hooks/useProfile";
 import { useCreateVbcCard, useGetVbcCard } from "@/src/hooks/useVbc";
 import { useAuthStore } from "@/src/store/auth";
+import { useConnectionStore } from "@/src/store/connectionStore";
+import { dummyUserId } from "@/src/dummyData/dummyUserId";
+import { useQueries } from "@tanstack/react-query";
+import { fetchUserProfile } from "@/src/api/profile";
 
 const baseUrl = "../../../assets/icons";
 
@@ -57,6 +61,51 @@ export default function StackLayout() {
   const [userId, setUserId] = useState<string | null>(null);
   const [vbcId, setVbcId] = useState<string | null>(null);
   const user = useAuthStore((state) => state.user);
+
+
+
+
+
+
+  const UserIds = dummyUserId;
+
+  const addConnection = useConnectionStore((state) => state.addConnection);
+  const clearConnections = useConnectionStore(
+    (state) => state.clearConnections
+  );
+
+  const profileQueries = useQueries({
+    queries: UserIds.map((id) => ({
+      queryKey: ["other-user-profile", id],
+      queryFn: () => fetchUserProfile(id),
+      enabled: !!id,
+    })),
+  });
+
+  useEffect(() => {
+    const successfulProfiles = profileQueries
+      .filter((q) => q.status === "success" && q.data)
+      .map((q) => q.data);
+
+    if (successfulProfiles.length > 0) {
+      clearConnections(); // clear old
+      successfulProfiles.forEach((profile) => {
+        addConnection(profile);
+      });
+    }
+
+    const errors = profileQueries.filter((q) => q.status === "error");
+    if (errors.length > 0) {
+      console.warn("Some profiles failed to load");
+    }
+  }, [profileQueries.map((q) => q.status).join(",")]);
+
+
+
+
+
+
+
 
   useEffect(() => {
     const fetchStoredData = async () => {

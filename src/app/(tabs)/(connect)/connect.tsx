@@ -26,7 +26,7 @@ import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
 import logo from "../../../../assets/logo/logo.png";
 // import profileData from "../../../dummyData/profileData";
-import profileData from "@/src/dummyData/dummyProfiles";
+// import profileData from "@/src/dummyData/dummyProfiles";
 import { FONT } from "../../../../assets/constants/fonts";
 import styles from "./Styles/Styles";
 import BlockUserModal from "../../../components/Modal/BlockUserModal";
@@ -42,6 +42,7 @@ import {
 import { useAuthStore } from "@/src/store/auth";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import ErrorAlert from "@/src/components/errorAlert";
+import { useConnectionStore } from "@/src/store/connectionStore";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -107,16 +108,6 @@ const ProfileCard = ({
       }
     );
   };
-
-  // useEffect(() => {
-  //   acceptConnection({
-  //     user_id: "8ba41d7e-a293-4dab-b6b3-efc0ce67685f",
-  //     receiver_id: userId
-  //   })
-  // }, [])
-
-  // const result = useUserConnections(userId, true);
-  // console.log("all connections", JSON.stringify(result.data, null, 2));
 
   const undoTimeoutRef = useRef(null);
 
@@ -498,6 +489,8 @@ const Connect = () => {
   const [hasFlipped, setHasFlipped] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const connections = useConnectionStore((state) => state.connections);
+
 
   const handleSwipeComplete = useCallback(
     (id, direction) => {
@@ -513,8 +506,8 @@ const Connect = () => {
         setRightSwipeCount((prev) => prev + 1);
       }
 
-      setHasFlipped(false); // reset for next profile
-      setExpandedProfileId(null); // collapse after swipe
+      setHasFlipped(false);
+      setExpandedProfileId(null);
     },
     [showLimitModal]
   );
@@ -527,7 +520,6 @@ const Connect = () => {
 
   const renderItem = useCallback(
     ({ item }: { item: UserProfile }) => {
-      console.log("item", item);
       return (
         <ProfileCard
           profile={item}
@@ -544,8 +536,8 @@ const Connect = () => {
   );
 
   const visibleProfileData = expandedProfileId
-    ? profileData.filter((item) => item.user_id === expandedProfileId)
-    : profileData
+    ? connections.filter((item) => item.user_id === expandedProfileId)
+    : connections
         .filter((item) => !swipedIds.includes(item.user_id))
         .slice(0, 1);
 
