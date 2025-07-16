@@ -116,6 +116,8 @@ export default function StackLayout() {
   };
   useLoadDummyRecommendations();
 
+  console.log(userId);
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
