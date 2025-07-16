@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
   },
   scrollArea: {
     paddingHorizontal: 12,
+    paddingBottom: 25,
   },
 
   //Pop Up style

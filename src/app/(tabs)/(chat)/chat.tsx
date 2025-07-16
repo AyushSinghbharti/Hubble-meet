@@ -35,8 +35,8 @@ export default function ChatScreen() {
   const setMessages = useChatStore((state) => state.setMessages);
 
   useEffect(() => {
-    clearCurrentChat
-  }, [currentChat])
+    clearCurrentChat;
+  }, [currentChat]);
 
   // Load chats from localStorage on initial render
   useEffect(() => {
@@ -94,6 +94,8 @@ export default function ChatScreen() {
       item.messages?.filter(
         (msg) => !msg.read && msg.senderId !== user?.user_id
       ).length || 0;
+
+    if (!lastMsg?.content) return; //Hide all users that haven't started convo yet
 
     const otherUser = item.participants.find((p) => p.id !== user?.user_id);
     const result = useOtherUserProfile(otherUser?.id);
@@ -175,7 +177,12 @@ export default function ChatScreen() {
 
       {/* Chat List */}
       <FlatList
-        data={chats || []}
+        data={(chats || [])
+          .slice()
+          .sort(
+            (a, b) =>
+              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingTop: 10 }}
         renderItem={({ item }) => <RenderCard item={item} />}

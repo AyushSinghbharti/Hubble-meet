@@ -28,7 +28,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   return (
     <View style={styles.shadowWrapper}>
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.replace("/chat")}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
 
@@ -55,7 +55,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{profileInfo.full_name}</Text>
             <Text style={styles.subTitle}>
-               Works at {profileInfo.current_company}  {/* Mark for error */}
+              Works at {profileInfo.current_company} {/* Mark for error */}
             </Text>
           </View>
         </TouchableOpacity>
