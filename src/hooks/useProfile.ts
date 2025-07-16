@@ -29,11 +29,30 @@ export const useUserProfile = (userId: string): UseQueryResult<UserProfile, Erro
   useEffect(() => {
     if (queryResult.data) {
       const data = queryResult.data;
-      console.log(data);
       saveUserIdToStorage(data.user_id);
       saveUserToStorage(data);
       setUserId(data.user_id);
       setUser(data);
+    }
+  }, [queryResult.data]);
+  
+  return queryResult;
+};
+
+//Get Other User Info (Rather than us)
+export const useOtherUserProfile = (userId: string): UseQueryResult<UserProfile, Error> => {
+  const queryResult = useQuery<UserProfile, Error, UserProfile, [string, string]>({
+    queryKey: ['other-user-profile', userId],
+    queryFn: () => fetchUserProfile(userId),
+    enabled: !!userId,
+  });
+
+  useEffect(() => {
+    if (queryResult.data) {
+      const data = queryResult.data;
+    }
+    if(queryResult.error){
+      console.log("error fetching other user info", queryResult.error);
     }
   }, [queryResult.data]);
   

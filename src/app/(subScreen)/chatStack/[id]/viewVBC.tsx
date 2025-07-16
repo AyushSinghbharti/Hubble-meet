@@ -14,10 +14,12 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import PopUpNotification from "../../../../components/chatScreenComps/popUpNotification";
 import PopUpOption from "../../../../components/chatScreenComps/popUpOption";
+import { UserProfile } from "@/src/interfaces/profileInterface";
 
 export default function ViewVBC() {
   const params = useLocalSearchParams();
-  const item = JSON.parse(params.item as string);
+  const item: UserProfile = JSON.parse(params.item as string);
+  const id = params.id;
   const router = useRouter();
   const [isCloseFriend, setCloseFriend] = useState(false);
   const [isVisible, setVisible] = useState(false);
@@ -55,7 +57,7 @@ export default function ViewVBC() {
       setBlockPopUp(!blockPopUp);
     } else if (option === "chat") {
       router.replace({
-        pathname: `chatStack/${item.id}`,
+        pathname: `chatStack/${id}`,
         params: { item: JSON.stringify(item) }, //Look out for error in future maybe!!!
       });
     }
@@ -66,7 +68,6 @@ export default function ViewVBC() {
       key={item.id}
       style={styles.row}
       activeOpacity={0.6}
-      //   onPress={() => console.log("Pressed:", item.id)}
       onPress={() => operation({ option: item.id })}
     >
       {item.image ? (
@@ -101,10 +102,17 @@ export default function ViewVBC() {
         </TouchableOpacity>
       </View>
 
-      <Image source={item.image} style={styles.avatar} />
+      <Image
+        source={{
+          uri:
+            item.profile_picture_url ||
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
+        }}
+        style={styles.avatar}
+      />
 
-      <Text style={styles.name}>{item.name}</Text>
-      <Text style={styles.role}>Accountant, Apple</Text>
+      <Text style={styles.name}>{item.full_name}</Text>
+      <Text style={styles.role}>{item.job_title}</Text>
 
       <View style={styles.divider} />
 
@@ -121,14 +129,14 @@ export default function ViewVBC() {
         onClose={() => {
           setVisible(!isVisible);
         }}
-        name={item.name}
+        name={item.full_name}
       />
 
       <PopUpOption
         visible={blockPopUp}
         onClose={() => setBlockPopUp(!blockPopUp)}
         onSelect={() => {}}
-        message={`Block ${item.name}`}
+        message={`Block ${item.full_name}`}
         description={
           "Blocked contacts cannot send you message. This contact will not be notified"
         }

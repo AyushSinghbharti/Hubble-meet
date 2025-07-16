@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -12,45 +12,25 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Swipeable, {
   SwipeableMethods,
-  SwipeableRef,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
 import PopUpOption from "../../../components/chatScreenComps/popUpOption";
-
-const dummyChats = [
-  {
-    id: "1",
-    name: "Hellen Whilliams",
-    lastMessage: "Lorem ipsum dolor sit amet",
-    time: "5.51 pm",
-    unread: 5,
-    image: require("../../../../assets/images/LoginPageBG.jpg"),
-    online: true,
-  },
-  {
-    id: "2",
-    name: "Aarya Sharma",
-    lastMessage: "Lorem ipsum dolor sit amet",
-    time: "5.51 pm",
-    unread: 0,
-    image: require("../../../../assets/images/LoginPageBG.jpg"),
-    online: true,
-  },
-  {
-    id: "3",
-    name: "Kiran Patel",
-    lastMessage: "Lorem ipsum dolor sit amet",
-    time: "25/01/2025",
-    unread: 0,
-    image: require("../../../../assets/images/LoginPageBG.jpg"),
-    online: true,
-  },
-];
+import {
+  useUserChats,
+} from "@/src/hooks/useChat";
+import { useAuthStore } from "@/src/store/auth";
+import { Chat } from "@/src/interfaces/chatInterface";
+import { useOtherUserProfile } from "@/src/hooks/useProfile";
+import { useChatStore } from "@/src/store/chatStore";
 
 export default function ChatScreen() {
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showdeleteModal, setDeleteModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<Chat | null>(null);
+
+  useUserChats(user?.user_id);
+  const chats = useChatStore((state) => state.chat);
 
   const SwipeActionBar = () => {
     return (
@@ -77,8 +57,26 @@ export default function ChatScreen() {
     );
   };
 
-  const RenderCard = ({ item }: { item: any }) => {
+  const RenderCard = ({ item }: { item: Chat }) => {
     const swipeRowRef = useRef<SwipeableMethods | null>(null);
+
+    const lastMsg = item.messages?.[item.messages.length - 1];
+    const lastMessageText = lastMsg?.content || "No messages yet";
+    const messageTime = lastMsg
+      ? new Date(lastMsg.createdAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "";
+    const unreadCount =
+      item.messages?.filter(
+        (msg) => !msg.read && msg.senderId !== user?.user_id
+      ).length || 0;
+
+    const otherUser = item.participants.find((p) => p.id !== user?.user_id);
+    const result = useOtherUserProfile(otherUser?.id);
+    const otherUserInfo = result.data;
+
     return (
       <Swipeable
         ref={swipeRowRef}
@@ -93,25 +91,31 @@ export default function ChatScreen() {
           onPress={() =>
             router.push({
               pathname: `chatStack/${item.id}`,
-              params: { item: JSON.stringify(item) },
+              params: { item: JSON.stringify(otherUserInfo) },
             })
           }
         >
           <View style={styles.leftSection}>
             <View style={styles.imageWrapper}>
-              <Image source={item.image} style={styles.avatar} />
-              {item.online && <View style={styles.onlineDot} />}
+              <Image
+                source={{
+                  uri:
+                    otherUserInfo?.profile_picture_url ||
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
+                }}
+                style={styles.avatar}
+              />
             </View>
             <View style={styles.chatText}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.message}>{item.lastMessage}</Text>
+              <Text style={styles.name}>{otherUserInfo?.full_name}</Text>
+              <Text style={styles.message}>{lastMessageText}</Text>
             </View>
           </View>
           <View style={styles.rightSection}>
-            <Text style={styles.time}>{item.time}</Text>
-            {item.unread > 0 && (
+            <Text style={styles.time}>{messageTime}</Text>
+            {unreadCount > 0 && (
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{item.unread}</Text>
+                <Text style={styles.badgeText}>{unreadCount}</Text>
               </View>
             )}
           </View>
@@ -149,7 +153,7 @@ export default function ChatScreen() {
 
       {/* Chat List */}
       <FlatList
-        data={dummyChats}
+        data={chats || []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingTop: 10 }}
         renderItem={({ item }) => <RenderCard item={item} />}

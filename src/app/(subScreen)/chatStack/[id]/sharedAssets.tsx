@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { UserProfile } from "@/src/interfaces/profileInterface";
 
 const { width } = Dimensions.get("window");
 const GRID_GAP = 8;
@@ -134,7 +135,8 @@ interface SharedAssetsProps {}
 
 export default function SharedAssets() {
   const params = useLocalSearchParams();
-  const item = JSON.parse(params.item as string);
+  const item: UserProfile = JSON.parse(params.item as string);
+  const id = params.id;
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<"media" | "docs" | "links">(
@@ -258,7 +260,7 @@ export default function SharedAssets() {
         <TouchableOpacity hitSlop={500} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{item.name}</Text>
+        <Text style={styles.headerTitle}>{item.full_name}</Text>
         <View style={{ width: 24 }} />
       </View>
 

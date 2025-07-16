@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { VbcCard } from "../interfaces/vbcInterface";
 import { Pitch } from "../interfaces/pitchInterface";
+import { Chat, ChatMessage } from "../interfaces/chatInterface";
 
 const keys = {
   token: "@token",
@@ -10,6 +11,7 @@ const keys = {
   vbc: "@vbc",
   pitchId: "@myPitchId",
   pitch: "@myPitch",
+  chat: "@chat",
 };
 
 // ---------- Token ----------
@@ -96,6 +98,23 @@ export const removePitchFromStorage = async ({ removeId }: { removeId?: boolean 
   await AsyncStorage.removeItem(keys.pitch);
   if (removeId) await AsyncStorage.removeItem(keys.pitchId);
 }
+
+
+
+// ---------- Chat Info ----------
+export const saveChatToStorage = async (chat: Chat[]) => {
+  await AsyncStorage.setItem(keys.chat, JSON.stringify(chat));
+};
+
+export const getChatFromStorage = async (): Promise<Chat[] | null> => {
+  const json = await AsyncStorage.getItem(keys.chat);
+  return json ? JSON.parse(json) : null;
+};
+
+export const removeChatFromStorage = async () => {
+  await AsyncStorage.removeItem(keys.chat);
+};
+
 // ---------- Clear All ----------
 export const clearAllAppStorage = async () => {
   await AsyncStorage.multiRemove(Object.values(keys));

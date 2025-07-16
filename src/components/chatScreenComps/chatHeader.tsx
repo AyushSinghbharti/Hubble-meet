@@ -10,10 +10,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import { UserProfile } from "@/src/interfaces/profileInterface";
 
 interface ChatHeaderProps {
-  profileInfo: any;
-  showMenu: any;
+  profileInfo: UserProfile;
+  showMenu: boolean;
   setShowMenu: any;
 }
 
@@ -31,25 +32,30 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
 
-        
-
         <TouchableOpacity
           style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
           onPress={() => {
             router.push({
-              pathname: `chatStack/${profileInfo.id}/viewVBC`,
+              pathname: `chatStack/${profileInfo.user_id}/viewVBC`,
               params: { item: JSON.stringify(profileInfo) }, //Look out for error in future maybe!!!
             });
           }}
         >
           {/* Avatar */}
-          <Image source={profileInfo.image} style={styles.avatar} />
+          <Image
+            source={{
+              uri:
+                profileInfo.profile_picture_url ||
+                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
+            }}
+            style={styles.avatar}
+          />
 
           {/* Name + Subtitle */}
           <View style={styles.nameContainer}>
-            <Text style={styles.name}>{profileInfo.name}</Text>
+            <Text style={styles.name}>{profileInfo.full_name}</Text>
             <Text style={styles.subTitle}>
-              Last seen today at {profileInfo.time}
+               Works at {profileInfo.current_company}  {/* Mark for error */}
             </Text>
           </View>
         </TouchableOpacity>

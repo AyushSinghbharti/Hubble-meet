@@ -18,6 +18,7 @@ interface ChatFooterProps {
   onLayout: any;
   selectedMessage?: any; // Assuming seletedMessage is not used in this component
   onCancelReply?: () => void; // Optional callback for canceling reply
+  onSendMessage?: (content: string) => void;
 }
 
 const ChatFooter = ({
@@ -27,6 +28,7 @@ const ChatFooter = ({
   onPress,
   selectedMessage, // Assuming seletedMessage is not used in this component
   onCancelReply = () => {},
+  onSendMessage = () => {},
 }: ChatFooterProps) => {
   return (
     <View style={styles.container} onLayout={onLayout}>
@@ -79,7 +81,7 @@ const ChatFooter = ({
           />
 
           {/* Send button */}
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => onSendMessage(message)}>
             <Image
               source={require("../../../assets/icons/send.png")}
               style={[styles.attachIcon, { tintColor: "#7A7A7A" }]}
@@ -130,13 +132,12 @@ const styles = StyleSheet.create({
     borderColor: "#989898",
     borderRadius: 40,
     paddingHorizontal: 16,
-    height: 48,
   },
   input: {
     flex: 1,
     fontSize: 16,
     color: "#000",
-    maxHeight: 100,
+    maxHeight: 80,
   },
   modal: {
     justifyContent: "flex-end",

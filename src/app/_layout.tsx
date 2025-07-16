@@ -68,17 +68,17 @@ function RootLayoutNav() {
   const [ready, setReady] = useState(false);
 
   // Notification Logic
-  useEffect(() => {
-    (async () => {
-      try {
-        const token = await getFirebaseToken();
-        const res = await axios.post("https://crudcrud.com/api/8a3f09c7d0ac4694a6b4c7062d6af131/mobileToken", { token });
-        console.log("Saved token", res.data);
-      } catch (err) {
-        console.warn("Token save failed:", err);
-      }
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const token = await getFirebaseToken();
+  //       const res = await axios.post("https://crudcrud.com/api/7eb6d88f812c45f798d69e616e663a58/mobileToken", { token });
+  //       console.log("Notification Token to CURD Saved token", res.data);
+  //     } catch (err) {
+  //       console.warn("Notification Token to CURD save failed:", err);
+  //     }
+  //   })();
+  // }, []);
 
   useEffect(() => {
     const fixNotification = async () => {

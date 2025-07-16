@@ -10,7 +10,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import ChatHeader from "../../../components/chatScreenComps/chatHeader";
 import ChatBody from "../../../components/chatScreenComps/chatBody";
 import ChatFooter from "../../../components/chatScreenComps/chatFooter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AttachmentSheet from "../../../components/chatScreenComps/attachmentSheet";
 import HeaderPopupMenu from "../../../components/chatScreenComps/headerPopup";
 import PopUpOption from "../../../components/chatScreenComps/popUpOption";
@@ -19,6 +19,18 @@ import * as DocumentPicker from "expo-document-picker";
 import * as Contacts from "expo-contacts";
 import ContactPicker from "../../../components/ContactPicker";
 import MediaShare from "./[id]/mediaShare";
+import { UserProfile } from "@/src/interfaces/profileInterface";
+import {
+  useChatById,
+  useChatMessages,
+  useDeleteMessage,
+  useRemoveUserFromChat,
+  useSendMessage,
+} from "@/src/hooks/useChat";
+import { useChatStore } from "@/src/store/chatStore";
+import { ChatMessage } from "@/src/interfaces/chatInterface";
+import ErrorAlert from "@/src/components/errorAlert";
+import { useAuthStore } from "@/src/store/auth";
 
 export interface ChatMsg {
   id: string;
@@ -86,11 +98,11 @@ let messageList: ChatMsg[] = [
 
 export default function ChatDetailsScreen() {
   const router = useRouter();
-  const [message, setMessage] = useState<string>("");
+  const [message, setMessage] = useState<string | null>("");
   const [viewAttachment, setViewAttachment] = useState<boolean>(false);
-  const [messages, setMessages] = useState<ChatMsg[]>(messageList);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const params = useLocalSearchParams();
-  const item: any = JSON.parse(params.item as string);
+  const profile: UserProfile = JSON.parse(params.item as string);
   const id = params.id;
   const [footerHeight, setFooterHeight] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
@@ -102,6 +114,68 @@ export default function ChatDetailsScreen() {
     "image" | "video" | "doc" | "contact" | "other"
   >("image");
   const [error, setError] = useState("");
+
+  //Backend Functions
+  const currentChat = useChatStore((state) => state.currentChat);
+  useChatMessages(id);
+  const updatedMessages = useChatStore((state) => state.messages);
+  useEffect(() => {
+    setMessages(updatedMessages);
+  }, [updatedMessages]);
+
+  const { mutate: sendMessage } = useSendMessage();
+  const { mutate: removeUser } = useRemoveUserFromChat();
+
+  const onPressSendMessage = (content: string) => {
+    if (!content) return;
+
+    const user = useAuthStore.getState().user;
+    const currentChat = useChatStore.getState().currentChat;
+
+    if (!user || !currentChat) return;
+
+    const sendMessagePayload = {
+      content: content,
+      sender: {
+        id: user.user_id,
+        username: user.full_name,
+        email: user.email,
+      },
+      chat: {
+        id: currentChat.id,
+        name: currentChat.name || "",
+        isGroup: currentChat.isGroup,
+      },
+      messageType: "TEXT",
+    };
+
+    sendMessage(sendMessagePayload, {
+      onSuccess: () => {},
+      onError: (error) => {
+        console.error("Failed to send message", error);
+        setError("Failed to send message");
+      },
+    });
+    setMessage(null);
+  };
+
+  const { mutate: deleteMessage } = useDeleteMessage();
+
+  const onPressDeleteMessage = (messageId: string) => {
+    if (!messageId) return;
+
+    deleteMessage(
+      { messageId: messageId },
+      {
+        onSuccess: () => {
+          console.log("Message deleted successfully:", messageId);
+        },
+        onError: (error) => {
+          console.error("Failed to delete message:", error);
+        },
+      }
+    );
+  };
 
   //Handle Pick media
   const pickImage = async () => {
@@ -140,10 +214,9 @@ export default function ChatDetailsScreen() {
     setContactModal(!contactModal);
   };
 
-  const handleReply = (message: ChatMsg | null) => {
+  const handleReply = (message: ChatMessage | null) => {
     if (message) {
-      console.log(message);
-      setSelectedMessage({ ...message, name: item.name });
+      setSelectedMessage(message);
     } else {
       setSelectedMessage(null);
     }
@@ -158,12 +231,12 @@ export default function ChatDetailsScreen() {
     if (option === "Media, docs and links") {
       router.push({
         pathname: `chatStack/${id}/sharedAssets`,
-        params: { item: JSON.stringify(item) },
+        params: { item: JSON.stringify(profile) },
       });
     } else if (option === "View VBC") {
       router.push({
         pathname: `chatStack/${id}/viewVBC`,
-        params: { item: JSON.stringify(item) }, //Look out for error in future maybe!!!
+        params: { item: JSON.stringify(profile) }, //Look out for error in future maybe!!!
       });
     } else if (option === "Starred messages") {
       router.push({
@@ -235,7 +308,7 @@ export default function ChatDetailsScreen() {
         />
         {media && mediaType && (
           <MediaShare
-            name={item.name}
+            name={profile.full_name}
             media={media}
             mediaType={mediaType}
             onClose={() => setMedia(null)}
@@ -246,15 +319,16 @@ export default function ChatDetailsScreen() {
         {/* Main Screens */}
         <View style={styles.flex}>
           <ChatHeader
-            profileInfo={item}
-            setShowMenu={setShowMenu}
+            profileInfo={profile}
             showMenu={showMenu}
+            setShowMenu={setShowMenu}
           />
           {messages.length > 0 ? (
             <ChatBody
               messages={messages}
               onReply={handleReply}
               onCancelReply={onCancelReply}
+              onDelete={onPressDeleteMessage}
             />
           ) : (
             <View
@@ -288,8 +362,11 @@ export default function ChatDetailsScreen() {
               setViewAttachment(!viewAttachment);
             }}
             onCancelReply={onCancelReply}
+            onSendMessage={onPressSendMessage}
           />
         </View>
+
+        {error && <ErrorAlert message={error} onClose={() => setError("")} />}
       </KeyboardAvoidingView>
     </Modal>
   );
