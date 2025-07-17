@@ -28,6 +28,7 @@ import { useUpdateVbcCard } from "@/src/hooks/useVbc";
 import { useVbcStore } from "@/src/store/vbc";
 import { uploadToCloudinary } from "@/src/api/cloudinary";
 import ErrorAlert from "@/src/components/errorAlert";
+import { useRouter } from "expo-router";
 
 export default function SettingsScreen() {
   const profileData: UserProfile | null = useAuthStore((state) => state.user);
@@ -64,6 +65,7 @@ export default function SettingsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef(null);
+  const router = useRouter();
 
   const showDatePicker = () => setDatePickerVisibility(true);
   const hideDatePicker = () => setDatePickerVisibility(false);
@@ -167,7 +169,7 @@ export default function SettingsScreen() {
       contentContainerStyle={{ paddingBottom: 100 }}
       keyboardShouldPersistTaps="handled"
     >
-      <NavHeader title="Profile" />
+      <NavHeader title="Profile" onBackPress={() => router.replace('/profile')} />
 
       <View style={[styles.profileContainer]}>
         {uploadingImage ? (

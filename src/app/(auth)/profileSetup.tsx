@@ -64,7 +64,6 @@ export default function ProfileSetup() {
 
   //Fetch Local info
   const user = useAuthStore((state) => state.user);
-  console.log(user);
   const userId = useAuthStore((state) => state.userId);
 
   const [error, setError] = useState<string | null>();

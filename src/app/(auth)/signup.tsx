@@ -348,7 +348,7 @@ export default function SignUp() {
       </KeyboardAvoidingView>
 
       <Text style={styles.signupText} onPress={handleLogin}>
-        Don’t have an account? <Text style={styles.signupLink}>Log In</Text>
+        Already have an account? <Text style={styles.signupLink}>Log In</Text>
       </Text>
 
       <View style={[styles.orContainer]}>

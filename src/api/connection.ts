@@ -62,9 +62,7 @@ export const getAllConnections = async (
 
 //Get all requests
 export const getConnectionRequests = async (userId: string): Promise<ConnectionRequest[]> => {
-    const response = await api.get(`api/connection/requests`, {
-        params: { userId },
-    });
+    const response = await api.post(`/api/connection/requests/`, userId  );
     return response.data;
 };
 

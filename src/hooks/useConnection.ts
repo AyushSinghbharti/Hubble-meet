@@ -118,16 +118,15 @@ export const useUserConnections = (userId: string, enabled = true) => {
 export const useConnectionRequests = ({ userId, enabled = true }: { userId: string, enabled?: boolean }) => {
   const setRequests = useConnectionStore((state) => state.setRequests);
   const setSentRequests = useConnectionStore((state) => state.setSentRequests);
-
   const query = useQuery<ConnectionRequest[]>({
     queryKey: ["connection-requests", userId],
-    queryFn: () => getConnectionRequests(userId),
+    queryFn: () => getConnectionRequests({userId}),
     enabled: !!userId && enabled,
     retry: 1, // Optional: don't retry failed POSTs too aggressively
     gcTime: 0, // Optional: prevent auto garbage collection
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchInterval: 1000, //Optional: fetch data after 0.5 sec
+    // refetchOnWindowFocus: false,
+    // refetchOnReconnect: true,
+    refetchInterval: 1000, //Optional: fetch data after 1 sec
   });
 
   useEffect(() => {
@@ -140,6 +139,7 @@ export const useConnectionRequests = ({ userId, enabled = true }: { userId: stri
       );
       setRequests(received.reverse());
       setSentRequests(sent.reverse());
+      console.log("Fetch request successfull");
     }
     if (query.error) {
       console.error("Error fetching requests/sent by ID:", query.error);

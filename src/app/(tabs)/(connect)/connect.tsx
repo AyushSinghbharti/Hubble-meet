@@ -28,7 +28,6 @@ import logo from "../../../../assets/logo/logo.png";
 import { FONT } from "../../../../assets/constants/fonts";
 import styles from "./Styles/Styles";
 import BlockUserModal from "../../../components/Modal/BlockUserModal";
-import ProfilePromptModal from "../../../components/Modal/ProfilePromptModal";
 import ProfilePrompt from "../../../components/Modal/ProfilePromptModal";
 import ShareModal from "../../../components/Share/ShareBottomSheet";
 import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
@@ -488,7 +487,7 @@ const Connect = () => {
   const [showShare, setShowShare] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const recommendations = useConnectionStore((state) => state.recommendations);
-
+  const router = useRouter();
 
   const handleSwipeComplete = useCallback(
     (id, direction) => {
@@ -565,7 +564,10 @@ const Connect = () => {
         <ProfilePrompt
           visible={showLimitModal}
           onCancel={() => setShowLimitModal(false)}
-          onProceed={() => setShowLimitModal(false)}
+          onProceed={() => {
+            router.push("/Profile1");
+            setShowLimitModal(false);
+          }}
         />
       </View>
     </View>
