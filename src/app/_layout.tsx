@@ -22,9 +22,8 @@ import {
   getTokenFromStorage,
   getUserIdFromStorage,
 } from "../store/localStorage";
-import { useUserProfile } from "../hooks/useProfile";
 import axios from "axios";
-import { logout } from "../hooks/useAuth";
+import FlashMessage from "react-native-flash-message";
 
 //Global runners
 WebBrowser.maybeCompleteAuthSession();
@@ -73,7 +72,10 @@ function RootLayoutNav() {
     (async () => {
       try {
         const token = await getFirebaseToken();
-        const res = await axios.post("https://crudcrud.com/api/4483e9cfe2a24022b93dfb1f95b19aa5/mobileToken", { token });
+        const res = await axios.post(
+          "https://crudcrud.com/api/4483e9cfe2a24022b93dfb1f95b19aa5/mobileToken",
+          { token }
+        );
         console.log("Notification Token to CURD Saved token", res.data);
       } catch (err) {
         console.warn("Notification Token to CURD save failed:", err);
@@ -123,6 +125,15 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(subScreen)" options={{ headerShown: false }} />
         </Stack>
+        {/* In-app notification banner */}
+        <FlashMessage
+          position="top"
+          floating
+          autoHide
+          duration={4000}
+          style={{ marginTop: 50, borderRadius: 8 }}
+          titleStyle={{ fontWeight: "600" }}
+        />
       </GestureHandlerRootView>
     </PaperProvider>
   );

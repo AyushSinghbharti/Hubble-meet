@@ -46,6 +46,7 @@ import { useAuthStore } from "@/src/store/auth";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useConnectionStore } from "@/src/store/connectionStore";
+import { useInAppNotify } from "@/src/hooks/useInAppNotify";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -116,6 +117,8 @@ const ProfileCard = ({
       }
     );
   };
+
+  // ----- BACKEND FUNNCTION UP ----- \\
 
   const undoTimeoutRef = useRef(null);
 

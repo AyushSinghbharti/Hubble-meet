@@ -53,3 +53,14 @@ PitchScreen bugs
 6. In app notification
 7. Add local search to connections
 8. turn on recommendation API
+
+1. PROFILE setup
+2. Add scrollView
+3. Add company in VBC
+4. profile1 page company data issue + industries
+5. complete profile pop up remove for filled profile
+6. swipe message on accept (remove time)
+7. Add chat to VBC on hubble circle
+8. If pitch is not uploaded then redirect direct to create pitch
+9. Show pitch time on create pitch screen
+10. Update pitch issue
