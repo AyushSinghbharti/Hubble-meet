@@ -69,17 +69,17 @@ function RootLayoutNav() {
   const [ready, setReady] = useState(false);
 
   // Notification Logic
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const token = await getFirebaseToken();
-  //       const res = await axios.post("https://crudcrud.com/api/4483e9cfe2a24022b93dfb1f95b19aa5/mobileToken", { token });
-  //       console.log("Notification Token to CURD Saved token", res.data);
-  //     } catch (err) {
-  //       console.warn("Notification Token to CURD save failed:", err);
-  //     }
-  //   })();
-  // }, []);
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await getFirebaseToken();
+        const res = await axios.post("https://crudcrud.com/api/4483e9cfe2a24022b93dfb1f95b19aa5/mobileToken", { token });
+        console.log("Notification Token to CURD Saved token", res.data);
+      } catch (err) {
+        console.warn("Notification Token to CURD save failed:", err);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const fixNotification = async () => {

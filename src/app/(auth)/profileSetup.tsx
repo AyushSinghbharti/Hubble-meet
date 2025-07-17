@@ -64,12 +64,13 @@ export default function ProfileSetup() {
 
   //Fetch Local info
   const user = useAuthStore((state) => state.user);
+  console.log(user);
   const userId = useAuthStore((state) => state.userId);
 
   const [error, setError] = useState<string | null>();
   const [finalScreen, setFinalScreen] = useState(false);
   const [step, setStep] = useState(0);
-  const [name, setName] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(user?.full_name || "");
   const [dob, setDOB] = useState<Date | null>(null);
   const [formatedDob, setFromatedDOB] = useState("");
   const [gender, setGender] = useState(null);
@@ -160,7 +161,7 @@ export default function ProfileSetup() {
       setError("Please fill all feilds");
       return;
     } else if (step == 1 && (!bio || !email || !phoneNumber)) {
-      setError("Please fill bio too");
+      setError("Please fill all feilds");
       return;
     }
     setStep((s) => Math.min(4, s + 1));

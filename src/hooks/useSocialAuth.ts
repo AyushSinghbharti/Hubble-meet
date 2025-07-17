@@ -14,6 +14,12 @@ export interface SocialUserPayload {
     photoURL: string | null;
     /** Raw ID‑token from provider – if you want to verify it on the backend */
     idToken: string;
+    user: {
+        photo: string;
+        name: string;
+        id: string;
+        email: string;
+    }
 }
 
 interface UseSocialAuthReturn {

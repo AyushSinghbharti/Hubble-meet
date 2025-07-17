@@ -110,6 +110,7 @@ export default function StackLayout() {
     useEffect(() => {
       const fetchAndStore = async () => {
         for (const id of dummyUserId) {
+          if(id === userId)  continue;
           try {
             const profile = await fetchUserProfile(id);
             addRecommendation(profile);

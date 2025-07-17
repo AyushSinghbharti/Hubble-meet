@@ -19,9 +19,10 @@ import ManualBlur from "../../components/BlurComp";
 import ErrorAlert from "../../components/errorAlert";
 import RandomBackgroundImages from "../../components/RandomBGImage";
 import { useLogin, useSocialLogin } from "../../hooks/useAuth";
-import { useSocialAuth } from "@/src/hooks/useSocialAuth";
+import { SocialUserPayload, useSocialAuth } from "@/src/hooks/useSocialAuth";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { fetchUserProfile } from "@/src/api/profile";
+import { useAuthStore } from "@/src/store/auth";
 
 type Country = {
   name: string;
@@ -68,6 +69,10 @@ export default function Login() {
 
   const { signInWithGoogle, loading } = useSocialAuth();
   const [userId, setUserId] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<SocialUserPayload | null>(
+    null
+  );
+  const setUser = useAuthStore((s) => s.setUser);
 
   useEffect(() => {
     const fetchProfileAndNavigate = async () => {
@@ -75,14 +80,28 @@ export default function Login() {
       try {
         const profile = await fetchUserProfile(userId);
         if (profile) {
+          setUser(profile);
           router.replace("/connect");
         } else {
+          setUser({
+            email: userProfile?.email,
+            profile_picture_url: userProfile?.photoURL || undefined,
+            full_name: userProfile?.displayName || "",
+            phone: userProfile?.phoneNumber || "",
+          });
           router.push("/profileSetup");
         }
       } catch (err: any) {
         const status = err?.response?.status;
 
         if (status === 404) {
+          setUser({
+            email: userProfile?.email,
+            profile_picture_url: userProfile?.photoURL || undefined,
+            full_name: userProfile?.displayName || "",
+            phone: userProfile?.phoneNumber || "",
+          });
+
           router.push("/profileSetup");
         } else {
           console.error("Failed to fetch user profile after social login", err);
@@ -97,7 +116,8 @@ export default function Login() {
   const handleGoogleButtonPress = async () => {
     setUserId(null);
     const payload = await signInWithGoogle();
-    console.log("payload", JSON.stringify(payload, null, 2));
+    const currentUser = payload;
+    console.log("payload", JSON.stringify(payload, null, 4));
 
     socialLogin(
       {
@@ -108,6 +128,7 @@ export default function Login() {
       {
         onSuccess: async (res) => {
           setUserId(res.user.id);
+          setUserProfile(currentUser);
         },
         onError: (err: any) => {
           console.log(err);

@@ -21,7 +21,9 @@ import { loginStyles as styles } from "./Styles/Styles";
 import ManualBlur from "../../components/BlurComp";
 import RandomBackgroundImages from "../../components/RandomBGImage";
 import { useSignup, useSocialLogin } from "../../hooks/useAuth";
-import { useSocialAuth } from "@/src/hooks/useSocialAuth";
+import { SocialUserPayload, useSocialAuth } from "@/src/hooks/useSocialAuth";
+import { fetchUserProfile } from "@/src/api/profile";
+import { useAuthStore } from "@/src/store/auth";
 
 type Country = {
   name: string;
@@ -113,21 +115,68 @@ export default function SignUp() {
     }
   };
 
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<SocialUserPayload | null>(
+    null
+  );
+  const setUser = useAuthStore((s) => s.setUser);
+
+  useEffect(() => {
+    const fetchProfileAndNavigate = async () => {
+      if (!userId) return;
+      try {
+        const profile = await fetchUserProfile(userId);
+        if (profile) {
+          setUser(profile);
+          router.replace("/connect");
+        } else {
+          setUser({
+            email: userProfile?.email,
+            profile_picture_url: userProfile?.photoURL || undefined,
+            full_name: userProfile?.displayName || "",
+            phone: userProfile?.phoneNumber || "",
+          });
+          router.push("/profileSetup");
+        }
+      } catch (err: any) {
+        const status = err?.response?.status;
+
+        if (status === 404) {
+          setUser({
+            email: userProfile?.email,
+            profile_picture_url: userProfile?.photoURL || undefined,
+            full_name: userProfile?.displayName || "",
+            phone: userProfile?.phoneNumber || "",
+          });
+
+          router.push("/profileSetup");
+        } else {
+          console.error("Failed to fetch user profile after social login", err);
+          setError("Failed to complete login. Please try again.");
+        }
+      }
+    };
+
+    fetchProfileAndNavigate();
+  }, [userId]);
+
   const handleGoogleButtonPress = async () => {
+    setUserId(null);
+    setUserProfile(null);
     const payload = await signInWithGoogle();
-    console.log("payload", payload);
+    const currentUser = payload;
+    console.log("payload", JSON.stringify(payload, null, 4));
 
     socialLogin(
       {
         provider: "google",
-        providerId: payload?.idToken ?? "",
+        providerId: payload?.data.user.id ?? "",
         email: payload?.email ?? "",
       },
       {
-        onSuccess: (res) => {
-          router.push({
-            pathname: "/profileSetup",
-          });
+        onSuccess: async (res) => {
+          setUserId(res.user.id);
+          setUserProfile(currentUser);
         },
         onError: (err: any) => {
           console.log(err);

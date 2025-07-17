@@ -11,7 +11,7 @@ type AuthState = {
     userId: string | null;
     user: UserProfile | null;
     setUserId: (id: string) => void;
-    setUser: (data: any) => void;
+    setUser: (data: UserProfile) => void;
     resetUser: () => void;
 };
 

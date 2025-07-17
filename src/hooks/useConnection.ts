@@ -125,7 +125,9 @@ export const useConnectionRequests = ({ userId, enabled = true }: { userId: stri
     enabled: !!userId && enabled,
     retry: 1, // Optional: don't retry failed POSTs too aggressively
     gcTime: 0, // Optional: prevent auto garbage collection
-    refetchInterval: 200, //Optional: fetch data after 0.5 sec
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: 1000, //Optional: fetch data after 0.5 sec
   });
 
   useEffect(() => {
@@ -140,7 +142,7 @@ export const useConnectionRequests = ({ userId, enabled = true }: { userId: stri
       setSentRequests(sent.reverse());
     }
     if (query.error) {
-      console.error("Error fetching chat by ID:", query.error);
+      console.error("Error fetching requests/sent by ID:", query.error);
     }
   }, [query.data, query.error]);
 
