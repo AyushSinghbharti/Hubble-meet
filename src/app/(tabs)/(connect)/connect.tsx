@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+} from "react";
 import {
   View,
   Text,
@@ -54,7 +60,6 @@ const ProfileCard = ({
   rightSwipeCount,
   isExpanded,
   onToggleDetails,
-  hasFlipped,
   setError,
 }: {
   profile: UserProfile;
@@ -62,7 +67,6 @@ const ProfileCard = ({
   rightSwipeCount: any;
   isExpanded: boolean;
   onToggleDetails: any;
-  hasFlipped: boolean;
   setError: any;
 }) => {
   const translateX = useSharedValue(0);
@@ -71,6 +75,7 @@ const ProfileCard = ({
   const buttonOpacity = useSharedValue(1);
 
   const [undoVisible, setUndoVisible] = useState(false);
+  const [hasFlipped, setHasFlipped] = useState(false);
   const [requestSentVisible, setRequestSentVisible] = useState(false);
   const [rightSwipeAlertVisible, setRightSwipeAlertVisible] = useState(false);
   const [shareAlertVisible, setShareAlertVisible] = useState(false);
@@ -78,6 +83,11 @@ const ProfileCard = ({
   const [thumbImageAlertVisible, setThumbImageAlertVisible] = useState(false);
   const [flippedProfiles, setFlippedProfiles] = useState({});
   const [showShare, setShowShare] = useState(false);
+
+  //Update flipped
+  useEffect(() => {
+    setHasFlipped(false);
+  }, [profile.user_id]);
 
   //Store data
   const userId = useAuthStore((state) => state.userId);
@@ -211,6 +221,7 @@ const ProfileCard = ({
   );
 
   const handleImageTap = useCallback(() => {
+    setHasFlipped(true);
     onToggleDetails(profile);
   }, [onToggleDetails, profile.user_id]);
 
@@ -300,8 +311,8 @@ const ProfileCard = ({
               style={styles.gradient}
             >
               <Text style={styles.name}>{profile.full_name}</Text>
-              <Text style={styles.title}>{profile.job_title}</Text>
-              <Text style={styles.location}>{profile.city}</Text>
+              <Text style={styles.title}>{profile.job_title || ""}</Text>
+              <Text style={styles.location}>{profile.city || ""}</Text>
             </LinearGradient>
 
             <View style={styles.bottomActions}>
@@ -338,11 +349,12 @@ const ProfileCard = ({
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}
               style={styles.backCardScroll}
-              contentContainerStyle={styles.backCardScrollContent}
+              contentContainerStyle={[styles.card, cardStyle]}
             >
               <ImageBackground
                 source={{ uri: profile.profile_picture_url }}
                 style={styles.backCardContent}
+                resizeMode="cover"
               >
                 <LinearGradient
                   colors={[
@@ -392,11 +404,13 @@ const ProfileCard = ({
                     <View style={styles.section}>
                       <Text style={styles.sectionTitle}>Industries</Text>
                       <View style={styles.tagsContainer}>
-                        {profile.current_industry?.map((industry, index) => (
-                          <View key={index} style={styles.tagBox}>
-                            <Text style={styles.tagText}>{industry}</Text>
-                          </View>
-                        ))}
+                        {(profile.current_industry || []).map(
+                          (industry, index) => (
+                            <View key={index} style={styles.tagBox}>
+                              <Text style={styles.tagText}>{industry}</Text>
+                            </View>
+                          )
+                        )}
                       </View>
                     </View>
 
@@ -490,9 +504,9 @@ const Connect = () => {
   const router = useRouter();
 
   const handleSwipeComplete = useCallback(
-    (id, direction) => {
+    (user_id, direction) => {
       setSwipedIds((prev) => {
-        const updated = [...prev, id];
+        const updated = [...prev, user_id];
         if (updated.length >= 5 && !showLimitModal) {
           setShowLimitModal(true);
         }
@@ -524,7 +538,7 @@ const Connect = () => {
           rightSwipeCount={rightSwipeCount}
           isExpanded={expandedProfileId === item.user_id}
           onToggleDetails={handleToggleDetails}
-          hasFlipped={hasFlipped}
+          // hasFlipped={hasFlipped}
           setError={setError}
         />
       );
@@ -532,11 +546,14 @@ const Connect = () => {
     [rightSwipeCount, handleSwipeComplete, expandedProfileId]
   );
 
-  const visibleProfileData = expandedProfileId
-    ? recommendations.filter((item) => item.user_id === expandedProfileId)
-    : recommendations
-        .filter((item) => !swipedIds.includes(item.user_id))
-        .slice(0, 1);
+  const visibleProfileData = useMemo(() => {
+    if (!recommendations?.length) return [];
+    return expandedProfileId
+      ? recommendations.filter((item) => item.user_id === expandedProfileId)
+      : recommendations
+          .filter((item) => !swipedIds.includes(item.user_id))
+          .slice(0, 1);
+  }, [recommendations, expandedProfileId, swipedIds]);
 
   return (
     <View style={styles.container}>
@@ -548,7 +565,7 @@ const Connect = () => {
       <FlatList
         data={visibleProfileData}
         renderItem={renderItem}
-        keyExtractor={(item) => item.user_id}
+        keyExtractor={(item, index) => `${item.user_id}-${index}`}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={

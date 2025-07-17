@@ -16,8 +16,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
+    height: Math.min(CARD_HEIGHT * 1.9, height * 0.85),
+    maxHeight: height * 0.85,
     width: width * 0.9,
-    height: CARD_HEIGHT * 1.9,
     borderRadius: 20,
     overflow: "hidden",
     backgroundColor: "#fff",
@@ -34,6 +35,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     position: "absolute",
+    resizeMode: "cover", // optional, but ensures behavior
   },
   expandThumb: {
     position: "absolute",
@@ -161,10 +163,11 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     width: "100%",
-
   },
   detailContent: {
     paddingBottom: 0,
+    // paddingBottom: 20,
+    // paddingHorizontal: 16,
   },
   section: {
     marginTop: 16,

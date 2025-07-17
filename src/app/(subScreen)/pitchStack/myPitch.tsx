@@ -162,6 +162,9 @@ export default function MyPitchScreen() {
             <View style={styles.tag}>
               <Text style={styles.tagText}>Individual</Text>
             </View>
+            <View style={styles.pitchStatus}>
+              <Text style={styles.tagText}>{pitch.status}</Text>
+            </View>
           </>
         ) : (
           <Text>Pitch is not uploaded for you, upload one now!!!</Text>
@@ -268,7 +271,18 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 20,
     right: 20,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderWidth: 1,
+    borderColor: "#fff",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  pitchStatus: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    backgroundColor: "rgba(0,0,0,0.5)",
     borderWidth: 1,
     borderColor: "#fff",
     paddingHorizontal: 10,
