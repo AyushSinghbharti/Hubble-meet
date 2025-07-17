@@ -43,3 +43,11 @@ PitchScreen bugs
 3. vbc card dont have option to add image
 4. vbc card should have option of background colour (random alloted)
 5. vbc card can't be search with userId but only with card id and need to clear it as a doubt
+
+
+-- TESTING Bugs
+1. Country code bug to fix (store seperatly or by space)
+2. Need to add country code selector on profile screen
+3. Add local storage to mananage the app state like permissions etc....
+4. On profile1.tsx onError scrollView to top
+5. On success show the error if any

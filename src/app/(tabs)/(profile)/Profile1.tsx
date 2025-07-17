@@ -11,6 +11,7 @@ import {
   findNodeHandle,
   UIManager,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -169,7 +170,10 @@ export default function SettingsScreen() {
       contentContainerStyle={{ paddingBottom: 100 }}
       keyboardShouldPersistTaps="handled"
     >
-      <NavHeader title="Profile" onBackPress={() => router.replace('/profile')} />
+      <NavHeader
+        title="Profile"
+        onBackPress={() => router.replace("/profile")}
+      />
 
       <View style={[styles.profileContainer]}>
         {uploadingImage ? (
@@ -236,9 +240,9 @@ export default function SettingsScreen() {
         Phone Number <Text style={{ color: "red" }}>*</Text>
       </Text>
       <View style={styles.phoneContainer}>
-        <TouchableOpacity
+        <Pressable
           style={styles.countryCode}
-          onPress={handleOpenModal}
+          // onPress={handleOpenModal}
           ref={flagBoxRef}
         >
           {selectedFlag && (
@@ -252,10 +256,11 @@ export default function SettingsScreen() {
               </Text>
             </>
           )}
-        </TouchableOpacity>
+        </Pressable>
         <View style={{ flex: 1 }}>
           <Input
             placeholder="525 735 4556"
+            editable={false}
             containerStyle={{ marginLeft: 8 }}
             value={phone}
             onChangeText={setPhone}

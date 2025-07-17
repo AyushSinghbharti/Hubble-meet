@@ -57,7 +57,9 @@ export default function ProfileScreen() {
           style={styles.profileImage}
         />
         <Text style={styles.name}>{profileData?.full_name || "New User"}</Text>
-        <Text style={styles.subtitle}>{profileData?.job_title || "Working undefined"}</Text>
+        <Text style={styles.subtitle}>
+          {profileData?.job_title || "Working undefined"}
+        </Text>
       </View>
 
       <View style={styles.card}>
@@ -91,7 +93,9 @@ export default function ProfileScreen() {
 
           <View>
             <Text style={styles.contactLabel}>Email</Text>
-            <Text style={styles.contactEmail}>{profileData?.email || "Error fetching email"}</Text>
+            <Text style={styles.contactEmail}>
+              {profileData?.email || "Error fetching email"}
+            </Text>
           </View>
         </View>
 
@@ -106,7 +110,9 @@ export default function ProfileScreen() {
           </LinearGradient>
           <View>
             <Text style={styles.contactLabel}>Mobile</Text>
-            <Text style={styles.contactEmail}>{profileData?.phone || "Error fetching phone number"}</Text>
+            <Text style={styles.contactEmail}>
+              {profileData?.phone || "Error fetching phone number"}
+            </Text>
           </View>
         </View>
       </View>
@@ -134,8 +140,12 @@ export default function ProfileScreen() {
       <MyInviteModal
         visible={MyInviteModalVisible}
         onClose={() => setMyInviteModalVisible(false)}
-        profileImage="https://randomuser.me/api/portraits/men/41.jpg"
-        name="Robin Gupta"
+        profileImage={
+          profileData
+            ? profileData.profile_picture_url
+            : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s"
+        }
+        name={profileData?.full_name}
         qrValue="https://example.com/invite-link"
       />
     </ScrollView>

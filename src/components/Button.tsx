@@ -7,6 +7,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import colorTheme from "../theme/colourTheme";
+import { useRouter } from "expo-router";
 
 interface CustomButtonProps {
   label: string;
@@ -28,6 +29,7 @@ const Button: React.FC<CustomButtonProps> = ({
   style,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const router = useRouter();
 
   const handlePress = () => {
     Animated.sequence([
@@ -42,6 +44,11 @@ const Button: React.FC<CustomButtonProps> = ({
     ]).start();
 
     onPress?.();
+
+
+    setTimeout(() => {
+      router.replace("/profile");
+    }, 750);
   };
 
   return (
