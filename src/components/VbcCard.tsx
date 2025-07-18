@@ -7,58 +7,105 @@ import {
   Dimensions,
   Text,
   Share,
+  Modal,
+  TouchableOpacity,
+  Platform,
+  StatusBar,
 } from "react-native";
 import CustomModal from "./Modal/CustomModal";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomCard from "./Cards/vbcCard";
 import { useRouter } from "expo-router";
 import { UserProfile } from "@/src/interfaces/profileInterface";
-import profileData from "../dummyData/dummyProfiles";
 import { useConnectionStore } from "../store/connectionStore";
 import { useAuthStore } from "../store/auth";
 import { resolveChatAndNavigate } from "../utility/resolveChatAndNavigate";
-
-interface User {
-  id: string;
-  name: string;
-  role: string;
-  location: string;
-  avatar: any;
-}
+import ConnectionCard from "./Cards/connectionCard";
+import ProfileViewer from "./graidentInfoCard";
+import { useSendConnection } from "../hooks/useConnection";
+import ErrorAlert from "./errorAlert";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
-const CARD_WIDTH = (width - CARD_GAP * 2 - 8) / 2.15; // 8px total horizontal margin (4 + 4)
+const CARD_WIDTH = (width - CARD_GAP * 2 - 8) / 2.15;
 
-const VbcCard = ({ spacing }: { spacing?: any }) => {
+const VbcCard = ({
+  spacing,
+  profiles,
+}: {
+  spacing?: any;
+  profiles?: UserProfile[];
+}) => {
   const router = useRouter();
   const [addModal, setAddModal] = useState(false);
   const [blockModal, setBlockModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [connectionDetailModal, setConnectionDetailModal] = useState(false);
   const connections = useConnectionStore((state) => state.connections);
-  const users: UserProfile[] = connections;
+  const users: UserProfile[] = profiles ? profiles : connections;
   const currentUser = useAuthStore((state) => state.user);
+  const userId = useAuthStore((s) => s.userId);
+  const { mutate: sendConnection } = useSendConnection();
+  const [error, setError] = useState<string | null>();
 
   const handleChatPress = async (user: UserProfile) => {
-    console.log(currentUser);
     await resolveChatAndNavigate({ currentUser, targetUser: user });
   };
+
   const handleSharePress = (user: UserProfile) => {
     Share.share({ message: `Hey see my VBC card here ${user.full_name}` });
   };
+
   const handleBlockPress = (user: UserProfile) => {
     setBlockModal(true);
     setSelectedUser(user);
   };
-  const handleProfilePress = (user: UserProfile) =>
-    Alert.alert("Profile", `Viewing ${user.full_name}`);
+
+  const handleProfilePress = (user: UserProfile) => {
+    setSelectedUser(user);
+    setConnectionDetailModal(true);
+  };
+
   const handleBagPress = (user: UserProfile) => {
     setSelectedUser(user);
     setAddModal(true);
   };
 
+  const handleSendRequestPress = (receiverId: string) => {
+    sendConnection(
+      {
+        user_id: userId || "",
+        receiver_id: receiverId,
+      },
+      {
+        onSuccess: (res) => {
+          setError("Request send successfully");
+        },
+        onError: (error) => {
+          const message =
+            error?.response?.data?.message ?? "Something went wrong";
+          setError(message);
+        },
+      }
+    );
+  };
+
   return (
     <>
+      {error && (
+        <View
+          style={{
+            position: "absolute",
+            top: -50,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+          }}
+        >
+          <ErrorAlert message={error} onClose={() => setError(null)} />
+        </View>
+      )}
+
       <FlatList
         data={users}
         numColumns={2}
@@ -69,27 +116,40 @@ const VbcCard = ({ spacing }: { spacing?: any }) => {
         columnWrapperStyle={styles.row}
         renderItem={({ item, index }) => (
           <View
-            style={[
-              styles.cardWrapper,
-              index % 2 !== 0 && { marginTop: 30 }, // add marginTop to every right column
-            ]}
+            style={[styles.cardWrapper, index % 2 !== 0 && { marginTop: 30 }]}
           >
-            <CustomCard
-              id={item.user_id}
-              name={item.full_name}
-              role={item.job_title || ""}
-              location={item.city || ""}
-              avatar={{ uri: item.profile_picture_url }}
-              onChatPress={() => handleChatPress(item)}
-              onSharePress={() => handleSharePress(item)}
-              onAddPress={() => handleBlockPress(item)}
-              onBagPress={() => handleBagPress(item)}
-              onProfilePress={() => handleProfilePress(item)}
-            />
+            {item.isConnected === false ? (
+              <ConnectionCard
+                id={item.user_id}
+                name={item.full_name}
+                role={item.job_title || ""}
+                location={item.city || ""}
+                avatar={{ uri: item.profile_picture_url }}
+                onSharePress={() => handleSharePress(item)}
+                onCardPress={() => handleProfilePress(item)} // ⬅️ Show detail modal
+                onAddPress={() => handleBlockPress(item)}
+                onConnectPress={handleSendRequestPress}
+                onPitchPress={() => {}}
+              />
+            ) : (
+              <CustomCard
+                id={item.user_id}
+                name={item.full_name}
+                role={item.job_title || ""}
+                location={item.city || ""}
+                avatar={{ uri: item.profile_picture_url }}
+                onChatPress={() => handleChatPress(item)}
+                onSharePress={() => handleSharePress(item)}
+                onAddPress={() => handleBlockPress(item)}
+                onBagPress={() => handleBagPress(item)}
+                onProfilePress={() => handleProfilePress(item)}
+              />
+            )}
           </View>
         )}
       />
 
+      {/* Modals */}
       <BlockUserModal
         visible={blockModal}
         userName={selectedUser?.full_name}
@@ -113,6 +173,22 @@ const VbcCard = ({ spacing }: { spacing?: any }) => {
           cancelText="Close"
         />
       )}
+
+      <Modal
+        visible={connectionDetailModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConnectionDetailModal(!connectionDetailModal)}
+        style={{ flex: 1 }}
+      >
+        <ProfileViewer
+          item={selectedUser}
+          onPress={() => setConnectionDetailModal(!connectionDetailModal)}
+          onAddPress={handleSendRequestPress}
+          error={error}
+          setError={setError}
+        />
+      </Modal>
     </>
   );
 };
@@ -125,12 +201,37 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 130,
   },
-
   row: {
     justifyContent: "space-between",
   },
   cardWrapper: {
     width: CARD_WIDTH,
     marginLeft: -10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  detailCard: {
+    width: "80%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 16,
+    alignItems: "center",
+    elevation: 5,
+  },
+  detailName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  closeButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "#6C63FF",
+    borderRadius: 8,
   },
 });

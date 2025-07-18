@@ -36,12 +36,9 @@ import styles from "./Styles/Styles";
 import BlockUserModal from "../../../components/Modal/BlockUserModal";
 import ProfilePrompt from "../../../components/Modal/ProfilePromptModal";
 import ShareModal from "../../../components/Share/ShareBottomSheet";
-import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
 import {
   useAcceptConnection,
-  useRecommendedProfiles,
   useSendConnection,
-  useUserConnections,
 } from "@/src/hooks/useConnection";
 import { useAuthStore } from "@/src/store/auth";
 import { UserProfile } from "@/src/interfaces/profileInterface";
@@ -619,7 +616,7 @@ const Connect = () => {
       {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
       <Header
         logoSource={logo}
-        onSearch={(text) => console.log("Search:", text)}
+        onSearch={() => {}}
       />
       <FlatList
         data={visibleProfileData}

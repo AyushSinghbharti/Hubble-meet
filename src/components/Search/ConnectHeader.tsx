@@ -86,7 +86,18 @@ const Header = ({ logoSource, onSearch }) => {
                 placeholder="Search..."
                 placeholderTextColor="#888"
                 editable={true}
-                onSubmitEditing={() => onSearch && onSearch(searchText)}
+                // onSubmitEditing={() => onSearch && onSearch(searchText)}
+                onSubmitEditing={() => {
+                  if (searchText.trim()) {
+                    router.push({
+                      pathname: "/connectStack/searchPage",
+                      params: { query: searchText.trim() },
+                    });
+                    setSearchActive(false);
+                    setSearchText("");
+                    Keyboard.dismiss();
+                  }
+                }}
               />
             )}
             <Feather

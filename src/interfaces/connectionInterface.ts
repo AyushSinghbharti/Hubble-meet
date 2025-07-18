@@ -77,3 +77,24 @@ export interface SearchInterface {
   currentPage: number | string,
   PageSize: number | string
 }
+
+export interface SearchUserResponse {
+  success: boolean;
+  message: string;
+  pagination: {
+    currentPage: string;
+    itemsPerPage: number;
+    totalUsersCount: number;
+    totalPages: number;
+    nextPage: string | null;
+    previousPage: string | null;
+  };
+  data: SearchUserSummary[];
+}
+
+export interface SearchUserSummary {
+  user_id: string;
+  full_name: string;
+  created_at: string; // ISO date string
+  is_active: boolean;
+}

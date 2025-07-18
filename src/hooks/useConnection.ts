@@ -25,6 +25,7 @@ import {
   ConnectionRequest,
   SearchInterface,
   Recommendations,
+  SearchUserResponse,
 } from "../interfaces/connectionInterface";
 import { useConnectionStore } from "../store/connectionStore";
 import { saveConnectionsToStorage } from "../store/localStorage";
@@ -182,9 +183,7 @@ export const useRecommendedProfiles = (userId: string, enabled = true) => {
 
 //Search connection
 export const useSearchUser = (data: SearchInterface, enabled = true) => {
-  const addRecommendationsBulk = useConnectionStore((s) => s.addRecommendationsBulk);
-
-  const query = useQuery<ConnectionUser[]>({
+  const query = useQuery<SearchUserResponse>({
     queryKey: ["search-profiles", data.searchText],
     queryFn: () => searchUserProfile(data),
     enabled: !!data && enabled,
@@ -194,7 +193,7 @@ export const useSearchUser = (data: SearchInterface, enabled = true) => {
 
   useEffect(() => {
     if (query.data) {
-      addRecommendationsBulk(query.data);
+      console.log(query.data);
     }
 
     if (query.error) {
