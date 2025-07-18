@@ -8,13 +8,13 @@ import {
   TouchableWithoutFeedback,
   TouchableOpacity,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { AntDesign, Feather } from "@expo/vector-icons";
 import VbcCard from "@/src/components/VbcCard";
 import { useSearchUser } from "@/src/hooks/useConnection";
 import { useQueries } from "@tanstack/react-query";
 import { fetchUserProfile } from "@/src/api/profile";
 import { UserProfile } from "@/src/interfaces/profileInterface";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useConnectionStore } from "@/src/store/connectionStore";
 
 const SearchScreen = () => {
@@ -22,6 +22,7 @@ const SearchScreen = () => {
   const [searchText, setSearchText] = useState(query || "");
   const [submittedText, setSubmittedText] = useState(query || "");
   const connections = useConnectionStore((s) => s.connections);
+  const router = useRouter();
 
   useEffect(() => {
     if (query) {
@@ -57,24 +58,29 @@ const SearchScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchBarWrapper}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search profiles..."
-          placeholderTextColor="#888"
-          value={searchText}
-          onChangeText={setSearchText}
-          returnKeyType="search"
-          onSubmitEditing={() => setSubmittedText(searchText)}
-        />
-        <TouchableOpacity onPress={() => setSubmittedText(searchText)}>
-          <Feather
-            name="search"
-            size={20}
-            color="#555"
-            style={styles.searchIcon}
-          />
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <AntDesign name="left" size={22} color="black" />
         </TouchableOpacity>
+        <View style={styles.searchBarWrapper}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search profiles..."
+            placeholderTextColor="#888"
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+            onSubmitEditing={() => setSubmittedText(searchText)}
+          />
+          <TouchableOpacity onPress={() => setSubmittedText(searchText)}>
+            <Feather
+              name="search"
+              size={20}
+              color="#555"
+              style={styles.searchIcon}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {(searching || queries.some((q) => q.isLoading)) && (
@@ -102,7 +108,17 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: 12,
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  backBtn: {
+    padding: 4,
+    marginRight: 12,
+  },
   searchBarWrapper: {
+    flex: 1,
     backgroundColor: "#fff",
     borderRadius: 12,
     paddingHorizontal: 16,
@@ -115,7 +131,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
-    marginBottom: 16,
   },
   searchInput: {
     flex: 1,
