@@ -56,6 +56,11 @@ export interface ConnectionUser extends UserProfile {
   connection_status: ConnectionStatus;
 }
 
+export interface Recommendations {
+  recommendations: string[],
+  hasMore: boolean
+}
+
 export interface ConnectionRequest {
   user_id: string;
   full_name: string;
@@ -65,4 +70,10 @@ export interface ConnectionRequest {
   cities_on_radar: string[];
   profile_picture_url: string;
   request_status: "SENT" | "RECEIVED" | "ACCEPTED" | "REJECTED";
+}
+
+export interface SearchInterface {
+  searchText: string,
+  currentPage: number | string,
+  PageSize: number | string
 }

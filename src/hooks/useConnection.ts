@@ -10,6 +10,7 @@ import {
   getAllConnections,
   getConnectionRequests,
   getRecommendedProfiles,
+  searchUserProfile,
 } from "../api/connection";
 import {
   AcceptConnectionRequestBody,
@@ -22,6 +23,8 @@ import {
   UnblockUserRequestBody,
   ConnectionUser,
   ConnectionRequest,
+  SearchInterface,
+  Recommendations,
 } from "../interfaces/connectionInterface";
 import { useConnectionStore } from "../store/connectionStore";
 import { saveConnectionsToStorage } from "../store/localStorage";
@@ -151,16 +154,42 @@ export const useConnectionRequests = ({ userId, enabled = true }: { userId: stri
 
 
 //Get recommendations:
-export const useRecommendedProfiles = ({ userId, enabled = true, }: { userId: string; enabled?: boolean; }) => {
-  const addRecommendationsBulk = useConnectionStore((s) => s.addRecommendationsBulk);
+export const useRecommendedProfiles = (userId: string, enabled = true) => {
+  const addRecommendationsIdBulk = useConnectionStore((s) => s.addRecommendationsIdBulk);
 
-  const query = useQuery<ConnectionUser[]>({
+  const query = useQuery<Recommendations>({
     queryKey: ["recommended-profiles", userId],
     queryFn: () => getRecommendedProfiles(userId),
     enabled: !!userId && enabled,
     retry: 1,
     gcTime: 0,
     refetchInterval: 10000,
+  });
+
+  useEffect(() => {
+    if (query.data) {
+      console.log(query.data);
+      addRecommendationsIdBulk(query.data.recommendations);
+    }
+
+    if (query.error) {
+      console.error("Error fetching recommended profiles:", query.error);
+    }
+  }, [query.data, query.error]);
+
+  return query;
+};
+
+//Search connection
+export const useSearchUser = (data: SearchInterface, enabled = true) => {
+  const addRecommendationsBulk = useConnectionStore((s) => s.addRecommendationsBulk);
+
+  const query = useQuery<ConnectionUser[]>({
+    queryKey: ["search-profiles", data.searchText],
+    queryFn: () => searchUserProfile(data),
+    enabled: !!data && enabled,
+    retry: 1,
+    gcTime: 0,
   });
 
   useEffect(() => {

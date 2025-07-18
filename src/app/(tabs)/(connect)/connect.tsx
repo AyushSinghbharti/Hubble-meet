@@ -39,6 +39,7 @@ import ShareModal from "../../../components/Share/ShareBottomSheet";
 import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
 import {
   useAcceptConnection,
+  useRecommendedProfiles,
   useSendConnection,
   useUserConnections,
 } from "@/src/hooks/useConnection";
@@ -47,6 +48,7 @@ import { UserProfile } from "@/src/interfaces/profileInterface";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useConnectionStore } from "@/src/store/connectionStore";
 import { useInAppNotify } from "@/src/hooks/useInAppNotify";
+import { fetchUserProfile } from "@/src/api/profile";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -96,7 +98,8 @@ const ProfileCard = ({
 
   //Store data
   const userId = useAuthStore((state) => state.userId);
-  const connections = useAuthStore((state) => state.userId);
+  // const connections = useAuthStore((state) => state.userId);
+
   //Backend Testing
   const { mutate: sendConnection } = useSendConnection();
   const { mutate: acceptConnection } = useAcceptConnection();
@@ -509,11 +512,35 @@ const Connect = () => {
   const [hasFlipped, setHasFlipped] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const recommendations = useConnectionStore((state) => state.recommendations);
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const userId = useAuthStore((s) => s.user?.user_id);
 
-  //Checking if user have empty feild
+  //Setting recommendation
+  const recommendations = useConnectionStore((s) => s.recommendations);
+  const addRecommendation = useConnectionStore((s) => s.addRecommendation);
+  const recommendationsId = useConnectionStore((s) => s.recommendationsId);
+
+  useEffect(() => {
+    const fetchAndStore = async () => {
+      const existingIds = new Set(recommendations.map((rec) => rec.user_id));
+
+      for (const id of recommendationsId) {
+        if (id === userId || existingIds.has(id)) continue;
+
+        try {
+          const profile = await fetchUserProfile(id);
+          addRecommendation(profile);
+        } catch (err) {
+          console.warn("Failed to fetch recommendation profile:", id, err);
+        }
+      }
+    };
+
+    fetchAndStore();
+  }, [recommendationsId]);
+
+  // Checking if user have empty feild
   useEffect(() => {
     if (!user || typeof user !== "object") {
       setUserProfileCompleted(false);

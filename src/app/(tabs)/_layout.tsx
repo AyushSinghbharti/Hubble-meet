@@ -23,6 +23,7 @@ import { useQueries } from "@tanstack/react-query";
 import { fetchUserProfile } from "@/src/api/profile";
 import {
   useConnectionRequests,
+  useRecommendedProfiles,
   useUserConnections,
 } from "@/src/hooks/useConnection";
 import { logout } from "@/src/hooks/useAuth";
@@ -105,29 +106,10 @@ export default function StackLayout() {
   useUserConnections(userId || "", true);
 
   //Fetching pitch
-  useGetUserPitch(userId || "")
+  useGetUserPitch(userId || "");
 
-  //Adding dummy users to recommendations
-  const useLoadDummyRecommendations = () => {
-    const addRecommendation = useConnectionStore((s) => s.addRecommendation);
-
-    useEffect(() => {
-      const fetchAndStore = async () => {
-        for (const id of dummyUserId) {
-          if(id === userId)  continue;
-          try {
-            const profile = await fetchUserProfile(id);
-            addRecommendation(profile);
-          } catch (err) {
-            console.warn("Failed to fetch dummy profile:", id, err);
-          }
-        }
-      };
-
-      fetchAndStore();
-    }, []);
-  };
-  useLoadDummyRecommendations();
+  //Adding bulk users of recommendations
+  useRecommendedProfiles(userId || "");
 
   return (
     <>

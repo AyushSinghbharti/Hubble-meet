@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { ConnectionUser, ConnectionRequest } from '../interfaces/connectionInterface';
+import { UserProfile } from '../interfaces/profileInterface';
 
 interface ConnectionStore {
   // Connections
@@ -12,12 +13,19 @@ interface ConnectionStore {
 
   // Recommendations
   recommendations: ConnectionUser[];
+  recommendationsId: string[];
   setRecommendations: (data: ConnectionUser[]) => void;
   clearRecommendations: () => void;
   removeRecommendation: (userId: string) => void;
   addRecommendation: (user: ConnectionUser) => void;
   updateRecommendationStatus: (userId: string, status: ConnectionUser['connection_status']) => void;
   addRecommendationsBulk: (users: ConnectionUser[]) => void;
+
+  // New for Recommendation ID
+  setRecommendationsId: (ids: string[]) => void;
+  addRecommendationsIdBulk: (ids: string[]) => void;
+  removeRecommendationId: (userId: string) => void;
+  mergeRecommendationsIdBulk: (newIds: string[]) => void;
 
   // Requests
   requests: ConnectionRequest[];
@@ -58,6 +66,7 @@ export const useConnectionStore = create<ConnectionStore>((set) => ({
 
   // Recommendations
   recommendations: [],
+  recommendationsId: [],
   setRecommendations: (data) => set({ recommendations: data }),
   clearRecommendations: () => set({ recommendations: [] }),
   removeRecommendation: (userId) =>
@@ -81,6 +90,22 @@ export const useConnectionStore = create<ConnectionStore>((set) => ({
       return {
         recommendations: [...state.recommendations, ...uniqueNew],
       };
+    }),
+
+  // ✅ NEW FUNCTIONS for recommendationId
+  setRecommendationsId: (ids: string[]) => set({ recommendationsId: ids }),
+  addRecommendationsIdBulk: (ids: string[]) =>
+    set((state) => ({
+      recommendationsId: Array.from(new Set([...state.recommendationsId, ...ids])),
+    })),
+  removeRecommendationId: (userId: string) =>
+    set((state) => ({
+      recommendationsId: state.recommendationsId.filter((id) => id !== userId),
+    })),
+  mergeRecommendationsIdBulk: (newIds: string[]) =>
+    set((state) => {
+      const merged = Array.from(new Set([...state.recommendationsId, ...newIds]));
+      return { recommendationsId: merged };
     }),
 
   // Requests

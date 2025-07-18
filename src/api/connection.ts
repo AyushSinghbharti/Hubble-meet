@@ -12,6 +12,8 @@ import {
     DefaultSuccessResponse,
     ErrorResponse,
     ConnectionRequest,
+    SearchInterface,
+    Recommendations,
 } from "../interfaces/connectionInterface";
 
 // Send Connection Request
@@ -69,7 +71,13 @@ export const getConnectionRequests = async (userId: string): Promise<ConnectionR
 //Get recommended profiles
 export const getRecommendedProfiles = async (
   userId: string
-): Promise<ConnectionUser[]> => {
-  const response = await api.get(`/user/profiles/${userId}/recommendations`);
+): Promise<Recommendations> => {
+  const response = await api.get(`/api/user/profiles/${userId}/recommendations`);
+  return response.data;
+};
+
+//Get recommended profiles
+export const searchUserProfile = async (data: SearchInterface): Promise<ConnectionUser[]> => {
+  const response = await api.post(`api/user/profiles/search/users`, data);
   return response.data;
 };
