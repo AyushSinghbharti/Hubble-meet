@@ -1,6 +1,6 @@
 import { RNS3 } from 'react-native-aws3';
 
-export const uploadToS3 = async (fileUri, fileName, mimeType) => {
+export const uploadToS3 = async (fileUri: string, fileName: string, mimeType: string) => {
   const file = {
     uri: fileUri,
     name: fileName,
@@ -8,7 +8,7 @@ export const uploadToS3 = async (fileUri, fileName, mimeType) => {
   };
 
   const options = {
-    keyPrefix: process.env.EXPO_PUBLIC_AWS_KEYPREFIX, 
+    keyPrefix: process.env.EXPO_PUBLIC_AWS_KEYPREFIX,
     bucket: process.env.EXPO_PUBLIC_AWS_BUCKET,
     region: 'ap-south-1',
     accessKey: process.env.EXPO_PUBLIC_AWS_ACCESSEY,

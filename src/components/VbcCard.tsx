@@ -77,8 +77,8 @@ const VbcCard = ({ spacing }: { spacing?: any }) => {
             <CustomCard
               id={item.user_id}
               name={item.full_name}
-              role={item.job_title}
-              location={item.city}
+              role={item.job_title || ""}
+              location={item.city || ""}
               avatar={{ uri: item.profile_picture_url }}
               onChatPress={() => handleChatPress(item)}
               onSharePress={() => handleSharePress(item)}

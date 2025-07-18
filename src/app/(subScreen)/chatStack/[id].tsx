@@ -59,10 +59,18 @@ export default function ChatDetailsScreen() {
   useEffect(() => {
     setMessages(updatedMessages);
   }, [updatedMessages]);
+  //Update last seen
+  const { setLastViewed } = useChatStore();
+  useEffect(() => {
+    if (id) {
+      setLastViewed(id, new Date().toISOString());
+    }
+  }, [id]);
 
   const { mutate: sendMessage } = useSendMessage();
   const { mutate: removeUser } = useRemoveUserFromChat();
   const { mutate: createChat } = useCreateChat();
+  const { mutate: deleteMessage } = useDeleteMessage();
 
   const onPressSendMessage = (content: string) => {
     if (!content) return;
@@ -72,8 +80,6 @@ export default function ChatDetailsScreen() {
     const messages = useChatStore.getState().messages;
     if (!user) return;
     if (!currentChat && messages.length <= 0) {
-      // console.log("user", user);
-      // console.log("profile", profile);
       createChat(
         {
           users: [
@@ -111,9 +117,9 @@ export default function ChatDetailsScreen() {
         email: user.email,
       },
       chat: {
-        id: currentChat.id,
-        name: currentChat.name || "",
-        isGroup: currentChat.isGroup,
+        id: currentChat?.id,
+        name: currentChat?.name || "",
+        isGroup: currentChat?.isGroup,
       },
       messageType: "TEXT",
     };
@@ -127,8 +133,6 @@ export default function ChatDetailsScreen() {
     });
     setMessage(null);
   };
-
-  const { mutate: deleteMessage } = useDeleteMessage();
 
   const onPressDeleteMessage = (messageId: string) => {
     if (!messageId) return;
@@ -237,9 +241,7 @@ export default function ChatDetailsScreen() {
         router.back();
       }}
     >
-      <View
-        style={styles.flex}
-      >
+      <View style={styles.flex}>
         {/* Modals */}
         <HeaderPopupMenu
           isVisible={showMenu}

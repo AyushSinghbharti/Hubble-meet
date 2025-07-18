@@ -39,12 +39,14 @@ interface ProfileCardProps {
   profile: ConnectionRequest;
   setError: any;
   onSwipeComplete: (id: string) => void;
+  onAcceptSuccess: (receiverProfileImage: string) => void;
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   profile,
   setError,
   onSwipeComplete,
+  onAcceptSuccess,
 }) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -60,57 +62,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const { mutate: acceptConnection } = useAcceptConnection();
   const { mutate: rejectConnection } = useRejectConnection();
   const userId = useAuthStore((state) => state.userId);
-  const user = useAuthStore((state) => state.user);
-
-  // const handleAcceptConnection = () => {
-  //   // setModalVisible(fal);
-  //   acceptConnection(
-  //     {
-  //       user_id: userId || "",
-  //       sender_id: profile.user_id,
-  //     },
-  //     {
-  //       onSuccess: () => {
-  //         setModalVisible(true);
-  //         setIsSwiped(true);
-  //         onSwipeComplete(profile.user_id);
-  //       },
-  //       onError: (error) => {
-  //         setError(error?.response?.data?.message);
-  //         // rollback: no setIsSwiped
-  //         translateX.value = withSpring(0);
-  //         rotate.value = withSpring(0);
-  //       },
-  //     }
-  //   );
-  // };
-
-  // const handleRejectConnection = () => {
-  //   setAlertVisible(false);
-  //   rejectConnection(
-  //     {
-  //       user_id: userId || "",
-  //       receiver_id: profile.user_id,
-  //     },
-  //     {
-  //       onSuccess: () => {
-  //         setTimeout(() => {
-  //           setIsSwiped(true);
-  //           onSwipeComplete(profile.user_id);
-  //         }, 1000);
-  //         setAlertVisible(true);
-  //         setIsSwiped(true);
-  //         onSwipeComplete(profile.user_id);
-  //       },
-  //       onError: (error) => {
-  //         setError(error?.response?.data?.message);
-  //         // rollback: no setIsSwiped
-  //         translateX.value = withSpring(0);
-  //         rotate.value = withSpring(0);
-  //       },
-  //     }
-  //   );
-  // };
 
   const handleAcceptConnection = () => {
     // setModalVisible(false); // optional
@@ -122,28 +73,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       },
       {
         onSuccess: () => {
-          setModalVisible(true);
-
-          setTimeout(() => {
-            setIsSwiped(true);
-            onSwipeComplete(profile.user_id);
-          }, 2000);
+          onAcceptSuccess(profile.profile_picture_url); // ✅ Tell parent to show modal
+          setIsSwiped(true);
+          onSwipeComplete(profile.user_id);
         },
         onError: (error: any) => {
           const status = error?.response?.status;
-
-          // if (status === 400) {
-          //   console.warn("Status 400 received, treating as success");
-
-          //   // fake success handling
-          //   setModalVisible(true);
-
-          //   setTimeout(() => {
-          //     setIsSwiped(true);
-          //     onSwipeComplete(profile.user_id);
-          //   }, 2000);
-          // } else {
-          // }
           setError(error?.response?.data?.message || "Something went wrong");
           translateX.value = withSpring(0);
           rotate.value = withSpring(0);
@@ -292,22 +227,37 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         positionTop
         positionBottom
       />
-
-      <MatchModal
-        visible={modalVisible}
-        onClose={handleBackToRequest}
-        onSendMessage={handleSendMessage}
-        user1Image={profile.profile_picture_url}
-        user2Image={user?.profile_picture_url}
-      />
     </>
   );
 };
 
 const ProfileList = ({}) => {
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
   const [swipedIds, setSwipedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [matchModalVisible, setMatchModalVisible] = useState(false);
+  const [matchUserPair, setMatchUserPair] = useState<{
+    user1: string;
+    user2: string;
+  } | null>(null);
   const requests = useConnectionStore((state) => state.requests);
+  const handleShowMatchModal = (receiverProfileUrl: string) => {
+    setMatchUserPair({
+      user1: user?.profile_picture_url ?? "",
+      user2: receiverProfileUrl,
+    });
+    setMatchModalVisible(true);
+  };
+
+  const handleSendMessage = () => {
+    setMatchModalVisible(false);
+    router.push("/chatStack/connection");
+  };
+
+  const handleBackToRequest = () => {
+    setMatchModalVisible(false);
+  };
 
   useEffect(() => {
     if (error) {
@@ -332,6 +282,7 @@ const ProfileList = ({}) => {
           profile={item}
           setError={setError}
           onSwipeComplete={handleSwipeComplete}
+          onAcceptSuccess={handleShowMatchModal}
         />
       );
     },
@@ -354,6 +305,13 @@ const ProfileList = ({}) => {
             <Text style={styles.emptyText}>You have no Request yet</Text>
           </View>
         }
+      />
+      <MatchModal
+        visible={matchModalVisible}
+        onClose={handleBackToRequest}
+        onSendMessage={handleSendMessage}
+        user1Image={matchUserPair?.user1}
+        user2Image={matchUserPair?.user2}
       />
       <Toast />
     </View>

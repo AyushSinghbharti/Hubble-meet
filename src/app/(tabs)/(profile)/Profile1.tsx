@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -30,6 +30,10 @@ import { useVbcStore } from "@/src/store/vbc";
 import { uploadToCloudinary } from "@/src/api/cloudinary";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useRouter } from "expo-router";
+import {
+  industriesChipData,
+  topCompaniesForChipData,
+} from "@/src/dummyData/chipOptions";
 
 export default function SettingsScreen() {
   const profileData: UserProfile | null = useAuthStore((state) => state.user);
@@ -48,15 +52,21 @@ export default function SettingsScreen() {
   const [bio, setBio] = useState(profileData?.bio || "");
   const [image, setImage] = useState(profileData?.profile_picture_url || null);
   const [uploadingImage, setUploadImage] = useState(false);
-  const [companies, setCompanies] = useState(["Google", "Netflix"]);
+  const [companies, setCompanies] = useState([profileData?.current_company]);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [industries, setIndustries] = useState(
     profileData?.current_industry || []
   );
   const [dob, setDob] = useState<Date | null>(
     profileData?.date_of_birth ? new Date(profileData.date_of_birth) : null
   );
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  useEffect(() => {
+    if (error && scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: true });
+    }
+  }, [error]);
 
   const [selectedFlag, setSelectedFlag] = useState({
     flag: "https://flagcdn.com/w40/in.png",
@@ -112,24 +122,29 @@ export default function SettingsScreen() {
       return;
     }
 
+    if (!name || !bio || !email) {
+      setError("Please fill all required feilds");
+      return;
+    }
+
+    console.log(companies?.[0]);
+
     const formData = {
       fullName: name || undefined,
       bio: bio || undefined,
       currentCompany: companies?.[0] || undefined,
-      jobTitle: jobTitle || undefined,
-      city: location || undefined,
-      currentIndustry: industries?.length ? industries : undefined,
-      industriesOfInterest: profileData?.industries_of_interest || undefined,
-      citiesOnRadar: profileData?.cities_on_radar || undefined,
-      connectionPreferences: profileData?.connection_preferences || undefined,
+      jobTitle: jobTitle || "",
+      city: location || "",
+      currentIndustry: industries?.length ? industries : [],
+      industriesOfInterest: profileData?.industries_of_interest || [],
       profilePictureUrl: image || undefined,
       dateOfBirth: dob?.toISOString().split("T")[0] || undefined,
     };
 
     const vbcData = {
       display_name: name,
-      job_title: jobTitle || undefined,
-      company_name: companies?.[0] || undefined,
+      job_title: jobTitle,
+      company_name: companies?.[0] || null,
       location: location,
       allow_vbc_sharing: true,
     };
@@ -138,7 +153,10 @@ export default function SettingsScreen() {
       { userId: profileData.user_id, data: formData },
       {
         onSuccess: (res) => {
-          console.log("Profile updated successfully", res);
+          console.log(
+            "Profile updated successfully",
+            JSON.stringify(res, null, 2)
+          );
         },
         onError: (err) => {
           console.error("Error updating profile", err);
@@ -154,7 +172,7 @@ export default function SettingsScreen() {
       },
       {
         onSuccess: (res) => {
-          console.log("VBC updated successfully", res);
+          console.log("VBC updated successfully", JSON.stringify(res, null, 2));
         },
         onError: (error) => {
           console.log("VBC update error", error);
@@ -167,6 +185,7 @@ export default function SettingsScreen() {
   return (
     <ScrollView
       style={styles.container}
+      ref={scrollViewRef}
       contentContainerStyle={{ paddingBottom: 100 }}
       keyboardShouldPersistTaps="handled"
     >
@@ -293,7 +312,7 @@ export default function SettingsScreen() {
 
       <FormLabel label="Company" />
       <TagDropdown
-        options={["Google", "Microsoft", "Amazon", "Apple", "Netflix"]}
+        options={topCompaniesForChipData}
         selected={companies}
         onChange={setCompanies}
         placeholder="Select companies"
@@ -309,14 +328,18 @@ export default function SettingsScreen() {
 
       <FormLabel label="Industries" />
       <TagDropdown
-        options={["Technology", "Healthcare", "Finance", "Education", "Retail"]}
+        options={industriesChipData}
         selected={industries}
         onChange={setIndustries}
         placeholder="Select industries"
         mode="Light"
       />
 
-      <Button label="Save settings" onPress={handleSave} />
+      <Button
+        label="Save settings"
+        onPress={handleSave}
+        enableRedirect={false}
+      />
 
       <SelectCountryModal
         visible={modalVisible}

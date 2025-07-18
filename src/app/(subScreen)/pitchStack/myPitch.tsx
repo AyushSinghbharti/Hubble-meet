@@ -110,9 +110,9 @@ export default function MyPitchScreen() {
 
   const handleDeletePitch = () => {
     setViewModal(!viewModal);
-    removePitchFromStorage({ removeId: true });
-    clearPitch();
-    clearPitchId();
+    // removePitchFromStorage({ removeId: true });
+    // clearPitch();
+    // clearPitchId();
   };
 
   return (
@@ -209,7 +209,10 @@ export default function MyPitchScreen() {
 
       <UploadErrorModal
         visible={viewModal}
-        onClose={() => handleRouter("Upload")}
+        onClose={() => {
+          handleRouter("Upload");
+          setViewModal(!viewModal)
+        }}
         onExit={() => setViewModal(!viewModal)}
         type={"pending"}
         icon="delete"

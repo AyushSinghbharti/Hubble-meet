@@ -17,6 +17,7 @@ interface CustomButtonProps {
   showLabel?: boolean;
   width?: number | string;
   style?: any;
+  enableRedirect: boolean;
 }
 
 const Button: React.FC<CustomButtonProps> = ({
@@ -26,6 +27,7 @@ const Button: React.FC<CustomButtonProps> = ({
   showLabel = false,
   onPress,
   isActive = true,
+  enableRedirect = true,
   style,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -45,10 +47,11 @@ const Button: React.FC<CustomButtonProps> = ({
 
     onPress?.();
 
-
-    setTimeout(() => {
-      router.replace("/profile");
-    }, 750);
+    if (enableRedirect) {
+      setTimeout(() => {
+        router.replace("/profile");
+      }, 750);
+    }
   };
 
   return (

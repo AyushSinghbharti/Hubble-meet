@@ -24,6 +24,10 @@ interface ChatStore {
 
   intendedUserId: string | null;
   setIntendedUserId: (id: string | null) => void;
+
+  // ✅ NEW: Last viewed time per chat
+  lastViewedMap: { [chatId: string]: string };
+  setLastViewed: (chatId: string, timestamp: string) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -52,4 +56,13 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   intendedUserId: null,
   setIntendedUserId: (id) => set({ intendedUserId: id }),
+
+  lastViewedMap: {},
+  setLastViewed: (chatId, timestamp) =>
+    set((state) => ({
+      lastViewedMap: {
+        ...state.lastViewedMap,
+        [chatId]: timestamp,
+      },
+    })),
 }));

@@ -19,6 +19,7 @@ export const useGetUserPitch = (userId: string): UseQueryResult<Pitch, Error> =>
     queryKey: ['pitch', userId],
     queryFn: () => getUserPitch(userId),
     enabled: !!userId,
+    refetchInterval: 500,
   });
 
   useEffect(() => {

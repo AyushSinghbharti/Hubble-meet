@@ -48,19 +48,25 @@ PitchScreen bugs
 1. Country code bug to fix (store seperatly or by space) -> "Discussed"
 2. Need to add country code selector on profile screen 
 3. Add local storage to mananage the app state like permissions etc....
-4. On profile1.tsx onError scrollView to top
-5. On success show the error if any
-6. In app notification
+4. On profile1.tsx onError scrollView to top -> DONE
 7. Add local search to connections
-8. turn on recommendation API
 
-1. PROFILE setup
-2. Add scrollView
-3. Add company in VBC
-4. profile1 page company data issue + industries
-5. complete profile pop up remove for filled profile
-6. swipe message on accept (remove time)
-7. Add chat to VBC on hubble circle
-8. If pitch is not uploaded then redirect direct to create pitch
-9. Show pitch time on create pitch screen
-10. Update pitch issue
+1. Add scrollView to every page on profile setup --- DONE
+2. Add company in VBC card (need to confirm)
+3. Setting/profile page can't populate the company data + industries data --- CHECKED
+4. "complete profile pop up" should be remove for completed profile --- CHECKED
+5. Swipe message on accept (nead to add time or change time to 3 second) --- DONE
+6. Add functionality to chat/share/block to VBC card on hubble circle page --- DONE
+7. If pitch is not uploaded then redirect direct to create pitch --- DONE
+7. If pitch delete API error --- Pending
+8. Show pitch time on create pitch screen --- DONE
+9. Issue while updating pitch --- Fixed temporary
+10. Edit share option when click on share --- DONE
+11. VBC colour implimented via backends --- PENDING
+12. turn on recommendation API --- Pending
+13. Show new message as green circle in chat list --- 
+14. If I sign up via social login --- didn't show T&c
+15. Add to Hubble circle - if I click on the suitcase icon on vbc it should add that connection to my Hubble circle. Since closeness algo is not made yet, we can do this atleast. 
+16. Update the button onPress in /setting
+17. Pitch Delete API issue
+18. De

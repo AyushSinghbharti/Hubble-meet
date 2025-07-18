@@ -57,6 +57,7 @@ export default function CreatePitch() {
   const [duration, setDuration] = useState<number>(item.duration);
   const [error, setError] = useState<string>();
   const [typeModal, setTypeModal] = useState(false);
+  const [videoDuration, setVideoDuration] = useState<number>(0);
 
   const [status, setStatus] = useState<"pending" | "success" | "error">(
     "pending"
@@ -131,7 +132,7 @@ export default function CreatePitch() {
 
     if (media) {
       const size = await FileSystem.getInfoAsync(media);
-      console.log(size.size / 1024000);
+      console.log(size.size / MAX_SIZE);
       if (size.exists && size.size && size.size > MAX_SIZE) {
         setError("Video too large, Please select another");
         setStatus("error");
@@ -204,6 +205,12 @@ export default function CreatePitch() {
     player.play();
   });
 
+  useEffect(() => {
+    if (player?.duration) {
+      setVideoDuration(Math.round(player.duration));
+    }
+  }, [player?.duration]);
+
   const { isPlaying } = useEvent(player, "playingChange", {
     isPlaying: player.playing,
   });
@@ -256,7 +263,9 @@ export default function CreatePitch() {
           <Pressable style={styles.deleteIcon} onPress={() => setMedia(null)}>
             <MaterialIcons name="delete-outline" size={24} color="white" />
           </Pressable>
-          <Text style={styles.videoText}>30 sec</Text>
+          {/* <Text style={styles.videoText}>30 sec</Text> */}
+          <Text style={styles.videoText}>{`${videoDuration} sec`}</Text>
+
           {!isPlaying ? (
             <Pressable
               hitSlop={30}

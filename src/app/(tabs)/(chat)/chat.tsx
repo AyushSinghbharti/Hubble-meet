@@ -29,6 +29,7 @@ export default function ChatScreen() {
   const [selectedUser, setSelectedUser] = useState<Chat | null>(null);
   const [chats, setChats] = useState<Chat[] | null>(null);
 
+  const lastViewedMap = useChatStore((state) => state.lastViewedMap);
   const updatedChats = useChatStore((state) => state.chat);
   const currentChat = useChatStore((state) => state.currentChat);
   const clearCurrentChat = useChatStore((state) => state.currentChat);
@@ -81,8 +82,8 @@ export default function ChatScreen() {
 
   const RenderCard = ({ item }: { item: Chat }) => {
     const swipeRowRef = useRef<SwipeableMethods | null>(null);
-
     const lastMsg = item.messages?.[item.messages.length - 1];
+
     const lastMessageText = lastMsg?.content || "No messages yet";
     const messageTime = lastMsg
       ? new Date(lastMsg.createdAt).toLocaleTimeString([], {
@@ -90,12 +91,19 @@ export default function ChatScreen() {
           minute: "2-digit",
         })
       : "";
-    const unreadCount =
-      item.messages?.filter(
-        (msg) => !msg.read && msg.senderId !== user?.user_id
-      ).length || 0;
 
-    if (!lastMsg?.content) return; //Hide all users that haven't started convo yet
+    // Get last viewed time
+    const lastViewed = lastViewedMap[item.id]
+      ? new Date(lastViewedMap[item.id])
+      : null;
+
+    // Check if latest message is unread
+    const isUnread =
+      lastMsg &&
+      lastMsg.sender?.id !== user?.user_id &&
+      (!lastViewed || new Date(lastMsg.createdAt) > lastViewed);
+
+    if (!lastMsg?.content) return;
 
     const otherUser = item.participants.find((p) => p.id !== user?.user_id);
     const result = useOtherUserProfile(otherUser?.id);
@@ -137,11 +145,7 @@ export default function ChatScreen() {
           </View>
           <View style={styles.rightSection}>
             <Text style={styles.time}>{messageTime}</Text>
-            {unreadCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{unreadCount}</Text>
-              </View>
-            )}
+            {isUnread && <View style={styles.greenDot} />}
           </View>
         </TouchableOpacity>
       </Swipeable>
@@ -177,12 +181,15 @@ export default function ChatScreen() {
 
       {/* Chat List */}
       <FlatList
-        data={(chats || [])
-          .slice()
-          .sort(
-            (a, b) =>
-              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-          )}
+        data={(chats || []).slice().sort((a, b) => {
+          const aLastMsg = a.messages?.[a.messages.length - 1];
+          const bLastMsg = b.messages?.[b.messages.length - 1];
+
+          const aTime = aLastMsg ? new Date(aLastMsg.createdAt).getTime() : 0;
+          const bTime = bLastMsg ? new Date(bLastMsg.createdAt).getTime() : 0;
+
+          return bTime - aTime;
+        })}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingTop: 10 }}
         renderItem={({ item }) => <RenderCard item={item} />}
@@ -317,6 +324,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontFamily: "Inter",
   },
+  greenDot: {
+    backgroundColor: "#BBCF8D",
+    aspectRatio: 1,
+    borderRadius: 12,
+    height: 10,
+  },
   badge: {
     backgroundColor: "#BBCF8D",
     fontFamily: "Inter",
@@ -352,7 +365,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   icon: {
     width: 28,
     height: 28,

@@ -30,11 +30,21 @@ import { useCreateUserProfile } from "@/src/hooks/useProfile";
 import { useCreateVbcCard } from "@/src/hooks/useVbc";
 import ErrorAlert from "@/src/components/errorAlert";
 import { uploadToCloudinary } from "@/src/api/cloudinary";
+import { uploadToS3 } from "@/src/api/aws";
+import { FONT } from "@/assets/constants/fonts";
+import {
+  industriesChipData,
+  cityWithCountryChipData,
+  cityWithoutCountryChipData,
+  rolesLookingForChipData,
+  topCompaniesForChipData,
+} from "@/src/dummyData/chipOptions";
 
 const ChipInput = ({
-  label,
-  placeholder,
-  items,
+  label = "",
+  placeholder = "",
+  isSubHeading = false,
+  items = [""],
   setItems,
   subtitle = "",
   options = [""],
@@ -42,9 +52,12 @@ const ChipInput = ({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.chipContainer}
+      style={[
+        styles.chipContainer,
+        { paddingHorizontal: isSubHeading ? 5 : 0 },
+      ]}
     >
-      <Text style={styles.label}>
+      <Text style={!isSubHeading ? styles.label : styles.miniLabel}>
         {label}
         {subtitle && <Text style={styles.subLabel}>{subtitle}</Text>}
       </Text>
@@ -80,14 +93,11 @@ export default function ProfileSetup() {
   const [address, setAddress] = useState("");
   const [shareVBC, setShareVBC] = useState(false);
   const [worklist, setWorklist] = useState([]);
-  const [spaces, setSpaces] = useState(["Fintech", "Fashion", "AI"]);
-  const [connectPeople, setConnectPeople] = useState(["fintech", "fashion"]);
+  const [spaces, setSpaces] = useState([]);
+  const [connectPeople, setConnectPeople] = useState([]);
   const [image, setImage] = useState<string | null>(null);
-  const [radarCities, setRadarCities] = useState(["Banglore", "Pune"]);
-  const [rolesLookingFor, setRolesLookingFor] = useState([
-    "Marketing",
-    "Mentor",
-  ]);
+  const [radarCities, setRadarCities] = useState([]);
+  const [rolesLookingFor, setRolesLookingFor] = useState([]);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [uploadingImage, setUploadImage] = useState(false);
 
@@ -141,14 +151,35 @@ export default function ProfileSetup() {
       aspect: [4, 4],
       quality: 1,
     });
+
     if (!res.canceled) {
       try {
         setUploadImage(true);
-        const url = await uploadToCloudinary(res.assets[0].uri);
-        setImage(url);
+        setImage(null);
+        let imageUrl = "";
+
+        try {
+          // Try uploading to S3
+          const s3Response = await uploadToS3(
+            res.assets[0].uri,
+            `${name}_${Date.now()}_profile_image`,
+            res.assets[0].mimeType || "image/jpeg"
+          );
+
+          if (s3Response.success && s3Response.url) {
+            imageUrl = s3Response.url;
+          } else {
+            throw new Error("S3 upload failed, fallback to Cloudinary");
+          }
+        } catch (s3Err) {
+          // Fallback to Cloudinary
+          console.warn("S3 upload failed, trying Cloudinary...");
+          imageUrl = await uploadToCloudinary(res.assets[0].uri);
+        }
+        setImage(imageUrl);
       } catch (err) {
-        console.log(error);
-        setError("Error Uploading error to backend, Please try again");
+        console.log("Upload Error:", err);
+        setError("Error uploading image. Please try again.");
       } finally {
         setUploadImage(false);
       }
@@ -219,10 +250,10 @@ export default function ProfileSetup() {
     ]);
     console.log("✅ Profile created:", profileRes);
     console.log("✅ VBC created:", vbcRes);
-    
+
     console.log(profileRes, vbcRes);
 
-    if(profileRes && vbcRes){
+    if (profileRes && vbcRes) {
       router.replace("/connect");
     }
     setFinalScreen(!finalScreen);
@@ -359,7 +390,7 @@ export default function ProfileSetup() {
     () => (
       <>
         <ChipInput
-          options={["Google", "Amazon", "Apple", "Microsoft", "Netflix"]}
+          options={topCompaniesForChipData}
           label="Where are you working these days?"
           subtitle={"Startup? MNC? Freelancing? We’re cool with all "}
           placeholder="e.g., Google, Amazon"
@@ -381,16 +412,18 @@ export default function ProfileSetup() {
           onChangeText={setJobTitle}
         />
 
-        <ChipInput
-          options={["Finance", "AI", "Retail", "Hospitality", "Engineers"]}
-          label={"What industry/sector are you in?\n"}
-          subtitle={
-            "Finance, AI, Retail, Hospitality... No limits. Add what vibes with you."
-          }
-          placeholder="Add Space"
-          items={spaces}
-          setItems={setSpaces}
-        />
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
+          <ChipInput
+            options={industriesChipData}
+            label={"What industry/sector are you in?\n"}
+            subtitle={
+              "Finance, AI, Retail, Hospitality... No limits. Add what vibes with you."
+            }
+            placeholder="Add Space"
+            items={spaces}
+            setItems={setSpaces}
+          />
+        </KeyboardAvoidingView>
       </>
     ),
 
@@ -408,34 +441,21 @@ export default function ProfileSetup() {
           onChangeText={setAddress}
         />
 
+        <Text style={[styles.label, { marginBottom: 24 }]}>
+          What kind of people are you looking to connect with?
+        </Text>
         <ChipInput
-          options={[
-            "fintech",
-            "fashion",
-            "healthcare",
-            "education",
-            "art & design",
-            "gaming",
-            "sustainability",
-            "travel & hospitality",
-          ]}
-          label="What kind of people are you looking to connect with?"
+          isSubHeading={true}
+          options={industriesChipData}
+          label="Industry Interests"
           placeholder="Add type"
           items={connectPeople}
           setItems={setConnectPeople}
         />
 
         <ChipInput
-          options={[
-            "New York",
-            "London",
-            "San Francisco",
-            "Berlin",
-            "Tokyo",
-            "Paris",
-            "Dubai",
-            "Singapore",
-          ]}
+          isSubHeading={true}
+          options={cityWithCountryChipData}
           label="Any cities on your radar?"
           placeholder="Add City"
           items={radarCities}
@@ -443,17 +463,9 @@ export default function ProfileSetup() {
         />
 
         <ChipInput
-          options={[
-            "Founders",
-            "Designers",
-            "Product Managers",
-            "Developers",
-            "Marketers",
-            "Investors",
-            "Growth Hackers",
-            "Content Creators",
-          ]}
-          label="Looking for founders? Designers? Product?"
+          isSubHeading={true}
+          options={rolesLookingForChipData}
+          label="Looking for Founders? Designers? Product?"
           placeholder="Add Role"
           items={rolesLookingFor}
           setItems={setRolesLookingFor}
@@ -552,8 +564,11 @@ export default function ProfileSetup() {
 
       {/* body */}
       <ScrollView
+        showsVerticalScrollIndicator={false}
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{
+          paddingBottom: step === 2 || step === 3 ? 350 : 0,
+        }}
       >
         {Steps[step]()}
       </ScrollView>
@@ -676,10 +691,16 @@ const styles = StyleSheet.create({
   },
 
   /* form generic */
-  scroll: { padding: 20 },
+  scroll: { padding: 20, paddingBottom: 0 },
   label: {
     fontSize: 18,
     fontFamily: "InterBold",
+    marginBottom: 10,
+    color: colourPalette.textPrimary,
+  },
+  miniLabel: {
+    fontSize: 14,
+    fontFamily: FONT.ITALICBOLD,
     marginBottom: 10,
     color: colourPalette.textPrimary,
   },

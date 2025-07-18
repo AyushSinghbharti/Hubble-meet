@@ -59,16 +59,20 @@ const ProfileCard = ({
   profile,
   onSwipeComplete,
   rightSwipeCount,
+  swipeCount, // ✅ added
   isExpanded,
   onToggleDetails,
   setError,
+  isProfileCompleted,
 }: {
   profile: UserProfile;
   onSwipeComplete: any;
-  rightSwipeCount: any;
+  rightSwipeCount: number;
+  swipeCount: number; // ✅ added
   isExpanded: boolean;
   onToggleDetails: any;
   setError: any;
+  isProfileCompleted: boolean;
 }) => {
   const translateX = useSharedValue(0);
   const rotate = useSharedValue(0);
@@ -230,7 +234,7 @@ const ProfileCard = ({
 
   // Pan gesture for swiping
   const panGesture = Gesture.Pan()
-    .enabled(hasFlipped) // only allow swipe after flip
+    .enabled(hasFlipped && (swipeCount < 5 || isProfileCompleted)) // only allow swipe after flip
     .activeOffsetX([-10, 10])
     .onUpdate((e) => {
       "worklet";
@@ -498,13 +502,30 @@ const ProfileCard = ({
 const Connect = () => {
   const [swipedIds, setSwipedIds] = useState([]);
   const [rightSwipeCount, setRightSwipeCount] = useState(0);
+  const [swipeCount, setSwipeCount] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [userProfileCompleted, setUserProfileCompleted] = useState(false);
   const [expandedProfileId, setExpandedProfileId] = useState(null);
   const [hasFlipped, setHasFlipped] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const recommendations = useConnectionStore((state) => state.recommendations);
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+
+  //Checking if user have empty feild
+  useEffect(() => {
+    if (!user || typeof user !== "object") {
+      setUserProfileCompleted(false);
+      return;
+    }
+
+    const hasIncompleteFields = Object.values(user).some(
+      (value) => value === undefined || value === null || value === ""
+    );
+
+    setUserProfileCompleted(!hasIncompleteFields);
+  }, [user]);
 
   const handleSwipeComplete = useCallback(
     (user_id, direction) => {
@@ -515,6 +536,8 @@ const Connect = () => {
         }
         return updated;
       });
+
+      setSwipeCount((prev) => prev + 1); // ✅ Total swipes
 
       if (direction === "right") {
         setRightSwipeCount((prev) => prev + 1);
@@ -541,12 +564,18 @@ const Connect = () => {
           rightSwipeCount={rightSwipeCount}
           isExpanded={expandedProfileId === item.user_id}
           onToggleDetails={handleToggleDetails}
-          // hasFlipped={hasFlipped}
+          swipeCount={swipeCount}
           setError={setError}
+          isProfileCompleted={userProfileCompleted}
         />
       );
     },
-    [rightSwipeCount, handleSwipeComplete, expandedProfileId]
+    [
+      rightSwipeCount,
+      handleSwipeComplete,
+      expandedProfileId,
+      userProfileCompleted,
+    ]
   );
 
   const visibleProfileData = useMemo(() => {
@@ -582,7 +611,7 @@ const Connect = () => {
 
       <View>
         <ProfilePrompt
-          visible={showLimitModal}
+          visible={showLimitModal && !userProfileCompleted}
           onCancel={() => setShowLimitModal(false)}
           onProceed={() => {
             router.push("/Profile1");

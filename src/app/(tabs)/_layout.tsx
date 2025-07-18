@@ -27,6 +27,7 @@ import {
 } from "@/src/hooks/useConnection";
 import { logout } from "@/src/hooks/useAuth";
 import { useAuthGuard } from "@/src/utility/useAuthGuard";
+import { useGetUserPitch } from "@/src/hooks/usePitch";
 
 const baseUrl = "../../../assets/icons";
 
@@ -102,6 +103,9 @@ export default function StackLayout() {
 
   //Fetching all connections
   useUserConnections(userId || "", true);
+
+  //Fetching pitch
+  useGetUserPitch(userId || "")
 
   //Adding dummy users to recommendations
   const useLoadDummyRecommendations = () => {

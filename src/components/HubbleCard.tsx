@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Text,
   Dimensions,
+  Share,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -14,6 +15,9 @@ import { UserProfile } from "@/src/interfaces/profileInterface";
 import profileData from "../dummyData/dummyProfiles";
 import { useConnectionStore } from "../store/connectionStore";
 import { useAuthStore } from "../store/auth";
+import { resolveChatAndNavigate } from "../utility/resolveChatAndNavigate";
+import BlockUserModal from "./Modal/BlockUserModal";
+import CustomModal from "./Modal/CustomModal";
 
 const { width } = Dimensions.get("window");
 const CENTER = width / 2;
@@ -25,8 +29,35 @@ const ProfileOrbit = ({}: {}) => {
   );
   const connections = useConnectionStore((state) => state.connections);
   const user = useAuthStore((state) => state.user);
+  const [addModal, setAddModal] = useState(false);
+  const [blockModal, setBlockModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const outerProfiles = connections.slice(0, 3);
   const innerProfiles = connections.slice(3, connections.length - 1);
+  const currentUser = useAuthStore((state) => state.user);
+
+  //Functions
+  const handleChatPress = async () => {
+    await resolveChatAndNavigate({ currentUser, targetUser: selectedProfile });
+  };
+
+  const handleSharePress = () => {
+    Share.share({
+      message: `Hey see my VBC card here ${selectedProfile?.full_name}`,
+    });
+  };
+  const handleBlockPress = () => {
+    setBlockModal(true);
+    setSelectedUser(selectedProfile);
+  };
+  const handleBagPress = () => {
+    setSelectedUser(selectedProfile);
+    setAddModal(true);
+  };
+
+  const handlePitchPress = () => {
+    router.push("/pitch");
+  };
 
   const handleViewAll = () => {
     router.push("/HubbleCircleViewAll");
@@ -35,6 +66,8 @@ const ProfileOrbit = ({}: {}) => {
   const handleAvatarPress = (profile: UserProfile) => {
     setSelectedProfile(profile);
   };
+
+  //Function
 
   const renderOrbitAvatars = (
     radius: number,
@@ -116,6 +149,35 @@ const ProfileOrbit = ({}: {}) => {
           modalVisible={true}
           onClose={() => setSelectedProfile(null)}
           selectedProfile={selectedProfile}
+          onPressChat={handleChatPress}
+          onPressShare={handleSharePress}
+          onPressBlock={handleBlockPress}
+          onPressBag={handleBagPress}
+          onPressPitch={handlePitchPress}
+        />
+      )}
+
+      <BlockUserModal
+        visible={blockModal}
+        userName={selectedUser?.full_name}
+        onClose={() => setBlockModal(false)}
+        onSubmit={(reason) => {
+          console.log("Blocked with reason:", reason);
+          setBlockModal(false);
+        }}
+      />
+
+      {selectedUser && (
+        <CustomModal
+          visible={addModal}
+          onClose={() => setAddModal(false)}
+          name={selectedUser.full_name}
+          onConfirm={() => {
+            Alert.alert("Open Bag", `Bag opened for ${selectedUser.full_name}`);
+            setAddModal(false);
+          }}
+          confirmText="Open Bag"
+          cancelText="Close"
         />
       )}
     </View>

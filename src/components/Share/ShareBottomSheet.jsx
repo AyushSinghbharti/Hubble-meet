@@ -13,68 +13,82 @@ import {
   Platform,
   Pressable,
   Linking,
+  Alert,
 } from 'react-native';
 import { AntDesign, Feather } from '@expo/vector-icons';
 import AlertModal from '../Alerts/AlertModal';
+import { useConnectionStore } from '@/src/store/connectionStore';
+import { useAuthStore } from '@/src/store/auth';
+import { resolveChatAndNavigate } from '@/src/utility/resolveChatAndNavigate';
 
-
-const INVITE_LINK = 'http://www.sample.org/headhatsapp';
-
-
-const USERS = [
-  { id: '1', name: 'Alice', avatar: 'https://i.pravatar.cc/150?img=1' },
-  { id: '2', name: 'Bob', avatar: 'https://i.pravatar.cc/150?img=2' },
-  { id: '3', name: 'Charlie', avatar: 'https://i.pravatar.cc/150?img=3' },
-  { id: '4', name: 'Diana', avatar: 'https://i.pravatar.cc/150?img=4' },
-  { id: '5', name: 'Eve', avatar: 'https://i.pravatar.cc/150?img=5' },
-  { id: '6', name: 'Frank', avatar: 'https://i.pravatar.cc/150?img=6' },
-  { id: '7', name: 'Grace', avatar: 'https://i.pravatar.cc/150?img=7' },
-  { id: '8', name: 'Heidi', avatar: 'https://i.pravatar.cc/150?img=8' },
-];
+const INVITE_LINK = `http://com.hubblemeet/`;
 
 const ShareModal = ({ visible, onClose }) => {
   const [search, setSearch] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [requestSentVisible, setRequestSentVisible] = useState(false);
+  const connections = useConnectionStore((state) => state.connections);
+  const user = useAuthStore((s) => s.user);
 
   const handleUserSelect = (user) => {
-    const exists = selectedUsers.some((u) => u.id === user.id);
+    const exists = selectedUsers.some((u) => u.user_id === user.user_id);
     if (exists) {
-      setSelectedUsers(selectedUsers.filter((u) => u.id !== user.id));
+      setSelectedUsers(selectedUsers.filter((u) => u.user_id !== user.user_id));
     } else {
       setSelectedUsers([...selectedUsers, user]);
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (selectedUsers.length === 0) return;
+
+    for (const target of selectedUsers) {
+      await resolveChatAndNavigate({
+        currentUser: user,
+        targetUser: target,
+        isRoutingEnable: false,
+        initialMessage: `Hey! Check this amazing app: ${INVITE_LINK}/${user.user_id}`
+      });
+    }
+
     setRequestSentVisible(true);
     setSelectedUsers([]);
     onClose();
   };
 
+
   const handleWhatsAppShare = () => {
-   const url = `https://wa.me/?text=${encodeURIComponent(INVITE_LINK)}`;
-       Linking.openURL(url).catch(() => {
-         Alert.alert('Error', 'Unable to open WhatsApp');
-       });
+    const url = `https://wa.me/?text=${encodeURIComponent(INVITE_LINK)}/${user.user_id}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Error', 'Unable to open WhatsApp');
+    });
+  };
+
+  const handleEmailShare = () => {
+    const subject = 'Check this out!';
+    const body = `Hey! Check this amazing app: ${INVITE_LINK}/${user.user_id}`;
+    const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    Linking.openURL(emailUrl).catch(() => {
+      Alert.alert('Error', 'Unable to open email app');
+    });
   };
 
   const filteredUsers = useMemo(() => {
-    return USERS.filter((u) =>
-      u.name.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [search]);
+    return connections?.filter((u) =>
+      u.full_name?.toLowerCase().includes(search.toLowerCase())
+    ) || [];
+  }, [search, connections]);
 
   const renderItem = ({ item }) => {
-    const isSelected = selectedUsers.some((u) => u.id === item.id);
+    const isSelected = selectedUsers.some((u) => u.user_id === item.user_id);
     return (
       <TouchableOpacity
         style={styles.userColumn}
         onPress={() => handleUserSelect(item)}
       >
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
-        <Text style={styles.name}>{item.name}</Text>
+        <Image source={{ uri: item.profile_picture_url }} style={styles.avatar} />
+        <Text style={styles.name}>{item.full_name}</Text>
         {isSelected && (
           <View style={styles.selectedTick}>
             <AntDesign name="checkcircle" size={18} color="#007AFF" />
@@ -106,7 +120,7 @@ const ShareModal = ({ visible, onClose }) => {
             <Text style={styles.title}>Share with</Text>
             <FlatList
               data={filteredUsers}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => item.user_id}
               renderItem={renderItem}
               numColumns={4}
               contentContainerStyle={styles.flatListContent}
@@ -114,10 +128,17 @@ const ShareModal = ({ visible, onClose }) => {
               keyboardShouldPersistTaps="handled"
             />
 
-            <TouchableOpacity style={styles.externalShareButton} onPress={handleWhatsAppShare}>
-              <Feather name="send" size={20} color="#25D366" />
-              <Text style={styles.externalShareText}>Share on WhatsApp</Text>
-            </TouchableOpacity>
+            <View style={styles.externalRow}>
+              <TouchableOpacity style={[styles.externalShareButton, { borderColor: '#25D366' }]} onPress={handleWhatsAppShare}>
+                <Feather name="send" size={20} color="#25D366" />
+                <Text style={[styles.externalShareText, { color: '#25D366' }]}>WhatsApp</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.externalShareButton, { borderColor: '#007AFF' }]} onPress={handleEmailShare}>
+                <Feather name="mail" size={20} color="#007AFF" />
+                <Text style={[styles.externalShareText, { color: '#007AFF' }]}>Email</Text>
+              </TouchableOpacity>
+            </View>
 
             {selectedUsers.length > 0 && (
               <TouchableOpacity style={styles.sendBar} onPress={handleSend}>
@@ -128,7 +149,6 @@ const ShareModal = ({ visible, onClose }) => {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Custom Alert Modal */}
       <AlertModal
         visible={requestSentVisible}
         onClose={() => setRequestSentVisible(false)}
@@ -146,14 +166,8 @@ export default ShareModal;
 const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  modalWrap: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
+  modalWrap: { flex: 1, justifyContent: 'flex-end' },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
   modalContainer: {
     backgroundColor: 'white',
     borderTopLeftRadius: 16,
@@ -183,13 +197,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
-  flatListContent: {
-    paddingBottom: 20,
-  },
-  row: {
-    justifyContent: 'space-around',
-    marginBottom: 20,
-  },
+  flatListContent: { paddingBottom: 20 },
+  row: { justifyContent: 'space-around', marginBottom: 20 },
   userColumn: {
     alignItems: 'center',
     width: width / 4 - 20,
@@ -204,10 +213,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     marginBottom: 5,
   },
-  name: {
-    fontSize: 12,
-    textAlign: 'center',
-  },
+  name: { fontSize: 12, textAlign: 'center' },
   selectedTick: {
     position: 'absolute',
     bottom: 5,
@@ -215,20 +221,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 10,
   },
+  externalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    gap: 10,
+  },
   externalShareButton: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 15,
+    justifyContent: 'center',
+    flex: 1,
+    paddingVertical: 14,
     backgroundColor: '#E6F3FF',
     borderRadius: 10,
-    marginTop: 10,
+    borderWidth: 1,
   },
   externalShareText: {
-    marginLeft: 10,
-    fontSize: 16,
+    marginLeft: 8,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#25D366',
   },
   sendBar: {
     marginTop: 15,
@@ -237,9 +249,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     alignItems: 'center',
   },
-  sendText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  sendText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 });

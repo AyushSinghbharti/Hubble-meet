@@ -8,16 +8,18 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import {
-  MaterialCommunityIcons,
-  Entypo,
-} from "@expo/vector-icons";
+import { MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 
 interface ProfileModalProps {
   modalVisible: boolean;
   onClose: () => void;
   selectedProfile: UserProfile;
+  onPressChat?: () => void;
+  onPressShare?: () => void;
+  onPressBlock?: () => void;
+  onPressPitch?: () => void;
+  onPressBag?: () => void;
 }
 
 export const lightenColor = (hex: string, percent: number): string => {
@@ -46,6 +48,11 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
   modalVisible,
   onClose,
   selectedProfile,
+  onPressChat,
+  onPressShare,
+  onPressBlock,
+  onPressPitch,
+  onPressBag,
 }) => {
   const bgColor = "#cbeaa3";
   const lightBg = lightenColor(bgColor, 50);
@@ -66,18 +73,24 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
               imageStyle={{ borderTopLeftRadius: 30, borderTopRightRadius: 30 }}
             >
               <View style={styles.topIcons}>
-                <View style={styles.iconWrapper}>
+                <TouchableOpacity
+                  style={styles.iconWrapper}
+                  onPress={onPressBag}
+                >
                   <Image
                     source={require("../../assets/icons/suitcase.png")}
                     style={styles.icon}
                   />
-                </View>
-                <View style={styles.iconWrapper}>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.iconWrapper}
+                  onPress={onPressPitch}
+                >
                   <Image
                     source={require("../../assets/icons/pitch2.png")}
                     style={styles.icon}
                   />
-                </View>
+                </TouchableOpacity>
               </View>
             </ImageBackground>
           </View>
@@ -89,18 +102,33 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
           <Text style={styles.location}>{selectedProfile.city}</Text>
 
           <View style={styles.actionRow}>
-            <TouchableOpacity style={[styles.actionCircle, { backgroundColor: lightBg }]}>
-              <Image source={require("../../assets/icons/chat.png")} style={styles.icon} />
+            <TouchableOpacity
+              style={[styles.actionCircle, { backgroundColor: lightBg }]}
+              onPress={onPressChat}
+            >
+              <Image
+                source={require("../../assets/icons/chat.png")}
+                style={styles.icon}
+              />
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionCircle, { backgroundColor: lightBg }]}>
+            <TouchableOpacity
+              style={[styles.actionCircle, { backgroundColor: lightBg }]}
+              onPress={onPressShare}
+            >
               <MaterialCommunityIcons
                 name="share-variant"
                 size={22}
                 color="#000"
               />
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionCircle, { backgroundColor: lightBg }]}>
-              <Image source={require("../../assets/icons/block2.png")} style={styles.icon} />
+            <TouchableOpacity
+              style={[styles.actionCircle, { backgroundColor: lightBg }]}
+              onPress={onPressBlock}
+            >
+              <Image
+                source={require("../../assets/icons/block2.png")}
+                style={styles.icon}
+              />
             </TouchableOpacity>
           </View>
         </View>

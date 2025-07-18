@@ -14,6 +14,7 @@ import FlipCardWrapper from "../../../components/pitchScreenComps/flipCardWrappe
 import MainCardWrapper from "../../../components/pitchScreenComps/mainCardWrapper";
 
 import { Dimensions } from "react-native";
+import { usePitchStore } from "@/src/store/pitchStore";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const TAB_BAR_HEIGHT = 100; // your custom tab bar height
@@ -186,6 +187,7 @@ export default function PitchScreen() {
   const [currentPitch, setCurrentPitch] = useState(pitches[0].pitch);
   const [currentProfile, setCurrentProfile] = useState(pitches[0].dummyUser);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const pitch = usePitchStore((state) => state.pitch);
 
   useEffect(() => {
     const current = pitches[currentIndex];
@@ -216,7 +218,21 @@ export default function PitchScreen() {
   };
 
   const navigateToMyPitch = () => {
-    router.push("/pitchStack/myPitch");
+    if (pitch) router.push("/pitchStack/myPitch");
+    else
+      router.push({
+        pathname: "/pitchStack/createPitch",
+        params: {
+          item: JSON.stringify({
+            name: null,
+            desc: null,
+            format: "Upload",
+            pitchType: "Business",
+            duration: 30,
+            videoUrl: null,
+          }),
+        },
+      });
   };
 
   // Animations
