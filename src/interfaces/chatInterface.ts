@@ -8,13 +8,23 @@ export interface ChatUser {
   updatedAt?: string;
 }
 
+export interface ChatMedia {
+  id: string;
+  messageId: string;
+  url: string;
+  mediaType: MessageType;
+  fileName: string;
+  mimeType: string;
+  createdAt: string;
+}
+
 export type MessageType =
   | "TEXT"
   | "IMAGE"
   | "VIDEO"
   | "FILE"
   | "AUDIO"
-  | "VCARD"; // extend as backend grows
+  | "VCARD" | string; // extend as backend grows
 
 /* ---------- Chat & Message models ---------- */
 
@@ -23,8 +33,8 @@ export interface ChatPreview {
   id: string;
   name: string;
   isGroup: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Chat extends ChatPreview {
@@ -40,10 +50,9 @@ export interface ChatMessage {
   messageType: MessageType;
   createdAt: string;
   updatedAt: string;
-  /** Sender summary (id / username / email) */
   sender: ChatUser;
-  /** Minimal chat reference (id + name…) */
   chat: Chat;
+  media?: ChatMedia[];
 
   /* ----- optional vCard attachment fields (backend sends null when N/A) ----- */
   vCardUserId?: string | null;
@@ -66,11 +75,19 @@ export interface CreateChatRequest {
 
 export interface SendMessageRequest {
   content: string;
-  sender: Pick<ChatUser, "id" | "username" | "email">;
+  sender: Pick<ChatUser, "id" | "username" | "email">
   chat: Pick<ChatPreview, "id" | "name" | "isGroup">
   /** Defaults to "TEXT" server-side when omitted */
   messageType?: MessageType | string;
 }
+
+export interface SendMediaRequest {
+  chat: ChatPreview;
+  sender: Pick<ChatUser, "id" | "username" | "email">;
+  messageType: MessageType;
+  files: File[];
+}
+
 
 export interface AddUserToChatRequest {
   chatId: string;

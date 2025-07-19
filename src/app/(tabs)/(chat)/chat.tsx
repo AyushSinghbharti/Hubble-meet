@@ -83,8 +83,29 @@ export default function ChatScreen() {
   const RenderCard = ({ item }: { item: Chat }) => {
     const swipeRowRef = useRef<SwipeableMethods | null>(null);
     const lastMsg = item.messages?.[item.messages.length - 1];
+    if (!lastMsg) return;
 
-    const lastMessageText = lastMsg?.content || "No messages yet";
+    let lastMessageText = "No messages yet";
+
+    if (lastMsg) {
+      if (lastMsg.content) {
+        lastMessageText = lastMsg.content;
+      } else if (lastMsg.messageType === "IMAGE") {
+        lastMessageText = "📷 Photo";
+      } else if (lastMsg.messageType === "VIDEO") {
+        lastMessageText = "🎥 Video";
+      } else if (
+        lastMsg.messageType === "DOCUMENT" ||
+        lastMsg.messageType === "FILE"
+      ) {
+        lastMessageText = "📄 Document";
+      } else if (lastMsg.messageType === "VCARD") {
+        lastMessageText = "🔖 VCard shared";
+      } else {
+        lastMessageText = "New message";
+      }
+    }
+
     const messageTime = lastMsg
       ? new Date(lastMsg.createdAt).toLocaleTimeString([], {
           hour: "2-digit",
@@ -102,8 +123,6 @@ export default function ChatScreen() {
       lastMsg &&
       lastMsg.sender?.id !== user?.user_id &&
       (!lastViewed || new Date(lastMsg.createdAt) > lastViewed);
-
-    if (!lastMsg?.content) return;
 
     const otherUser = item.participants.find((p) => p.id !== user?.user_id);
     const result = useOtherUserProfile(otherUser?.id);

@@ -14,6 +14,7 @@ import {
     SendMessageResponse,
     GetChatMessagesResponse,
     DeleteMessageResponse,
+    SendMediaRequest,
 } from '../interfaces/chatInterface';
 
 const CHAT_BASE = '/api/chat';
@@ -66,7 +67,50 @@ export const removeUserFromChat = (
 export const sendMessage = (
     payload: SendMessageRequest
 ): Promise<SendMessageResponse> =>
-    apiClient.post<SendMessageResponse>(`${CHAT_BASE}/send`, payload).then(res => res.data);
+    apiClient.post<SendMessageResponse>(`${CHAT_BASE}/send`, payload).then(res => res.data); 4
+
+//Send Media (document/image etc...)
+export const sendMedia = async (
+    payload: SendMediaRequest
+): Promise<SendMessageResponse> => {
+    const formData = new FormData();
+
+    formData.append("chat", JSON.stringify(payload.chat));
+    formData.append("sender", JSON.stringify(payload.sender));
+    formData.append("messageType", payload.messageType);
+
+    // Handle multiple files
+    payload.files.forEach((file, index) => {
+        const fileBlob = {
+            uri: file.uri,
+            type: file.type || "application/octet-stream",
+            name: file.name || `upload_${index}`,
+        };
+
+        formData.append("files", fileBlob as any, file.name || `upload_${index}`);
+    });
+
+    const config = {
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "multipart/form-data",
+        },
+    };
+
+    try {
+        const response = await apiClient.post<SendMessageResponse>(
+            `${CHAT_BASE}/send`,
+            formData,
+            config
+        );
+
+        console.log("Upload success:", JSON.stringify(response.data, null, 2));
+        return response.data;
+    } catch (error) {
+        console.error("Axios upload error:", error);
+        throw error;
+    }
+};
 
 /**
  * Retrieves all messages in a chat

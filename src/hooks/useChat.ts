@@ -9,6 +9,8 @@ import {
   sendMessage,
   getChatMessages,
   deleteMessage,
+  sendMediaAlternative,
+  sendMedia
 } from '../api/chat';
 import {
   AddUserToChatRequest,
@@ -18,6 +20,7 @@ import {
   SendMessageRequest,
   Chat,
   ChatMessage,
+  SendMediaRequest,
 } from '../interfaces/chatInterface';
 import {
   saveChatToStorage
@@ -133,6 +136,21 @@ export const useSendMessage = () => {
     },
     onError: (error) => {
       console.log(error);
+    }
+  });
+};
+
+/* ---------- Send Media ---------- */
+export const useSendMediaMessage = () => {
+  const addMessage = useChatStore((state) => state.addMessage);
+
+  return useMutation({
+    mutationFn: (data: SendMediaRequest) => sendMedia(data),
+    onSuccess: async (data: ChatMessage) => {
+      addMessage(data);
+    },
+    onError: (error) => {
+      console.log("Error sending media message:", error);
     }
   });
 };

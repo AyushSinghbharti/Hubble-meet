@@ -26,6 +26,7 @@ import {
   useCreateChat,
   useDeleteMessage,
   useRemoveUserFromChat,
+  useSendMediaMessage,
   useSendMessage,
 } from "@/src/hooks/useChat";
 import { useChatStore } from "@/src/store/chatStore";
@@ -54,6 +55,7 @@ export default function ChatDetailsScreen() {
 
   //Backend Functions
   const currentChat = useChatStore((state) => state.currentChat);
+  const user = useAuthStore((state) => state.user);
   useChatMessages(id);
   const updatedMessages = useChatStore((state) => state.messages);
   useEffect(() => {
@@ -71,11 +73,10 @@ export default function ChatDetailsScreen() {
   const { mutate: removeUser } = useRemoveUserFromChat();
   const { mutate: createChat } = useCreateChat();
   const { mutate: deleteMessage } = useDeleteMessage();
+  const { mutate: sendMediaMessage } = useSendMediaMessage();
 
   const onPressSendMessage = (content: string) => {
     if (!content) return;
-
-    const user = useAuthStore.getState().user;
     const currentChat = useChatStore.getState().currentChat;
     const messages = useChatStore.getState().messages;
     if (!user) return;
@@ -132,6 +133,56 @@ export default function ChatDetailsScreen() {
       },
     });
     setMessage(null);
+  };
+
+  const handleSendMedia = () => {
+    if (!media || !mediaType || !currentChat || !user) return;
+
+    console.log(media);
+    console.log(mediaType);
+    console.log(currentChat.id);
+
+    const payload = {
+      chat: {
+        id: currentChat.id,
+        name: currentChat.name || "",
+        isGroup: currentChat.isGroup,
+      },
+      sender: {
+        id: user.user_id,
+        username: user.full_name,
+        email: user.email,
+      },
+      messageType:
+        mediaType === "image"
+          ? "IMAGE"
+          : mediaType === "video"
+          ? "VIDEO"
+          : "DOCUMENT",
+      files: [
+        {
+          uri: media.uri,
+          name: media.fileName || media.name || "uploaded file",
+          type: media.mimeType || media.type || "application/octet-stream",
+        },
+        {
+          uri: media.uri,
+          name: media.fileName || media.name || "uploaded file",
+          type: media.mimeType || media.type || "application/octet-stream",
+        },
+      ],
+    };
+
+    sendMediaMessage(payload, {
+      onSuccess: () => {
+        console.log("Media message sent");
+        setMedia(null);
+      },
+      onError: (err) => {
+        console.error("Failed to send media", err);
+        setError("Failed to send media message");
+      },
+    });
   };
 
   const onPressDeleteMessage = (messageId: string) => {
@@ -281,7 +332,7 @@ export default function ChatDetailsScreen() {
             media={media}
             mediaType={mediaType}
             onClose={() => setMedia(null)}
-            onSend={() => setMedia(null)}
+            onSend={handleSendMedia}
           />
         )}
 
