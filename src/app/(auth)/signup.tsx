@@ -161,6 +161,12 @@ export default function SignUp() {
   }, [userId]);
 
   const handleGoogleButtonPress = async () => {
+    if (!termAccept) {
+      setError("Please accept the Terms & Conditions to proceed");
+      setTermModalVisible(!modalVisible);
+      return;
+    }
+
     setUserId(null);
     setUserProfile(null);
     const payload = await signInWithGoogle();

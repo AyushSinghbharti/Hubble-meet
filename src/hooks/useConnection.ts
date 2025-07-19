@@ -11,6 +11,8 @@ import {
   getConnectionRequests,
   getRecommendedProfiles,
   searchUserProfile,
+  getAllConnectionVbcs,
+  searchUserVbc,
 } from "../api/connection";
 import {
   AcceptConnectionRequestBody,
@@ -26,9 +28,12 @@ import {
   SearchInterface,
   Recommendations,
   SearchUserResponse,
+  ConnectionVbc,
+  GetVbcConnectionsRequestBody,
+  SearchVBCResponse,
 } from "../interfaces/connectionInterface";
 import { useConnectionStore } from "../store/connectionStore";
-import { saveConnectionsToStorage } from "../store/localStorage";
+import { saveConnectionsToStorage, saveConnectionVbcsToStorage } from "../store/localStorage";
 import { useEffect } from "react";
 
 // Utility handlers (optional: customize per project)
@@ -118,6 +123,31 @@ export const useUserConnections = (userId: string, enabled = true) => {
   return query;
 };
 
+export const useUserConnectionVbcs = (data: GetVbcConnectionsRequestBody) => {
+  const setConnectionVbcs = useConnectionStore((state) => state.setConnectionVbcs);
+  const query = useQuery<ConnectionVbc[]>({
+    queryKey: ["user-connections", data.userId],
+    queryFn: () => getAllConnectionVbcs(data),
+    enabled: !!data.userId,
+    retry: 1, // Optional: don't retry failed POSTs too aggressively
+    gcTime: 0, // Optional: prevent auto garbage collection
+    refetchInterval: 1000, //Optional: fetch data after 0.5 sec
+  });
+
+  useEffect(() => {
+    if (query.data) {
+      setConnectionVbcs(query.data);
+      saveConnectionVbcsToStorage(query.data);
+      handleSuccess("Fetch Connections");
+    }
+    if (query.error) {
+      handleError("Fetch Connections", query.error);;
+    }
+  }, [query.data, query.error]);
+
+  return query;
+};
+
 
 export const useConnectionRequests = ({ userId, enabled = true }: { userId: string, enabled?: boolean }) => {
   const setRequests = useConnectionStore((state) => state.setRequests);
@@ -181,11 +211,34 @@ export const useRecommendedProfiles = (userId: string, enabled = true) => {
   return query;
 };
 
-//Search connection
+//Search User Globally
 export const useSearchUser = (data: SearchInterface, enabled = true) => {
   const query = useQuery<SearchUserResponse>({
     queryKey: ["search-profiles", data.searchText],
     queryFn: () => searchUserProfile(data),
+    enabled: !!data && enabled,
+    retry: 1,
+    gcTime: 0,
+  });
+
+  useEffect(() => {
+    if (query.data) {
+      console.log(query.data);
+    }
+
+    if (query.error) {
+      console.error("Error fetching recommended profiles:", query.error);
+    }
+  }, [query.data, query.error]);
+
+  return query;
+};
+
+//Search VBC Globally
+export const useSearchVBC = (data: SearchInterface, enabled = true) => {
+  const query = useQuery<SearchVBCResponse>({
+    queryKey: ["search-profiles", data.searchText],
+    queryFn: () => searchUserVbc(data),
     enabled: !!data && enabled,
     retry: 1,
     gcTime: 0,

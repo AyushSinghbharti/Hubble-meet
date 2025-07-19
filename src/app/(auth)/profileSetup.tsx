@@ -160,11 +160,7 @@ export default function ProfileSetup() {
 
         try {
           // Try uploading to S3
-          const s3Response = await uploadToS3(
-            res.assets[0].uri,
-            `${name}_${Date.now()}_profile_image`,
-            res.assets[0].mimeType || "image/jpeg"
-          );
+          const s3Response = await uploadToS3(res.assets[0].uri);
 
           if (s3Response.success && s3Response.url) {
             imageUrl = s3Response.url;
@@ -172,7 +168,6 @@ export default function ProfileSetup() {
             throw new Error("S3 upload failed, fallback to Cloudinary");
           }
         } catch (s3Err) {
-          // Fallback to Cloudinary
           console.warn("S3 upload failed, trying Cloudinary...");
           imageUrl = await uploadToCloudinary(res.assets[0].uri);
         }
@@ -225,7 +220,7 @@ export default function ProfileSetup() {
       bio: bio,
       email: email,
       phone: phoneNumber,
-      currentCompany: worklist.length > 0 ? worklist[0] : undefined,
+      currentCompany: worklist || [],
       jobTitle: jobTitle,
       city: address,
       currentIndustry: spaces,
@@ -252,6 +247,7 @@ export default function ProfileSetup() {
     console.log("✅ VBC created:", vbcRes);
 
     console.log(profileRes, vbcRes);
+    console.log(profileRes);
 
     if (profileRes && vbcRes) {
       router.replace("/connect");

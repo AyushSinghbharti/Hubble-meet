@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { VbcCard } from "../interfaces/vbcInterface";
 import { Pitch } from "../interfaces/pitchInterface";
 import { Chat, ChatMessage } from "../interfaces/chatInterface";
-import { ConnectionUser } from "../interfaces/connectionInterface";
+import { ConnectionUser, ConnectionVbc } from "../interfaces/connectionInterface";
 
 
 const keys = {
@@ -15,7 +15,7 @@ const keys = {
   pitch: "@myPitch",
   chat: "@chat",
   connections: "@connections",
-
+  connectionVbcs: "@connectionsvbcs",
 };
 
 // ---------- Token ----------
@@ -131,6 +131,21 @@ export const getConnectionsFromStorage = async (): Promise<ConnectionUser[] | nu
 };
 
 export const removeConnectionsFromStorage = async () => {
+  await AsyncStorage.removeItem(keys.connections);
+};
+
+// ----------- Connection VBC ------------
+
+export const saveConnectionVbcsToStorage = async (connectionVbcs: ConnectionVbc[]) => {
+  await AsyncStorage.setItem(keys.connections, JSON.stringify(connectionVbcs));
+};
+
+export const getConnectionVbcsFromStorage = async (): Promise<ConnectionUser[] | null> => {
+  const json = await AsyncStorage.getItem(keys.connections);
+  return json ? JSON.parse(json) : null;
+};
+
+export const removeConnectionVbcsFromStorage = async () => {
   await AsyncStorage.removeItem(keys.connections);
 };
 

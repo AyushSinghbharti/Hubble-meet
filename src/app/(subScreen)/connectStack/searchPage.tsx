@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import VbcCard from "@/src/components/VbcCard";
-import { useSearchUser } from "@/src/hooks/useConnection";
+import { useSearchUser, useSearchVBC } from "@/src/hooks/useConnection";
 import { useQueries } from "@tanstack/react-query";
 import { fetchUserProfile } from "@/src/api/profile";
 import { UserProfile } from "@/src/interfaces/profileInterface";
@@ -30,6 +30,12 @@ const SearchScreen = () => {
       setSubmittedText(query);
     }
   }, [query]);
+
+  // const { data: VbcResult, isLoading: vbcLoading } = useSearchVBC({
+  //   searchText: submittedText,
+  //   currentPage: 1,
+  //   PageSize: 100,
+  // });
 
   const { data: searchResults, isLoading: searching } = useSearchUser({
     searchText: submittedText,

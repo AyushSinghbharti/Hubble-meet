@@ -5,7 +5,7 @@ ChatScreen Bugs
 - Add screen that popup after select photos and document to send --- DONE
 
 PitchScreen bugs
- - MainCardWrapper showing on press on wrapper after unmounting of video as Video cleanup error --- DONE (Without remove useCallBackFunction)
+ - MainCardWrapper showing on press on wrapper after unmounting of video as Video cleanup error --- DONE (Without remove useCallBackFunction) --- DONE
  - My pitch Screen to be add into route later --- DONE
  - Added Scroll Feature to pitches --- DONE
 
@@ -46,7 +46,6 @@ PitchScreen bugs
 
 -- TESTING Bugs
 1. Country code bug to fix (store seperatly or by space) -> "Discussed"
-2. Need to add country code selector on profile screen 
 3. Add local storage to mananage the app state like permissions etc....
 4. On profile1.tsx onError scrollView to top -> DONE
 7. Add local search to connections
@@ -64,9 +63,9 @@ PitchScreen bugs
 10. Edit share option when click on share --- DONE
 11. VBC colour implimented via backends --- PENDING
 12. turn on recommendation API --- Pending
-13. Show new message as green circle in chat list --- 
-14. If I sign up via social login --- didn't show T&c
+13. Show new message as green circle in chat list --- DONE
+14. If I sign up via social login --- didn't show T&C --- DONE
+17. Pitch Delete API issue --- DONE
 15. Add to Hubble circle - if I click on the suitcase icon on vbc it should add that connection to my Hubble circle. Since closeness algo is not made yet, we can do this atleast. 
-16. Update the button onPress in /setting
-17. Pitch Delete API issue
-18. De
+16. Update the button onPress in /setting --- PENDING
+17. Need to add country code selector on profile screen 

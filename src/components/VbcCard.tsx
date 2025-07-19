@@ -24,17 +24,24 @@ import ConnectionCard from "./Cards/connectionCard";
 import ProfileViewer from "./graidentInfoCard";
 import { useSendConnection } from "../hooks/useConnection";
 import ErrorAlert from "./errorAlert";
+import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
+import { ConnectionUser } from "../interfaces/connectionInterface";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
 const CARD_WIDTH = (width - CARD_GAP * 2 - 8) / 2.15;
+
+type UserProfileItem = UserProfile &
+  Partial<ConnectionUser> &
+  Partial<VbcCardInterface>;
+type UserProfileDataInterface = UserProfileItem[];
 
 const VbcCard = ({
   spacing,
   profiles,
 }: {
   spacing?: any;
-  profiles?: UserProfile[];
+  profiles?: UserProfileDataInterface;
 }) => {
   const router = useRouter();
   const [addModal, setAddModal] = useState(false);
@@ -42,7 +49,7 @@ const VbcCard = ({
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [connectionDetailModal, setConnectionDetailModal] = useState(false);
   const connections = useConnectionStore((state) => state.connections);
-  const users: UserProfile[] = profiles ? profiles : connections;
+  const users: UserProfileDataInterface = profiles ? profiles : connections;
   const currentUser = useAuthStore((state) => state.user);
   const userId = useAuthStore((s) => s.userId);
   const { mutate: sendConnection } = useSendConnection();
@@ -124,6 +131,7 @@ const VbcCard = ({
                 name={item.full_name}
                 role={item.job_title || ""}
                 location={item.city || ""}
+                backgroundColor={item.color || null}
                 avatar={{ uri: item.profile_picture_url }}
                 onSharePress={() => handleSharePress(item)}
                 onCardPress={() => handleProfilePress(item)} // ⬅️ Show detail modal
@@ -137,6 +145,7 @@ const VbcCard = ({
                 name={item.full_name}
                 role={item.job_title || ""}
                 location={item.city || ""}
+                backgroundColor={item.color || null}
                 avatar={{ uri: item.profile_picture_url }}
                 onChatPress={() => handleChatPress(item)}
                 onSharePress={() => handleSharePress(item)}

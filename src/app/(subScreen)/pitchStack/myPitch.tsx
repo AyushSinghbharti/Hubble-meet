@@ -16,7 +16,7 @@ import { useRouter } from "expo-router";
 import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
 import { useAuthStore } from "@/src/store/auth";
 import { usePitchStore } from "@/src/store/pitchStore";
-import { useGetUserPitch } from "@/src/hooks/usePitch";
+import { useDeletePitch, useGetUserPitch } from "@/src/hooks/usePitch";
 import { AxiosError } from "axios";
 import ErrorAlert from "@/src/components/errorAlert";
 import { removePitchFromStorage } from "@/src/store/localStorage";
@@ -108,11 +108,28 @@ export default function MyPitchScreen() {
     }
   };
 
-  const handleDeletePitch = () => {
+  const handleDeletePress = () => {
     setViewModal(!viewModal);
-    // removePitchFromStorage({ removeId: true });
-    // clearPitch();
-    // clearPitchId();
+  };
+
+  const { mutate: del } = useDeletePitch();
+
+  const handleDeletePitch = () => {
+    if (!pitch?.id) return;
+
+    del(pitch.id, {
+      onSuccess: () => {
+        handleRouter("Upload");
+        setViewModal(!viewModal);
+        clearPitchId();
+        clearPitch();
+        removePitchFromStorage({ removeId: true });
+        setViewModal(false);
+      },
+      onError: () => {
+        setError("Error while deleting video, please try again!!!");
+      },
+    });
   };
 
   return (
@@ -152,7 +169,7 @@ export default function MyPitchScreen() {
             )}
             <TouchableOpacity
               style={styles.deleteIcon}
-              onPress={handleDeletePitch}
+              onPress={handleDeletePress}
             >
               <Image
                 source={require("../../../../assets/icons/delete.png")}
@@ -163,7 +180,9 @@ export default function MyPitchScreen() {
               <Text style={styles.tagText}>Individual</Text>
             </View>
             <View style={styles.pitchStatus}>
-              <Text style={styles.tagText}>{pitch.status}</Text>
+              <Text style={styles.tagText}>
+                {pitch.status || "Not Uploaded"}
+              </Text>
             </View>
           </>
         ) : (
@@ -209,10 +228,7 @@ export default function MyPitchScreen() {
 
       <UploadErrorModal
         visible={viewModal}
-        onClose={() => {
-          handleRouter("Upload");
-          setViewModal(!viewModal)
-        }}
+        onClose={handleDeletePitch}
         onExit={() => setViewModal(!viewModal)}
         type={"pending"}
         icon="delete"

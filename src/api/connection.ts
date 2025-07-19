@@ -15,6 +15,9 @@ import {
     SearchInterface,
     Recommendations,
     SearchUserResponse,
+    GetVbcConnectionsRequestBody,
+    ConnectionVbc,
+    SearchVBCResponse,
 } from "../interfaces/connectionInterface";
 
 // Send Connection Request
@@ -63,6 +66,14 @@ export const getAllConnections = async (
     return res.data;
 };
 
+// Get All VBC (for the user)
+export const getAllConnectionVbcs = async (
+    data: GetVbcConnectionsRequestBody
+): Promise<ConnectionVbc[]> => {
+    const res = await api.post("/api/connection/all/", data);
+    return res.data;
+};
+
 //Get all requests
 export const getConnectionRequests = async (userId: string): Promise<ConnectionRequest[]> => {
     const response = await api.post(`/api/connection/requests/`, userId  );
@@ -77,8 +88,14 @@ export const getRecommendedProfiles = async (
   return response.data;
 };
 
-//Get recommended profiles
+//Search User profiles
 export const searchUserProfile = async (data: SearchInterface): Promise<SearchUserResponse> => {
+  const response = await api.post(`/api/user/profiles/search/users`, data);
+  return response.data;
+};
+
+//Search VBC profiles
+export const searchUserVbc = async (data: SearchInterface): Promise<SearchVBCResponse> => {
   const response = await api.post(`/api/user/profiles/search/users`, data);
   return response.data;
 };

@@ -6,7 +6,7 @@ export interface UserProfile {
   bio: string;
   email: string;
   phone: string;
-  current_company?: string;
+  current_company?: string[];
   job_title?: string;
   city?: string;
   current_industry?: string[];
@@ -28,7 +28,7 @@ export interface CreateUserProfilePayload {
   bio: string;
   email: string;
   phone: string;
-  currentCompany?: string;
+  currentCompany?: string[];
   jobTitle?: string;
   city?: string;
   currentIndustry?: string[];

@@ -34,6 +34,7 @@ import {
   industriesChipData,
   topCompaniesForChipData,
 } from "@/src/dummyData/chipOptions";
+import { uploadFileToS3 } from "@/src/api/aws";
 
 export default function SettingsScreen() {
   const profileData: UserProfile | null = useAuthStore((state) => state.user);
@@ -52,7 +53,9 @@ export default function SettingsScreen() {
   const [bio, setBio] = useState(profileData?.bio || "");
   const [image, setImage] = useState(profileData?.profile_picture_url || null);
   const [uploadingImage, setUploadImage] = useState(false);
-  const [companies, setCompanies] = useState([profileData?.current_company]);
+  const [companies, setCompanies] = useState(
+    profileData?.current_company || []
+  );
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [industries, setIndustries] = useState(
     profileData?.current_industry || []
@@ -95,8 +98,13 @@ export default function SettingsScreen() {
     if (!res.canceled && res.assets?.[0]?.uri) {
       try {
         setUploadImage(true);
-        const url = await uploadToCloudinary(res.assets[0].uri);
-        setImage(url);
+        try {
+          const s3Response = await uploadFileToS3(res.assets?.[0]);
+          const url = s3Response.url;
+          setImage(url);
+        } catch {
+          setError("Error uploading image to server");
+        }
       } catch (err) {
         console.log(err);
         setError("Error uploading image, please try again");
@@ -127,12 +135,10 @@ export default function SettingsScreen() {
       return;
     }
 
-    console.log(companies?.[0]);
-
     const formData = {
       fullName: name || undefined,
       bio: bio || undefined,
-      currentCompany: companies?.[0] || undefined,
+      currentCompany: companies || [],
       jobTitle: jobTitle || "",
       city: location || "",
       currentIndustry: industries?.length ? industries : [],
@@ -142,12 +148,14 @@ export default function SettingsScreen() {
     };
 
     const vbcData = {
-      display_name: name,
-      job_title: jobTitle,
-      company_name: companies?.[0] || null,
-      location: location,
-      allow_vbc_sharing: true,
+      display_name: name || undefined,
+      job_title: jobTitle || undefined,
+      company_name: companies[0] || undefined,
+      location: location || undefined,
     };
+
+    console.log("vbcStore", vbcStore);
+    console.log("vbcData", vbcData);
 
     updateUserProfile(
       { userId: profileData.user_id, data: formData },

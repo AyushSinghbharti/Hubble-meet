@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ConnectionUser, ConnectionRequest } from '../interfaces/connectionInterface';
+import { ConnectionUser, ConnectionRequest, ConnectionVbc } from '../interfaces/connectionInterface';
 import { UserProfile } from '../interfaces/profileInterface';
 
 interface ConnectionStore {
@@ -10,6 +10,15 @@ interface ConnectionStore {
   addConnection: (user: ConnectionUser) => void;
   removeConnection: (userId: string) => void;
   updateConnectionStatus: (userId: string, status: ConnectionUser['connection_status']) => void;
+
+  // Connection VBCs (NEW)
+  connectionVbcs: ConnectionVbc[];
+  setConnectionVbcs: (vbcs: ConnectionVbc[]) => void;
+  clearConnectionVbcs: () => void;
+  addConnectionVbc: (vbc: ConnectionVbc) => void;
+  removeConnectionVbc: (userId: string) => void;
+  upsertConnectionVbc: (vbc: ConnectionVbc) => void;
+  addConnectionVbcsBulk: (vbcs: ConnectionVbc[]) => void;
 
   // Recommendations
   recommendations: ConnectionUser[];
@@ -62,6 +71,31 @@ export const useConnectionStore = create<ConnectionStore>((set) => ({
       connections: state.connections.map((conn) =>
         conn.user_id === userId ? { ...conn, connection_status: status } : conn
       ),
+    })),
+
+  // Connection VBCs (NEW)
+  connectionVbcs: [],
+  setConnectionVbcs: (vbcs) => set({ connectionVbcs: vbcs }),
+  clearConnectionVbcs: () => set({ connectionVbcs: [] }),
+  addConnectionVbc: (vbc) =>
+    set((state) => ({
+      connectionVbcs: [...state.connectionVbcs, vbc],
+    })),
+  removeConnectionVbc: (userId) =>
+    set((state) => ({
+      connectionVbcs: state.connectionVbcs.filter((v) => v.user_id !== userId),
+    })),
+  upsertConnectionVbc: (vbc) =>
+    set((state) => ({
+      connectionVbcs: state.connectionVbcs.some((v) => v.user_id === vbc.user_id)
+        ? state.connectionVbcs.map((v) =>
+          v.user_id === vbc.user_id ? { ...v, ...vbc } : v
+        )
+        : [...state.connectionVbcs, vbc],
+    })),
+  addConnectionVbcsBulk: (vbcs) =>
+    set((state) => ({
+      connectionVbcs: [...state.connectionVbcs, ...vbcs],
     })),
 
   // Recommendations
@@ -157,3 +191,13 @@ export const useConnectionStore = create<ConnectionStore>((set) => ({
     }),
   clearSentRequests: () => set({ sentRequests: [], sentRequestCount: 0 }),
 }));
+
+// ---------- Local helper (keep same file or extract) ----------
+function dedupeVbcs(vbcs: ConnectionVbc[]): ConnectionVbc[] {
+  const map = new Map<string, ConnectionVbc>();
+  vbcs.forEach(v => {
+    const existing = map.get(v.user_id);
+    map.set(v.user_id, existing ? { ...existing, ...v } : v);
+  });
+  return Array.from(map.values());
+} ``

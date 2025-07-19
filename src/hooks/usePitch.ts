@@ -4,10 +4,12 @@ import {
   getUserPitch,
   updatePitch,
   reactToPitch,
+  reportPitch,
+  deletePitch,
 } from '../api/pitch';
 import { Pitch, PitchFormData, PitchResponse } from '../interfaces/pitchInterface';
 import { AxiosError } from 'axios';
-import { savePitchIdToStorage, savePitchToStorage } from '../store/localStorage';
+import { removePitchFromStorage, savePitchIdToStorage, savePitchToStorage } from '../store/localStorage';
 import { usePitchStore } from '../store/pitchStore';
 import { useEffect } from 'react';
 
@@ -20,6 +22,7 @@ export const useGetUserPitch = (userId: string): UseQueryResult<Pitch, Error> =>
     queryFn: () => getUserPitch(userId),
     enabled: !!userId,
     refetchInterval: 500,
+    retry: 3,
   });
 
   useEffect(() => {
@@ -92,5 +95,45 @@ export const useReactToPitch = () => {
     onError: (err: AxiosError) => {
       console.error('Server said:', err.response?.data)
     }
+  });
+};
+
+export const useReportPitch = () => {
+  return useMutation({
+    mutationFn: ({
+      pitch_id,
+      user_id,
+      owner_id,
+    }: {
+      pitch_id: string;
+      user_id: string;
+      owner_id: string;
+    }) => reportPitch(pitch_id, user_id, owner_id),
+    onSuccess: () => {
+      console.log('Pitch reported successfully');
+    },
+    onError: (err: AxiosError) => {
+      console.error('Error reporting pitch:', err.response?.data);
+    },
+  });
+};
+
+// ✅ NEW: Delete Pitch
+export const useDeletePitch = () => {
+  const clearPitch = usePitchStore((state) => state.clearPitch);
+  const clearPitchId = usePitchStore((state) => state.clearPitchId);
+
+  return useMutation({
+    mutationFn: (pitchId: string) => deletePitch(pitchId),
+    onSuccess: () => {
+      console.log('Pitch deleted successfully');
+      clearPitch();
+      clearPitchId();
+      removePitchFromStorage();
+    },
+    onError: (err: AxiosError) => {
+      console.error('Error deleting pitch:', err.response?.data);
+    },
+    retry: 3
   });
 };

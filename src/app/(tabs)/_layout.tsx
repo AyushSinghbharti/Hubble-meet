@@ -25,6 +25,7 @@ import {
   useConnectionRequests,
   useRecommendedProfiles,
   useUserConnections,
+  useUserConnectionVbcs,
 } from "@/src/hooks/useConnection";
 import { logout } from "@/src/hooks/useAuth";
 import { useAuthGuard } from "@/src/utility/useAuthGuard";
@@ -92,7 +93,7 @@ export default function StackLayout() {
         user_id: user.user_id,
         display_name: user.full_name,
         job_title: user.job_title,
-        company_name: user.current_company,
+        company_name: user.current_company?.[0],
         location: user.city,
         allow_vbc_sharing: user.allow_vbc_sharing,
       });
@@ -104,6 +105,9 @@ export default function StackLayout() {
 
   //Fetching all connections
   useUserConnections(userId || "", true);
+
+  //Fetch all Vbcs card of connections
+  useUserConnectionVbcs({userId: userId || ""});
 
   //Fetching pitch
   useGetUserPitch(userId || "");

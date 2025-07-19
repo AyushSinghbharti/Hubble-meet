@@ -1,4 +1,5 @@
 import { UserProfile } from "./profileInterface";
+import { VbcCard } from "./vbcInterface";
 export type ConnectionStatus = 'CONNECTED' | 'PENDING' | 'BLOCKED';
 
 // ---------- Request Interfaces ----------
@@ -41,6 +42,13 @@ export interface GetUserConnectionsRequestBody {
   userId: string;
 }
 
+export interface GetVbcConnectionsRequestBody {
+  userId: string;
+  searchText?: string;
+  currentPage?: number;
+  pageSize?: number;
+}
+
 // ---------- Response Interfaces ----------
 export interface DefaultSuccessResponse {
   message: string;
@@ -54,6 +62,10 @@ export interface ErrorResponse {
 
 export interface ConnectionUser extends UserProfile {
   connection_status: ConnectionStatus;
+}
+
+export interface ConnectionVbc extends VbcCard {
+
 }
 
 export interface Recommendations {
@@ -90,6 +102,20 @@ export interface SearchUserResponse {
     previousPage: string | null;
   };
   data: SearchUserSummary[];
+}
+
+export interface SearchVBCResponse {
+  success: boolean;
+  message: string;
+  pagination: {
+    currentPage: string;
+    itemsPerPage: number;
+    totalUsersCount: number;
+    totalPages: number;
+    nextPage: string | null;
+    previousPage: string | null;
+  };
+  data: VbcCard[];
 }
 
 export interface SearchUserSummary {

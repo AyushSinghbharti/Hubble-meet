@@ -23,7 +23,7 @@ export const createPitch = async (data: PitchFormData): Promise<Pitch> => {
   const response = await api.post('/api/pitch/create', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-  
+
   return response.data.data;
 };
 
@@ -59,5 +59,21 @@ export const reactToPitch = async (pitchId: string, userId: string) => {
   const response = await api.post(`/api/pitch/${pitchId}/reaction`, {
     userId,
   });
+  return response.data;
+};
+
+//Report Pitch
+export const reportPitch = async (pitch_id: string, user_id: string, owner_id: string) => {
+  const response = await api.post(`/api/pitch/report`, {
+    user_id,
+    pitch_id,
+    owner_id
+  });
+  return response.data;
+};
+
+// //Delete Pitch
+export const deletePitch = async (pitchId: string) => {
+  const response = await api.delete(`/api/pitch/delete/${pitchId}`);
   return response.data;
 };

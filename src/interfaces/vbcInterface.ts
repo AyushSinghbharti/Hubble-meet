@@ -7,6 +7,7 @@ export interface VbcCard {
   location?: string;
   createdAt: string;
   updatedAt?: string;
+  color?: string | null;
   allow_vbc_sharing: boolean;
   is_deleted: boolean;
 }
@@ -25,7 +26,7 @@ export interface UpdateVbcPayload {
   job_title?: string;
   company_name?: string;
   location?: string;
-  allow_vbc_sharing: boolean;
+  allow_vbc_sharing?: boolean;
 }
 
 export interface ShareVbcPayload {

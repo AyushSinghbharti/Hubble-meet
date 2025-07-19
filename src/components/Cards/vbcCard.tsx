@@ -20,6 +20,7 @@ interface User {
   role: string;
   location: string;
   avatar: any;
+  backgroundColor: string | null;
 }
 
 interface CardProps extends User {
@@ -55,6 +56,7 @@ const CustomCard = memo(
     role,
     location,
     avatar,
+    backgroundColor,
     onChatPress,
     onSharePress,
     onAddPress,
@@ -62,9 +64,9 @@ const CustomCard = memo(
     onProfilePress,
   }: CardProps) => {
     const bgColor = cardColors[Math.floor(Math.random() * cardColors.length)];
-    const iconBgColor = iconColorMap[bgColor];
-    const textColor = getTextColor(bgColor);
-    const iconColor = getTextColor(iconBgColor);
+    const iconBgColor = iconColorMap[backgroundColor || bgColor];
+    const textColor = getTextColor(backgroundColor || bgColor);
+    const iconColor = getTextColor(backgroundColor || iconBgColor);
 
     return (
       <View style={styles.card}>
@@ -87,7 +89,7 @@ const CustomCard = memo(
           </View>
         </ImageBackground>
 
-        <View style={[styles.bottomSection, { backgroundColor: bgColor }]}>
+        <View style={[styles.bottomSection, { backgroundColor: backgroundColor || bgColor }]}>
           <View style={styles.nameRow}>
             <Text style={[styles.name, { color: textColor }]}>{name}</Text>
           </View>

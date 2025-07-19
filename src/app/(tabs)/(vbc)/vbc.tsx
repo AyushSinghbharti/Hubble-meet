@@ -1,15 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
 import SearchBar from "../../../components/SearchBar";
 import VBCCard from "../../../components/VbcCard";
 import HubbleCard from "../../../components/HubbleCard";
 import RequestsCard from "./RequestsCard";
 import { useConnectionStore } from "@/src/store/connectionStore";
+import { useUserConnectionVbcs } from "@/src/hooks/useConnection";
+import { useAuthStore } from "@/src/store/auth";
 
 export default function VBCScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("VBC");
   const requestCount = useConnectionStore((s) => s.requestCount);
+  const connectionVbcs = useConnectionStore((s) => s.connectionVbcs);
+  const userId = useAuthStore((userId) => userId);
 
   const tabs = [
     { label: "VBC", number: 0, showLabel: false },
@@ -61,10 +65,19 @@ export default function VBCScreen() {
         })}
       </View>
 
-      <View
-        style={[{ flex: 1 }]}
-      >
-        {selectedTab === "VBC" && <VBCCard />}
+      <View style={[{ flex: 1 }]}>
+        {selectedTab === "VBC" && (
+          <VBCCard
+            profiles={connectionVbcs.filter((item) => {
+              const q = searchQuery.toLowerCase();
+              return (
+                item.full_name?.toLowerCase().includes(q) ||
+                item.city?.toLowerCase().includes(q) ||
+                item.job_title?.toLowerCase().includes(q)
+              );
+            })}
+          />
+        )}
         {selectedTab === "Hubble Circle" && <HubbleCard />}
         {selectedTab === "Requests" && <RequestsCard />}
       </View>
