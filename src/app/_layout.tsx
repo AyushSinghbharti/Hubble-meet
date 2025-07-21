@@ -64,6 +64,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const setToken = useAuthStore((state) => state.setToken);
+  const setUserId = useAuthStore((state) => state.setUserId);
   const checkFirstLaunch = useAppState((state) => state.checkFirstLaunch);
   const [ready, setReady] = useState(false);
 
@@ -92,15 +93,17 @@ function RootLayoutNav() {
     fixNotification();
   }, []);
 
-  useEffect(() => {}, []);
-
   // Load token from AsyncStorage once
   useEffect(() => {
     const loadInitialData = async () => {
       try {
         const token = await getTokenFromStorage();
+        const userId = await getUserIdFromStorage();
         if (token) {
           setToken(token);
+        }
+        if(userId){
+          setUserId(userId);
         }
         await checkFirstLaunch();
       } catch (err) {

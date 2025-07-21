@@ -76,22 +76,19 @@ export const useSocialLogin = () => {
   });
 };
 
-export const logout = async () => {
+export const logout = async (router?: any) => {
   try {
-    removeTokenFromStorage();
-    removeUserFromStorage({ removeId: true });
+    await clearAllAppStorage();
 
-    const setToken = useAuthStore.getState().setToken;
-    const clearToken = useAuthStore.getState().clearToken;
-    setToken(null);
+    const { clearToken, resetUser } = useAuthStore.getState();
     clearToken();
+    resetUser?.(); 
 
-    const resetUser = useAuthStore.getState().resetUser;
-    resetUser?.();
-
-    clearAllAppStorage();
-
+    // Navigate to login after clearing everything
+    if (router) {
+      router.replace("/login");
+    }
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error("Logout error:", error);
   }
 };
