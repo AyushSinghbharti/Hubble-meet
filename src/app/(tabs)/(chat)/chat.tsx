@@ -20,6 +20,7 @@ import { Chat } from "@/src/interfaces/chatInterface";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { useChatStore } from "@/src/store/chatStore";
 import { getChatFromStorage } from "@/src/store/localStorage";
+import { useDeleteChat } from "@/src/hooks/useChat";
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -34,6 +35,8 @@ export default function ChatScreen() {
   const currentChat = useChatStore((state) => state.currentChat);
   const clearCurrentChat = useChatStore((state) => state.currentChat);
   const setMessages = useChatStore((state) => state.setMessages);
+  const deleteChatMutation = useDeleteChat();
+  console.log(user?.user_id);
 
   //LoadStarred message
   useStarredMessages(user?.user_id || "");
@@ -232,15 +235,28 @@ export default function ChatScreen() {
         acceptButtonName={"Block"}
         cancelButtonName={"Cancel"}
       />
-
       <PopUpOption
         visible={showdeleteModal}
-        onClose={() => setDeleteModal(!setDeleteModal)}
+        onClose={() => setDeleteModal(false)}
         onSelect={() => {
-          setDeleteModal(!setDeleteModal);
-          alert("Chat Cleared");
+          if (!selectedUser || !user?.user_id) return;
+          deleteChatMutation.mutate(
+            {
+              chatId: selectedUser.id,
+              userId: user.user_id,
+            },
+            {
+              onSuccess: () => {
+                setDeleteModal(false);
+                setSelectedUser(null);
+              },
+              onError: (err) => {
+                console.error("Chat delete failed:", err);
+              },
+            }
+          );
         }}
-        message={`Clear ${selectedUser?.name}'s chat?`}
+        message={`Delete chat?`}
         description={
           "Also delete media received in this chat from the device gallery"
         }

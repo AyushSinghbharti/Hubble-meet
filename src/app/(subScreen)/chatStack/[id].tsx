@@ -35,6 +35,7 @@ import { useChatStore } from "@/src/store/chatStore";
 import { ChatMessage } from "@/src/interfaces/chatInterface";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useAuthStore } from "@/src/store/auth";
+import { useClearChat } from "@/src/hooks/useChat";
 
 export default function ChatDetailsScreen() {
   const router = useRouter();
@@ -71,6 +72,7 @@ export default function ChatDetailsScreen() {
   const { mutate: sendMediaMessage } = useSendMediaMessage();
   const { mutate: star } = useStarMessage();
   const { mutate: unstar } = useUnstarMessage();
+  const { mutate: clearChatMutation } = useClearChat();
 
   useEffect(() => {
     setMessages(updatedMessages);
@@ -194,9 +196,7 @@ export default function ChatDetailsScreen() {
       messageType,
       files,
     };
-
-    // console.log("Sending media payload: ", JSON.stringify(payload, null, 2));
-
+    
     sendMediaMessage(payload, {
       onSuccess: () => {
         console.log("Media batch sent successfully");
@@ -207,6 +207,8 @@ export default function ChatDetailsScreen() {
         setError("Failed to send media message");
       },
     });
+
+    setViewAttachment(false);
   };
 
   const onPressDeleteMessage = ({
@@ -366,7 +368,7 @@ export default function ChatDetailsScreen() {
           footerHeight={footerHeight ? footerHeight : 115}
           handlePress={handleAttachmentSelect}
         />
-        <PopUpOption
+        {/* <PopUpOption
           visible={clearChatPopUp}
           onClose={() => setClearChatPopUp(!clearChatPopUp)}
           onSelect={() => {
@@ -378,7 +380,38 @@ export default function ChatDetailsScreen() {
           }
           acceptButtonName={"Clear Chat"}
           cancelButtonName={"Cancel"}
+        /> */}
+        <PopUpOption
+          visible={clearChatPopUp}
+          onClose={() => setClearChatPopUp(false)}
+          onSelect={() => {
+            if (!currentChat?.id || !user?.user_id) return;
+
+            clearChatMutation(
+              {
+                chatId: currentChat.id,
+                userId: user.user_id,
+              },
+              {
+                onSuccess: () => {
+                  setMessages([]);
+                  setClearChatPopUp(false);
+                },
+                onError: (err) => {
+                  console.error("Clear chat failed", err);
+                  setClearChatPopUp(false);
+                },
+              }
+            );
+          }}
+          message={`Clear this chat?`}
+          description={
+            "Also delete media received in this chat from the device gallery"
+          }
+          acceptButtonName={"Clear Chat"}
+          cancelButtonName={"Cancel"}
         />
+
         <ContactPicker
           visible={contactModal}
           onClose={() => setContactModal(false)}

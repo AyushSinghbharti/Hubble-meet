@@ -149,3 +149,12 @@ export const unStarMessage = (messageId: string, userId: string) =>
 // ⭐⭐ Get starred messages
 export const getStarredMessages = (userId: string) =>
     apiClient.get(`${CHAT_BASE}/starred/${userId}`).then(res => res.data);
+
+// ✅ Clear all messages for user from a chat
+export const clearChat = (chatId: string, userId: string) =>
+    apiClient.post(`${CHAT_BASE}/${chatId}/clear`, { userId }).then(res => res.data);
+
+// ❌ Delete chat entirely for user (same endpoint as clearChat as per your info)
+export const deleteChat = (chatId: string, userId: string) =>
+    apiClient.post(`${CHAT_BASE}/${chatId}/clear`, { userId }).then(res => res.data);
+

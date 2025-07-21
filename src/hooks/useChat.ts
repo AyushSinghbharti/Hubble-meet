@@ -34,6 +34,7 @@ import { useChatStore } from '../store/chatStore';
 
 
 
+
 /* ---------- Create Chat ---------- */
 export const useCreateChat = () => {
   const setCurrentChat = useChatStore((state) => state.setCurrentChat);
@@ -256,4 +257,38 @@ export const useStarredMessages = (userId: string) => {
   }, [queryResult.data, setStarredMessages]);
 
   return queryResult;
+};
+
+import { clearChat, deleteChat } from '../api/chat'; // ✅ ensure import
+
+/* ---------- Clear Chat ---------- */
+export const useClearChat = () => {
+  const setMessages = useChatStore((state) => state.setMessages);
+
+  return useMutation({
+    mutationFn: ({ chatId, userId }: { chatId: string; userId: string }) =>
+      clearChat(chatId, userId),
+    onSuccess: () => {
+      setMessages([]);
+    },
+    onError: (err) => {
+      console.error("Clear chat error:", err);
+    },
+  });
+};
+
+/* ---------- Delete Chat ---------- */
+export const useDeleteChat = () => {
+  const removeChat = useChatStore((state) => state.clearChat); // you should have this in store
+
+  return useMutation({
+    mutationFn: ({ chatId, userId }: { chatId: string; userId: string }) =>
+      deleteChat(chatId, userId),
+    onSuccess: (_, variables) => {
+      removeChat(); // Remove chat from store
+    },
+    onError: (err) => {
+      console.error("Delete chat error:", err);
+    },
+  });
 };

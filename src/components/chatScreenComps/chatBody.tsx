@@ -19,6 +19,7 @@ import Swipeable, {
 } from "react-native-gesture-handler/ReanimatedSwipeable";
 import { ChatMessage } from "@/src/interfaces/chatInterface";
 import { useAuthStore } from "@/src/store/auth";
+import { FONT } from "@/assets/constants/fonts";
 
 interface ChatMsg {
   id: string;
@@ -190,22 +191,27 @@ const ChatBubble = ({
                   maxWidth: 220,
                 }}
               >
-                {item.media.map((mediaItem) => (
-                  <Pressable
-                    key={mediaItem.id}
-                    onPress={() => Linking.openURL(mediaItem.url)}
-                  >
-                    <Image
-                      source={{ uri: mediaItem.url }}
-                      style={{
-                        width: 100,
-                        height: 100,
-                        borderRadius: 10,
-                      }}
-                      resizeMode="cover"
-                    />
-                  </Pressable>
-                ))}
+                <View>
+                  {item.media.map((mediaItem) => (
+                    <Pressable
+                      key={mediaItem.id}
+                      onPress={() => Linking.openURL(mediaItem.url)}
+                    >
+                      <Image
+                        source={{ uri: mediaItem.url }}
+                        style={{
+                          width: 100,
+                          height: 100,
+                          borderRadius: 10,
+                        }}
+                        resizeMode="cover"
+                      />
+                    </Pressable>
+                  ))}
+                  {item.content && (
+                    <Text style={styles.messageText}>{item.content}</Text>
+                  )}
+                </View>
               </View>
             ) : item.messageType === "DOCUMENT" && item.media?.length > 0 ? (
               <View style={{ gap: 6, maxWidth: 220 }}>
@@ -223,11 +229,14 @@ const ChatBubble = ({
                       source={require("@/assets/icons/document.png")}
                       style={{ width: 20, height: 20, marginRight: 8 }}
                     />
-                    <Text numberOfLines={1} style={styles.messageText}>
+                    <Text numberOfLines={1} style={[styles.messageText, {fontFamily: FONT.MEDIUM, color: "#7174c3ff"}]}>
                       {mediaItem.fileName || "Document"}
                     </Text>
                   </Pressable>
                 ))}
+                {item.content && (
+                  <Text style={styles.messageText}>{item.content}</Text>
+                )}
               </View>
             ) : (
               <Text style={styles.messageText}>{item.content}</Text>

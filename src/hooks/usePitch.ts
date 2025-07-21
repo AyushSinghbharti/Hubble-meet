@@ -13,6 +13,29 @@ import { removePitchFromStorage, savePitchIdToStorage, savePitchToStorage } from
 import { usePitchStore } from '../store/pitchStore';
 import { useEffect } from 'react';
 
+export const useGetOtherUserPitch = (userId: string): UseQueryResult<Pitch, Error> => {
+  const queryResult = useQuery<PitchResponse, Error, Pitch, [string, string]>({
+    queryKey: ['pitch', userId],
+    queryFn: () => getUserPitch(userId),
+    enabled: !!userId,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (queryResult.data) {
+      console.log("Pitch fetched successfull, data:", queryResult.data);
+    }
+    if (queryResult.error) {
+      const axiosError = queryResult.error as AxiosError<any>;
+      const errorMessage =
+        axiosError.response?.data?.message || axiosError.message;
+      console.error("Error fetching pitch:", errorMessage);
+    }
+  }, [queryResult.data, queryResult.error]);
+
+  return queryResult;
+};
+
 export const useGetUserPitch = (userId: string): UseQueryResult<Pitch, Error> => {
   const setPitch = usePitchStore((state) => state.setPitch);
   const setPitchId = usePitchStore((state) => state.setPitchId);

@@ -170,7 +170,7 @@ const MainCardWrapper = ({
       </View>
 
       {/* User Info */}
-      <View style={styles.userRow}>
+      {/* <View style={styles.userRow}>
         <View style={styles.typeShown}>
           <Text style={styles.typeText}>Individual:</Text>
           <Text style={styles.pitchTitleText}>John William</Text>
@@ -188,6 +188,30 @@ const MainCardWrapper = ({
             </Text>
             <Text numberOfLines={1} style={styles.tagline}>
               {pitch.user.tagline}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View> */}
+      <View style={styles.userRow}>
+        <View style={styles.typeShown}>
+          <Text style={styles.typeText}>Individual:</Text>
+          <Text style={styles.pitchTitleText}>
+            {pitch.user?.name || "Unknown"}
+          </Text>
+        </View>
+
+        <TouchableOpacity style={{ flexDirection: "row" }} onPress={onPress}>
+          <Image
+            source={{ uri: pitch.user.avatar }}
+            style={styles.avatar}
+            transition={300}
+          />
+          <View style={{ marginLeft: 10, justifyContent: "center" }}>
+            <Text numberOfLines={1} style={styles.userName}>
+              {pitch.user?.name || "Unknown User"}
+            </Text>
+            <Text numberOfLines={1} style={styles.tagline}>
+              {pitch.user?.tagline || "No tagline provided"}
             </Text>
           </View>
         </TouchableOpacity>
