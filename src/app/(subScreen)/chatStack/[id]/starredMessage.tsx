@@ -9,30 +9,31 @@ import {
   Modal,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-
-const messages = [
-  {
-    id: "1",
-    sender: "Hellen Whilliams",
-    isMe: false,
-    date: "9/2/24",
-    time: "16.31",
-    text: "That sounds exhausting.\nGot any plans for the evening?",
-    status: "read",
-  },
-  {
-    id: "2",
-    sender: "You",
-    isMe: true,
-    date: "9/2/24",
-    time: "16.30",
-    text: "Probably just relaxing and watching a show. What about you?",
-  },
-];
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useChatStore } from "@/src/store/chatStore";
+import { useAuthStore } from "@/src/store/auth";
 
 export default function StarredMessage() {
   const router = useRouter();
+  const { id: chatId } = useLocalSearchParams<{ id: string }>();
+
+  const userId = useAuthStore((s) => s.userId);
+  const starredMessages = useChatStore((s) => s.starredMessages);
+
+  const messages = starredMessages
+    .filter((msg) => msg.chat?.id === chatId)
+    .map((msg) => ({
+      id: msg.id,
+      sender: msg.sender?.username || "Unknown",
+      isMe: msg.sender?.id === userId,
+      date: new Date(msg.createdAt).toLocaleDateString(),
+      time: new Date(msg.createdAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: msg.content
+    }));
+
   const renderItem = ({ item }: { item: (typeof messages)[0] }) => (
     <View style={styles.messageBlock}>
       <View
@@ -56,9 +57,6 @@ export default function StarredMessage() {
           <Text style={styles.messageText}>{item.text}</Text>
           <View style={{ flexDirection: "row" }}>
             <Text style={styles.timeText}>{item.time}</Text>
-            {item.status === "read" && (
-              <MaterialIcons name="done-all" size={16} color="#4386f4" />
-            )}
           </View>
         </View>
       </View>
@@ -144,6 +142,7 @@ const styles = StyleSheet.create({
     maxWidth: "85%",
     minWidth: "60%",
     minHeight: 55,
+    justifyContent: "center",
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 40,

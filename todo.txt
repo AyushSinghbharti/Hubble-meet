@@ -69,3 +69,6 @@ PitchScreen bugs
 15. Add to Hubble circle - if I click on the suitcase icon on vbc it should add that connection to my Hubble circle. Since closeness algo is not made yet, we can do this atleast. 
 16. Update the button onPress in /setting --- PENDING
 17. Need to add country code selector on profile screen 
+
+
+18. DELETE ENDPOINTS ARE NOT WORKING

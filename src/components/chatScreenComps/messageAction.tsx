@@ -60,7 +60,7 @@ const MessageAction = ({
               alignItems: "center",
             }}
             hitSlop={15}
-            onPress={() => onAction("delete")}
+            onPress={() => onAction("deleteforeveryone")}
           >
             <Text style={{ fontSize: 16, fontFamily: "Inter" }}>
               Delete For everyone
@@ -76,7 +76,7 @@ const MessageAction = ({
               alignItems: "center",
             }}
             hitSlop={15}
-            onPress={() => onAction("delete")}
+            onPress={() => onAction("deleteforme")}
           >
             <Text style={{ fontSize: 16, fontFamily: "Inter" }}>
               Delete For me

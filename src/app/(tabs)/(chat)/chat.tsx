@@ -14,7 +14,7 @@ import Swipeable, {
   SwipeableMethods,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
 import PopUpOption from "../../../components/chatScreenComps/popUpOption";
-import { useUserChats } from "@/src/hooks/useChat";
+import { useStarredMessages, useUserChats } from "@/src/hooks/useChat";
 import { useAuthStore } from "@/src/store/auth";
 import { Chat } from "@/src/interfaces/chatInterface";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
@@ -34,6 +34,9 @@ export default function ChatScreen() {
   const currentChat = useChatStore((state) => state.currentChat);
   const clearCurrentChat = useChatStore((state) => state.currentChat);
   const setMessages = useChatStore((state) => state.setMessages);
+
+  //LoadStarred message
+  useStarredMessages(user?.user_id || "");
 
   useEffect(() => {
     clearCurrentChat;

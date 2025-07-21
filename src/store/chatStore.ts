@@ -28,6 +28,12 @@ interface ChatStore {
   // ✅ NEW: Last viewed time per chat
   lastViewedMap: { [chatId: string]: string };
   setLastViewed: (chatId: string, timestamp: string) => void;
+
+  // ⭐ Starred messages
+  starredMessages: ChatMessage[];
+  setStarredMessages: (messages: ChatMessage[]) => void;
+  addStarredMessage: (message: ChatMessage) => void;
+  removeStarredMessage: (messageId: string) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -64,5 +70,16 @@ export const useChatStore = create<ChatStore>((set) => ({
         ...state.lastViewedMap,
         [chatId]: timestamp,
       },
+    })),
+
+  starredMessages: [],
+  setStarredMessages: (messages) => set({ starredMessages: messages }),
+  addStarredMessage: (message) =>
+    set((state) => ({
+      starredMessages: [...state.starredMessages, message],
+    })),
+  removeStarredMessage: (messageId) =>
+    set((state) => ({
+      starredMessages: state.starredMessages.filter((msg) => msg.id !== messageId),
     })),
 }));

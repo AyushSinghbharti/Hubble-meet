@@ -24,10 +24,12 @@ import {
   useChatById,
   useChatMessages,
   useCreateChat,
-  useDeleteMessage,
-  useRemoveUserFromChat,
+  useDeleteMessageForMe,
+  useDeleteMessageForEveryone,
   useSendMediaMessage,
   useSendMessage,
+  useStarMessage,
+  useUnstarMessage,
 } from "@/src/hooks/useChat";
 import { useChatStore } from "@/src/store/chatStore";
 import { ChatMessage } from "@/src/interfaces/chatInterface";
@@ -47,20 +49,33 @@ export default function ChatDetailsScreen() {
   const [clearChatPopUp, setClearChatPopUp] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<any>();
   const [contactModal, setContactModal] = useState(false);
-  const [media, setMedia] = useState<any | null>();
-  const [mediaType, setMediaType] = useState<
-    "image" | "video" | "doc" | "contact" | "other"
-  >("image");
+  const [media, setMedia] = useState<any[]>([]);
+  const [mediaType, setMediaType] = useState<string | null>(null);
+  const [caption, setCaption] = useState();
+
   const [error, setError] = useState("");
 
   //Backend Functions
+  //Stores
   const currentChat = useChatStore((state) => state.currentChat);
   const user = useAuthStore((state) => state.user);
-  useChatMessages(id);
+  const userId = useAuthStore((state) => state.userId);
   const updatedMessages = useChatStore((state) => state.messages);
+  const starredMessages = useChatStore((state) => state.starredMessages);
+
+  //Mutations
+  const { mutate: sendMessage } = useSendMessage();
+  const { mutate: createChat } = useCreateChat();
+  const { mutate: deleteMessageforme } = useDeleteMessageForMe();
+  const { mutate: deleteMessageforeveryone } = useDeleteMessageForEveryone();
+  const { mutate: sendMediaMessage } = useSendMediaMessage();
+  const { mutate: star } = useStarMessage();
+  const { mutate: unstar } = useUnstarMessage();
+
   useEffect(() => {
     setMessages(updatedMessages);
   }, [updatedMessages]);
+
   //Update last seen
   const { setLastViewed } = useChatStore();
   useEffect(() => {
@@ -69,11 +84,8 @@ export default function ChatDetailsScreen() {
     }
   }, [id]);
 
-  const { mutate: sendMessage } = useSendMessage();
-  const { mutate: removeUser } = useRemoveUserFromChat();
-  const { mutate: createChat } = useCreateChat();
-  const { mutate: deleteMessage } = useDeleteMessage();
-  const { mutate: sendMediaMessage } = useSendMediaMessage();
+  //Fetching all messages
+  useChatMessages(id);
 
   const onPressSendMessage = (content: string) => {
     if (!content) return;
@@ -123,10 +135,13 @@ export default function ChatDetailsScreen() {
         isGroup: currentChat?.isGroup,
       },
       messageType: "TEXT",
+      parentMessageId: selectedMessage.id,
     };
 
     sendMessage(sendMessagePayload, {
-      onSuccess: () => {},
+      onSuccess: (res) => {
+        console.log(JSON.stringify(res, null, 4));
+      },
       onError: (error) => {
         console.error("Failed to send message", error);
         setError("Failed to send message");
@@ -136,13 +151,36 @@ export default function ChatDetailsScreen() {
   };
 
   const handleSendMedia = () => {
-    if (!media || !mediaType || !currentChat || !user) return;
+    console.log(caption);
+    if (!media || media.length === 0 || !currentChat || !user) return;
 
-    console.log(media);
-    console.log(mediaType);
-    console.log(currentChat.id);
+    // Determine message type
+    let messageType: "IMAGE" | "VCARD" | "CONTACTS" | "DOCUMENT" = "DOCUMENT";
 
+    if (mediaType === "contact") {
+      messageType = "CONTACTS";
+    } else if (mediaType === "vcard") {
+      messageType = "VCARD";
+    } else if (
+      media.every((file) =>
+        (file.mimeType || file.type || "").startsWith("image/")
+      )
+    ) {
+      messageType = "IMAGE";
+    } else {
+      messageType = "DOCUMENT";
+    }
+
+    // Prepare files
+    const files = media.map((file) => ({
+      uri: file.uri,
+      name: file.fileName || file.name || "uploaded_file",
+      type: file.mimeType || file.type || "application/octet-stream",
+    }));
+
+    // Final payload
     const payload = {
+      content: caption || "",
       chat: {
         id: currentChat.id,
         name: currentChat.name || "",
@@ -153,30 +191,16 @@ export default function ChatDetailsScreen() {
         username: user.full_name,
         email: user.email,
       },
-      messageType:
-        mediaType === "image"
-          ? "IMAGE"
-          : mediaType === "video"
-          ? "VIDEO"
-          : "DOCUMENT",
-      files: [
-        {
-          uri: media.uri,
-          name: media.fileName || media.name || "uploaded file",
-          type: media.mimeType || media.type || "application/octet-stream",
-        },
-        {
-          uri: media.uri,
-          name: media.fileName || media.name || "uploaded file",
-          type: media.mimeType || media.type || "application/octet-stream",
-        },
-      ],
+      messageType,
+      files,
     };
+
+    // console.log("Sending media payload: ", JSON.stringify(payload, null, 2));
 
     sendMediaMessage(payload, {
       onSuccess: () => {
-        console.log("Media message sent");
-        setMedia(null);
+        console.log("Media batch sent successfully");
+        setMedia([]);
       },
       onError: (err) => {
         console.error("Failed to send media", err);
@@ -185,49 +209,74 @@ export default function ChatDetailsScreen() {
     });
   };
 
-  const onPressDeleteMessage = (messageId: string) => {
+  const onPressDeleteMessage = ({
+    messageId,
+    deleteType,
+  }: {
+    messageId: string;
+    deleteType: "me" | "everyone";
+  }) => {
     if (!messageId) return;
 
-    deleteMessage(
-      { messageId: messageId },
-      {
-        onSuccess: () => {
-          console.log("Message deleted successfully:", messageId);
-        },
-        onError: (error) => {
-          console.error("Failed to delete message:", error);
-        },
-      }
-    );
+    console.log(messageId, deleteType);
+    if (deleteType === "me")
+      deleteMessageforme(
+        { messageId: messageId },
+        {
+          onSuccess: () => {
+            console.log("Message deleted for me successfully:", messageId);
+          },
+          onError: (error) => {
+            console.error("Failed to delete message for me", error);
+          },
+        }
+      );
+    else {
+      deleteMessageforeveryone(
+        { messageId: messageId },
+        {
+          onSuccess: () => {
+            console.log(
+              "Message deleted for everyone successfully:",
+              messageId
+            );
+          },
+          onError: (error) => {
+            console.error("Failed to delete message for everyone:", error);
+          },
+        }
+      );
+    }
   };
 
   //Handle Pick media
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos", "livePhotos"],
-      allowsEditing: true,
+      mediaTypes: ["images", "livePhotos"],
+      allowsEditing: false,
+      allowsMultipleSelection: true,
       quality: 0.5,
     });
 
-    if (!result.canceled && result.assets && result.assets[0]) {
-      setMedia(result.assets[0]);
-      setMediaType(result.assets[0].mimeType?.split("/")[0]);
+    if (!result.canceled && result.assets.length > 0) {
+      const selectedAssets = result.assets;
+      setMedia(selectedAssets); // store all
+      setMediaType("image"); // base type, could be per-item but one is fine here
     }
   };
 
   const pickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: "*/*", // or specify MIME types like 'application/pdf'
+        type: "*/*",
         copyToCacheDirectory: true,
-        multiple: false,
+        multiple: true,
       });
 
       if (result.assets) {
-        console.log("Document picked:", result);
-        setMedia(result.assets[0]);
+        setMedia(result.assets);
         const type = result.assets[0].mimeType?.split("/")[0];
-        setMediaType(type === "application" ? "docs" : type);
+        setMediaType(type);
       }
     } catch (error) {
       console.error("Document picker error:", error);
@@ -248,6 +297,18 @@ export default function ChatDetailsScreen() {
 
   const onCancelReply = () => {
     setSelectedMessage(null);
+  };
+
+  const handleStarMessage = (message: ChatMessage | null) => {
+    if (!message || !userId) return;
+
+    const isAlreadyStarred = starredMessages.some((m) => m.id === message.id);
+
+    if (isAlreadyStarred) {
+      unstar({ messageId: message.id, userId });
+    } else {
+      star({ messageId: message.id, userId });
+    }
   };
 
   const handleOptionSelect = (option: string) => {
@@ -326,15 +387,15 @@ export default function ChatDetailsScreen() {
             setMediaType("contact");
           }}
         />
-        {media && mediaType && (
-          <MediaShare
-            name={profile.full_name}
-            media={media}
-            mediaType={mediaType}
-            onClose={() => setMedia(null)}
-            onSend={handleSendMedia}
-          />
-        )}
+        <MediaShare
+          name={profile.full_name}
+          caption={caption}
+          setCaption={setCaption}
+          media={media}
+          mediaType={mediaType}
+          onClose={() => setMedia([])}
+          onSend={handleSendMedia}
+        />
 
         {/* Main Screens */}
         <View style={styles.flex}>
@@ -347,8 +408,11 @@ export default function ChatDetailsScreen() {
             <ChatBody
               messages={messages}
               onReply={handleReply}
+              onStar={handleStarMessage}
               onCancelReply={onCancelReply}
-              onDelete={onPressDeleteMessage}
+              onDelete={(messageId, deleteType) =>
+                onPressDeleteMessage({ messageId, deleteType })
+              }
             />
           ) : (
             <View

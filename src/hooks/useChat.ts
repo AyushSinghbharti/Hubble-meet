@@ -10,7 +10,12 @@ import {
   getChatMessages,
   deleteMessage,
   sendMediaAlternative,
-  sendMedia
+  sendMedia,
+  deleteMessageforme,
+  deleteMessageforeveryone,
+  starMessage,
+  unStarMessage,
+  getStarredMessages
 } from '../api/chat';
 import {
   AddUserToChatRequest,
@@ -181,13 +186,74 @@ export const useChatMessages = (chatId: string): UseQueryResult<Chat, Error> => 
 };
 
 /* ---------- Delete a message ---------- */
-export const useDeleteMessage = () => {
+export const useDeleteMessageForMe = () => {
   const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
 
   return useMutation({
-    mutationFn: ({ messageId }: DeleteMessageRequest) => deleteMessage(messageId),
+    mutationFn: ({ messageId }: DeleteMessageRequest) => deleteMessageforme(messageId),
     onSuccess: (data, variable) => {
       deleteMessageFromStore(variable.messageId);
     },
   });
+};
+
+export const useDeleteMessageForEveryone = () => {
+  const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
+
+  return useMutation({
+    mutationFn: ({ messageId }: DeleteMessageRequest) => deleteMessageforeveryone(messageId),
+    onSuccess: (data, variable) => {
+      deleteMessageFromStore(variable.messageId);
+    },
+  });
+};
+
+/* ---------- Star a message ---------- */
+export const useStarMessage = () => {
+  return useMutation({
+    mutationFn: ({ messageId, userId }: { messageId: string; userId: string }) =>
+      starMessage(messageId, userId),
+    onSuccess: (data) => {
+      console.log("Message starred:", data);
+    },
+    onError: (err) => {
+      console.log("Star error:", err);
+    },
+  });
+};
+
+/* ---------- Unstar a message ---------- */
+export const useUnstarMessage = () => {
+  return useMutation({
+    mutationFn: ({ messageId, userId }: { messageId: string; userId: string }) =>
+      unStarMessage(messageId, userId),
+    onSuccess: (data) => {
+      console.log("Message unstarred:", data);
+    },
+    onError: (err) => {
+      console.log("Unstar error:", err);
+    },
+  });
+};
+
+/* ---------- Get Starred Messages ---------- */
+export const useStarredMessages = (userId: string) => {
+  const setStarredMessages = useChatStore((s) => s.setStarredMessages);
+
+  const queryResult = useQuery<ChatMessage[]>({
+    queryKey: ['starredMessages', userId],
+    queryFn: () => getStarredMessages(userId),
+    enabled: !!userId,
+    refetchInterval: 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (queryResult.data) {
+      setStarredMessages(queryResult.data);
+    }
+  }, [queryResult.data, setStarredMessages]);
+
+  return queryResult;
 };

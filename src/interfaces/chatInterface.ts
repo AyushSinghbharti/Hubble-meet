@@ -79,13 +79,16 @@ export interface SendMessageRequest {
   chat: Pick<ChatPreview, "id" | "name" | "isGroup">
   /** Defaults to "TEXT" server-side when omitted */
   messageType?: MessageType | string;
+  parentMessageId?: string | null;
 }
 
 export interface SendMediaRequest {
+  content: string | undefined;
   chat: ChatPreview;
   sender: Pick<ChatUser, "id" | "username" | "email">;
   messageType: MessageType;
   files: File[];
+  parentMessageId?: string | null;
 }
 
 

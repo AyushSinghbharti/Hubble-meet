@@ -46,7 +46,7 @@ function dateLabel(date: Date) {
 interface ChatBodyProps {
   messages: ChatMessage[];
   onReply?: (message: ChatMessage | null) => void;
-  onDelete?: (messageId: string) => void;
+  onDelete?: (messageId: string, deleteType: "me" | "everyone") => void;
   onStar?: (messageId: string) => void;
   onCancelReply?: () => void;
 }
@@ -131,13 +131,6 @@ const ChatBubble = ({
                 minute: "2-digit",
               })}
             </Text>
-
-            {/* {me && (
-              <Image
-                source={require("../../../assets/icons/tick.png")}
-                style={{ height: 16, width: 16, marginLeft: 2 }}
-              />
-            )} */}
           </View>
         </View>
       </Pressable>
@@ -149,7 +142,7 @@ export default function ChatBody({
   messages,
   onReply,
   onDelete = () => {},
-  onStar,
+  onStar = () => {},
   onCancelReply,
 }: ChatBodyProps) {
   const [messageProps, setMessageprops] = useState({ x: 0, y: 0, h: 0, w: 0 });
@@ -160,7 +153,7 @@ export default function ChatBody({
     null
   );
   const userId = useAuthStore((state) => state.userId);
-  
+
   // Convert backend ChatMessage[] → ChatMsg[]
   const transformedMessages: ChatMsg[] = messages.map((msg) => ({
     id: msg.id,
@@ -171,13 +164,17 @@ export default function ChatBody({
     delivered: true, // Optional, set true by default
   }));
 
-  const onAction = (action: "reply" | "star" | "delete") => {
+  const onAction = (
+    action: "reply" | "star" | "delete" | "deleteforme" | "deleteforeveryone"
+  ) => {
     if (action === "reply") {
       if (onReply) onReply(selectedMessage);
     } else if (action === "star") {
-      alert("Star message with ID:" + selectedMessageId);
-    } else if(action === "delete") {
-      onDelete(selectedMessage?.id);
+      if(onStar) onStar(selectedMessage);
+    } else if (action === "deleteforme") {
+      onDelete(selectedMessage?.id || "", "me");
+    } else if (action === "deleteforeveryone") {
+      onDelete(selectedMessage?.id || "", "everyone");
     }
     setSelectedMessageId(null);
   };
@@ -204,13 +201,13 @@ export default function ChatBody({
           isVisible={isMenuVisible}
           topOffset={
             messageProps.y > 550
-            ? messageProps.y - messageProps.y / 2.5
-            : messageProps.y > 515
-            ? messageProps.y - messageProps.y / 2
-            : messageProps.y - 50
+              ? messageProps.y - messageProps.y / 2.5
+              : messageProps.y > 515
+              ? messageProps.y - messageProps.y / 2
+              : messageProps.y - 50
           }
           leftOffset={messageProps.x > 90 ? 265 : 25}
-          />
+        />
 
         {transformedMessages.length > 0 && (
           <View style={styles.dateChip}>
@@ -230,7 +227,7 @@ export default function ChatBody({
               setMessageprops={setMessageprops}
               setSelectedMessageId={setSelectedMessageId}
               setSelectedMessage={setSelectedMessage}
-              />
+            />
           </View>
         ))}
       </ScrollView>
@@ -240,7 +237,7 @@ export default function ChatBody({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  
+
   dateChip: {
     alignSelf: "center",
     marginVertical: 8,

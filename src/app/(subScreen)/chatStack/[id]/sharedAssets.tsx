@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -11,125 +11,19 @@ import {
   ScrollView,
   Dimensions,
   StatusBar,
+  Linking,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { UserProfile } from "@/src/interfaces/profileInterface";
+import { useChatStore } from "@/src/store/chatStore";
+import { useMemo } from "react";
+import moment from "moment";
 
 const { width } = Dimensions.get("window");
 const GRID_GAP = 8;
 const THUMB_SIZE = (width - 32 - GRID_GAP * 2) / 3;
-
-// DUMMY DATA
-const mediaSections = [
-  {
-    title: "Recent",
-    data: [
-      {
-        id: "m1",
-        uri: "https://images.unsplash.com/photo-1557804506-669a67965ba0",
-      },
-      {
-        id: "m2",
-        uri: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f",
-      },
-      {
-        id: "m3",
-        uri: "https://images.unsplash.com/photo-1460925895917-afdab827c52f",
-      },
-      {
-        id: "m4",
-        uri: "https://images.unsplash.com/photo-1551836022-9bf3b7ba2ace",
-      },
-    ],
-  },
-  {
-    title: "January",
-    data: [
-      {
-        id: "m5",
-        uri: "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85",
-      },
-      {
-        id: "m6",
-        uri: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-      },
-      {
-        id: "m7",
-        uri: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29",
-      },
-      {
-        id: "m8",
-        uri: "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92",
-      },
-      {
-        id: "m9",
-        uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-      },
-      {
-        id: "m10",
-        uri: "https://images.unsplash.com/photo-1551292830-8c1cf23cf63b",
-      },
-    ],
-  },
-  {
-    title: "2024",
-    data: [
-      {
-        id: "m11",
-        uri: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e",
-      },
-    ],
-  },
-  {
-    title: "2022",
-    data: [
-      {
-        id: "m12",
-        uri: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-      },
-      {
-        id: "m13",
-        uri: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29",
-      },
-    ],
-  },
-];
-
-const docSections = [
-  {
-    title: "December",
-    data: [
-      { id: "d1", name: "Frame.jpg", size: "6.8 MB · JPG", date: "9/2/24" },
-      { id: "d2", name: "Frame.jpg", size: "6.8 MB · JPG", date: "9/2/24" },
-      { id: "d3", name: "Frame.jpg", size: "6.8 MB · JPG", date: "9/2/24" },
-      { id: "d4", name: "Frame.jpg", size: "6.8 MB · JPG", date: "9/2/24" },
-    ],
-  },
-];
-
-const linkSections = [
-  {
-    title: "December",
-    data: [
-      {
-        id: "l1",
-        uri: "https://images.unsplash.com/photo-1460925895917-afdab827c52f",
-        link: "http://example.com/this/is/a/very/long/dummy/link/for/testing/purposes/with/multi",
-      },
-      {
-        id: "l2",
-        uri: "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92",
-        link: "http://example.com/this/is/a/very/long/dummy/link/for/testing/purposes/with/multi",
-      },
-      {
-        id: "l3",
-        uri: "https://images.unsplash.com/photo-1557804506-669a67965ba0",
-        link: "http://example.com/this/is/a/very/long/dummy/link/for/testing/purposes/with/multi",
-      },
-    ],
-  },
-];
 
 interface SharedAssetsProps {}
 
@@ -138,6 +32,111 @@ export default function SharedAssets() {
   const item: UserProfile = JSON.parse(params.item as string);
   const id = params.id;
   const router = useRouter();
+  const messages = useChatStore((s) => s.messages);
+
+  //Local file size calculator
+  const getRemoteFileSize = async (url: string): Promise<number | null> => {
+    try {
+      const res = await fetch(url, { method: "HEAD" });
+      const size = res.headers.get("content-length");
+      return size ? parseInt(size, 10) : null;
+    } catch (err) {
+      console.warn("Error fetching file size:", err);
+      return null;
+    }
+  };
+
+  // Link start
+
+  const mediaSections = useMemo(() => {
+    const grouped: Record<string, any[]> = {};
+
+    messages.forEach((msg) => {
+      if (msg.messageType === "IMAGE" && Array.isArray(msg.media)) {
+        const groupTitle = moment(msg.createdAt).format("MMMM YYYY");
+
+        msg.media.forEach((mediaItem: any, index: number) => {
+          const uri = mediaItem?.uri ?? mediaItem?.url ?? null;
+          if (!uri) return;
+
+          if (!grouped[groupTitle]) grouped[groupTitle] = [];
+          grouped[groupTitle].push({
+            id: `${msg.id}-${index}`,
+            uri,
+          });
+        });
+      }
+    });
+
+    return Object.entries(grouped).map(([title, data]) => ({ title, data }));
+  }, [messages]);
+
+  const docSections = useMemo(() => {
+    const grouped: Record<string, any[]> = {};
+
+    messages.forEach((msg) => {
+      if (msg.messageType === "DOCUMENT" && Array.isArray(msg.media)) {
+        const groupTitle = moment(msg.createdAt).format("MMMM YYYY");
+
+        msg.media.forEach((doc: any, index: number) => {
+          const size = getRemoteFileSize(doc.url);
+          const fileName = doc?.fileName ?? "Unnamed";
+          const fileSize = doc?.size
+            ? `${(doc.size / 1024 / 1024).toFixed(1)} MB`
+            : "Unknown Size";
+          const ext = fileName.includes(".")
+            ? fileName.split(".").pop()?.toUpperCase()
+            : "FILE";
+
+          if (!grouped[groupTitle]) grouped[groupTitle] = [];
+          grouped[groupTitle].push({
+            id: `${msg.id}-${index}`,
+            name: fileName,
+            size: `${fileSize} · ${ext}`,
+            date: moment(msg.createdAt).format("D/M/YY"),
+            uri: doc.url,
+          });
+        });
+      }
+    });
+
+    return Object.entries(grouped).map(([title, data]) => ({ title, data }));
+  }, [messages]);
+
+  const linkSections = useMemo(() => {
+    const grouped: Record<string, any[]> = {};
+
+    messages.forEach((msg) => {
+      if (msg.messageType === "LINK" && msg.content) {
+        const groupTitle = moment(msg.createdAt).format("MMMM YYYY");
+
+        if (!grouped[groupTitle]) grouped[groupTitle] = [];
+        grouped[groupTitle].push({
+          id: msg.id,
+          uri:
+            typeof msg.media === "string"
+              ? msg.media
+              : "https://via.placeholder.com/150",
+          link: msg.content,
+        });
+      }
+    });
+
+    return Object.entries(grouped).map(([title, data]) => ({ title, data }));
+  }, [messages]);
+
+  useEffect(() => {
+    console.log(
+      "Processed media sections: ",
+      JSON.stringify(mediaSections, null, 2)
+    );
+    console.log(
+      "Processed doc sections: ",
+      JSON.stringify(docSections, null, 2)
+    );
+  }, [mediaSections, docSections]);
+
+  //Link end
 
   const [activeTab, setActiveTab] = useState<"media" | "docs" | "links">(
     "media"
@@ -148,14 +147,28 @@ export default function SharedAssets() {
       <Text style={styles.sectionTitle}>{section.title}</Text>
       <FlatList
         data={section.data}
+        maxToRenderPerBatch={5}
+        initialNumToRender={10}
+        windowSize={1}
         keyExtractor={(item) => item.id}
         numColumns={3}
         renderItem={({ item }) => (
-          <Image
-            source={{ uri: item.uri }}
-            style={styles.mediaThumb}
-            resizeMode="cover"
-          />
+          <TouchableOpacity
+            onPress={async () => {
+              const supported = await Linking.canOpenURL(item.uri);
+              if (supported) {
+                Linking.openURL(item.uri);
+              } else {
+                Alert.alert("Can't open this file.");
+              }
+            }}
+          >
+            <Image
+              source={{ uri: item.uri }}
+              style={styles.mediaThumb}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
         )}
         columnWrapperStyle={{ gap: GRID_GAP }}
         ItemSeparatorComponent={() => <View style={{ height: GRID_GAP }} />}
@@ -165,17 +178,33 @@ export default function SharedAssets() {
   );
 
   const renderDocItem = ({ item }: any) => (
-    <View style={styles.docRow}>
-      <Image
-        style={{ height: 32, width: 32, tintColor: "#868686" }}
-        source={require("../../../../../assets/icons/document.png")}
-      />
-      <View style={styles.docTextWrap}>
-        <Text style={styles.docName}>{item.name}</Text>
-        <Text style={styles.docMeta}>{item.size}</Text>
+    <TouchableOpacity
+      onPress={async () => {
+        if (!item.uri || typeof item.uri !== "string") {
+          Alert.alert("Invalid file URL");
+          return;
+        }
+
+        const supported = await Linking.canOpenURL(item.uri);
+        if (supported) {
+          Linking.openURL(item.uri);
+        } else {
+          Alert.alert("Can't open this file.");
+        }
+      }}
+    >
+      <View style={styles.docRow}>
+        <Image
+          style={{ height: 32, width: 32, tintColor: "#868686" }}
+          source={require("../../../../../assets/icons/document.png")}
+        />
+        <View style={styles.docTextWrap}>
+          <Text style={styles.docName}>{item.name}</Text>
+          <Text style={styles.docMeta}>{item.size}</Text>
+        </View>
+        <Text style={styles.docDate}>{item.date}</Text>
       </View>
-      <Text style={styles.docDate}>{item.date}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderLinkItem = ({ item }: any) => (
@@ -203,7 +232,12 @@ export default function SharedAssets() {
       keyExtractor={(item) => item.id}
       renderItem={renderDocItem}
       renderSectionHeader={({ section: { title } }) => (
-        <Text style={[styles.sectionTitle, { paddingHorizontal: 16, paddingTop: 16 }]}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            { paddingHorizontal: 16, paddingTop: 16 },
+          ]}
+        >
           {title}
         </Text>
       )}
@@ -239,7 +273,12 @@ export default function SharedAssets() {
       keyExtractor={(item) => item.id}
       renderItem={renderLinkItem}
       renderSectionHeader={({ section: { title } }) => (
-        <Text style={[styles.sectionTitle, { paddingHorizontal: 16, paddingTop: 16 }]}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            { paddingHorizontal: 16, paddingTop: 16 },
+          ]}
+        >
           {title}
         </Text>
       )}

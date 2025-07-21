@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { SetStateAction, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TextInput,
   ScrollView,
   FlatList,
+  Dimensions,
 } from "react-native";
 import { Ionicons, MaterialIcons, Entypo } from "@expo/vector-icons";
 import { useEvent } from "expo";
@@ -16,16 +17,21 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import ContactCard from "../../../../components/ContactCard";
 import PopUpOption from "../../../../components/chatScreenComps/popUpOption";
 import { useRouter } from "expo-router";
+import { FONT } from "@/assets/constants/fonts";
+import { useChatStore } from "@/src/store/chatStore";
 
 type MediaType = "image" | "video" | "doc" | "contact" | "other";
 
 let imageLimit = 2 * 1024 * 1024;
 let videoLimit = 50 * 1024 * 1024;
 let docLimit = 5 * 1024 * 1024;
+let width = Dimensions.get("screen").width;
 
 type MediaShareProps = {
   name: string;
-  media: any;
+  caption: string | undefined;
+  setCaption: any;
+  media: any[];
   mediaType: MediaType;
   onSend?: () => void;
   onClose?: () => void;
@@ -35,128 +41,200 @@ const MediaShare: React.FC<MediaShareProps> = ({
   name,
   media,
   mediaType,
+  caption="",
+  setCaption,
   onSend,
   onClose,
 }) => {
-  const uri = media?.uri;
   const [errorTitle, setErrorTitle] = useState("");
   const [errorDesc, setErrorDesc] = useState("");
-  const router = useRouter();
 
   useEffect(() => {
-    console.log(media, media.size, imageLimit, videoLimit, docLimit);
-    if (mediaType === "image" && media.fileSize > imageLimit) {
-      setErrorTitle("Image size too large!");
-      setErrorDesc(
-        "The selected image exceeds the maximum upload limit of 2 MB."
-      );
-    }
-    if (mediaType === "video" && media.fileSize > videoLimit || media.size > videoLimit) {
-      setErrorTitle("Video size too large!");
-      setErrorDesc(
-        "The selected image exceeds the maximum upload limit of 50 MB."
-      );
-    }
-    if (mediaType === "doc" && media.size > docLimit) {
-      setErrorTitle("File size too large!");
-      setErrorDesc(
-        "The selected file exceeds the maximum upload limit of 5 MB."
-      );
+    if (!media || media.length === 0) return;
+
+    for (let file of media) {
+      if (mediaType === "image" && file.size > imageLimit) {
+        setErrorTitle("Image size too large!");
+        setErrorDesc(
+          "The selected image exceeds the maximum upload limit of 2 MB."
+        );
+        break;
+      }
+      if (mediaType === "video" && file.size > videoLimit) {
+        setErrorTitle("Video size too large!");
+        setErrorDesc(
+          "The selected video exceeds the maximum upload limit of 50 MB."
+        );
+        break;
+      }
+      if (mediaType === "doc" && file.size > docLimit) {
+        setErrorTitle("File size too large!");
+        setErrorDesc(
+          "The selected file exceeds the maximum upload limit of 5 MB."
+        );
+        break;
+      }
     }
   }, [media, mediaType]);
 
+  // 🎥 Dedicated component so hooks live at top level
+  const VideoItem = ({ uri }: { uri: string }) => {
+    const player = useVideoPlayer(uri, (p) => {
+      p.loop = false;
+      p.pause();
+    });
+    return <VideoView player={player} style={styles.mediaImage} />;
+  };
+
+  const RenderName = ({ name }: { name: string }) => {
+    return (
+      <View
+        style={{
+          position: "absolute",
+          top: 12,
+          left: 12,
+          backgroundColor: "rgba(255, 255, 255, 0.5)",
+          padding: 8,
+          borderRadius: 15,
+          paddingHorizontal: 12,
+          zIndex: 3,
+        }}
+      >
+        <Text style={{ fontFamily: FONT.MEDIUM, fontSize: 12 }}>{name}</Text>
+      </View>
+    );
+  };
+
   const renderMedia = () => {
-    switch (mediaType) {
-      case "image":
-        return (
-          <Image
-            source={{ uri }}
-            style={styles.mediaImage}
-            resizeMode="contain"
-          />
-        );
-
-      case "video": {
-        const player = useVideoPlayer(uri, (player) => {
-          player.loop = true;
-          player.play();
-        });
-        const { isPlaying } = useEvent(player, "playingChange", {
-          isPlaying: player.playing,
-        });
-        return (
-          <VideoView
-            style={styles.mediaImage}
-            player={player}
-            allowsFullscreen
-            allowsPictureInPicture
-          />
-        );
-      }
-
-      case "doc":
-      case "other":
-        return (
-          <View style={styles.mediaCenter}>
-            <MaterialIcons name="picture-as-pdf" size={64} color="#888" />
-            <Text style={styles.mediaText}>{media?.name || "Document"}</Text>
-            <Text style={styles.fileSize}>
-              {(media?.size / 1000).toFixed(1)} KB
-            </Text>
-          </View>
-        );
-
-      case "contact":
-        return (
-          <View style={{ width: "100%", height: "100%", flex: 1 }}>
-            <FlatList
-              data={media}
-              keyExtractor={(item, index) => `${item.id}-${index}`}
-              style={{ backgroundColor: "#fff" }}
-              renderItem={({ item }) => (
-                <View style={styles.contactItem}>
-                  <ContactCard
-                    name={`${item.firstName}` + " " + `${item.lastName}`}
-                    phone={item.phoneNumbers?.[0]?.number}
-                    photoUri={
-                      item.imageAvailable
-                        ? item.imageUri
-                        : "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg?semt=ais_hybrid&w=740"
-                    }
+    if (mediaType === "image" || mediaType === "video") {
+      return (
+        <FlatList
+          horizontal
+          pagingEnabled
+          data={media}
+          showsHorizontalScrollIndicator={true}
+          keyExtractor={(item, index) => `${item.uri}-${index}`}
+          renderItem={({ item }) => {
+            const type = item.mimeType || item.type || "";
+            if (type.startsWith("image/")) {
+              return (
+                <View
+                  style={{
+                    height: "100%",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    position: "relative",
+                  }}
+                >
+                  <RenderName name={item.fileName} />
+                  <Image
+                    source={{ uri: item.uri }}
+                    style={styles.mediaImage}
+                    resizeMode="contain"
                   />
                 </View>
-              )}
-            />
-          </View>
-        );
+              );
+            } else if (type.startsWith("video/")) {
+              return (
+                <View
+                  style={{
+                    height: "100%",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    position: "relative",
+                  }}
+                >
+                  <RenderName
+                    name={item.fileName || item.name || "undefined name"}
+                  />
+                  <VideoItem uri={item.uri} />
+                </View>
+              );
+            }
+            return null;
+          }}
+        />
+      );
+    }
 
-      default:
-        return (
-          <View style={styles.mediaCenter}>
-            <MaterialIcons name="insert-drive-file" size={50} color="#888" />
-            <Text style={[styles.mediaText, { marginTop: 8, marginBottom: 2 }]}>
-              {media.name}
-            </Text>
-            <Text style={styles.mediaText}>
-              {(media.size / (1024 * 1024)).toFixed(3)} MB
-            </Text>
-          </View>
-        );
+    if (mediaType === "contact") {
+      return (
+        <FlatList
+          data={media}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          style={{ backgroundColor: "#fff", width: "100%" }}
+          renderItem={({ item }) => (
+            <View style={styles.contactItem}>
+              <ContactCard
+                name={`${item.firstName} ${item.lastName}`}
+                phone={item.phoneNumbers?.[0]?.number}
+                photoUri={
+                  item.imageAvailable
+                    ? item.imageUri
+                    : "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg"
+                }
+              />
+            </View>
+          )}
+        />
+      );
+    } else {
+      return (
+        <FlatList
+          data={media}
+          keyExtractor={(item, index) => `${item.uri}-${index}`}
+          contentContainerStyle={{
+            flex: 1,
+            paddingTop: 16,
+            gap: 4,
+            paddingHorizontal: 8,
+          }}
+          renderItem={({ item }) => (
+            <View style={styles.mediaCenter}>
+              <View
+                style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+              >
+                <Image
+                  source={require("@/assets/icons/document.png")}
+                  style={{ aspectRatio: 1, height: 32, width: 32 }}
+                />
+                <View>
+                  <Text style={styles.mediaText}>{item.name}</Text>
+                  <Text style={styles.fileSize}>
+                    {(item.size / 1024).toFixed(1)} KB
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+        />
+      );
     }
   };
+
+  if (!media || media.length === 0) return null;
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.closeIcon} onPress={onClose}>
+          <TouchableOpacity
+            style={styles.closeIcon}
+            onPress={() => {
+              if (onSend) {
+                onClose?.(); // Close modal right after
+              }
+            }}
+          >
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          {media?.fileName || media?.name ? (
-            <Text style={styles.fileTitle}>{media.fileName || media.name}</Text>
-          ) : (
-            <Text style={styles.fileTitle}>Contacts</Text>
-          )}
+          <Text style={styles.fileTitle}>
+            {mediaType === "contact"
+              ? "Contacts"
+              : media.length === 1
+              ? media[0].fileName || media[0].name
+              : `${media.length} files`}
+          </Text>
         </View>
 
         <View style={[styles.container]}>
@@ -186,12 +264,13 @@ const MediaShare: React.FC<MediaShareProps> = ({
 
             <View style={styles.captionBox}>
               <TextInput
+                value={caption}
+                onChangeText={setCaption}
                 placeholder="Add a caption..."
                 placeholderTextColor="#aaa"
                 style={styles.captionInput}
               />
               <TouchableOpacity onPress={onSend}>
-                {/* <Ionicons name="send" size={24} color="#007AFF" /> */}
                 <Image
                   source={require("../../../../../assets/icons/send.png")}
                   style={{ height: 24, width: 24 }}
@@ -249,17 +328,21 @@ const styles = StyleSheet.create({
     borderColor: "#D9D9D9",
     borderRadius: 12,
     overflow: "hidden",
-    backgroundColor: "#f7f7f7",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#f7f7f7",
   },
   mediaImage: {
-    width: "100%",
+    width: width - width * 0.1,
     height: "100%",
+    resizeMode: "contain",
+    backgroundColor: "#eee",
+    zIndex: 2,
   },
   mediaCenter: {
-    justifyContent: "center",
-    alignItems: "center",
+    width: 1000,
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
   },
   mediaText: {
     fontFamily: "Inter",

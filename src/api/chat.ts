@@ -67,7 +67,7 @@ export const removeUserFromChat = (
 export const sendMessage = (
     payload: SendMessageRequest
 ): Promise<SendMessageResponse> =>
-    apiClient.post<SendMessageResponse>(`${CHAT_BASE}/send`, payload).then(res => res.data); 4
+    apiClient.post<SendMessageResponse>(`${CHAT_BASE}/send`, payload).then(res => res.data);
 
 //Send Media (document/image etc...)
 export const sendMedia = async (
@@ -75,6 +75,7 @@ export const sendMedia = async (
 ): Promise<SendMessageResponse> => {
     const formData = new FormData();
 
+    formData.append("content", payload.content || "");
     formData.append("chat", JSON.stringify(payload.chat));
     formData.append("sender", JSON.stringify(payload.sender));
     formData.append("messageType", payload.messageType);
@@ -98,6 +99,7 @@ export const sendMedia = async (
     };
 
     try {
+        console.log(formData);
         const response = await apiClient.post<SendMessageResponse>(
             `${CHAT_BASE}/send`,
             formData,
@@ -123,7 +125,27 @@ export const getChatMessages = (
 /**
  * Deletes a specific message by its ID
  */
-export const deleteMessage = (
+export const deleteMessageforme = (
     messageId: string
 ): Promise<DeleteMessageResponse> =>
-    apiClient.delete<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}`).then(res => res.data);
+    apiClient.delete<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}/deleteforme`).then(res => res.data);
+
+export const deleteMessageforeveryone = (
+    messageId: string
+): Promise<DeleteMessageResponse> =>
+    apiClient.delete<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}/deleteForEveryone`).then(res => res.data);
+
+/**
+ * star a specific message by its ID
+*/
+// ⭐ Star a message
+export const starMessage = (messageId: string, userId: string) =>
+    apiClient.post(`${CHAT_BASE}/${messageId}/star`, { userId });
+
+// ❌ Unstar a message
+export const unStarMessage = (messageId: string, userId: string) =>
+    apiClient.post(`${CHAT_BASE}/${messageId}/unstar`, { userId });
+
+// ⭐⭐ Get starred messages
+export const getStarredMessages = (userId: string) =>
+    apiClient.get(`${CHAT_BASE}/starred/${userId}`).then(res => res.data);
