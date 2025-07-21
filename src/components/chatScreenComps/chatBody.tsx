@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
   Pressable,
+  Linking,
 } from "react-native";
 import { Animated } from "react-native";
 import MessageAction from "./messageAction";
@@ -59,16 +60,18 @@ const ChatBubble = ({
   setMessageprops,
   setSelectedMessageId,
   setSelectedMessage,
+  allMessages,
 }: {
-  item: ChatMsg;
+  item: ChatMessage;
   isSelected: boolean;
-  onReply?: (message: ChatMsg) => void;
+  onReply?: (message: ChatMessage) => void;
   currentlyOpenSwipeable: React.MutableRefObject<SwipeableRef | null>;
   setMessageprops: React.Dispatch<React.SetStateAction<any>>;
   setSelectedMessageId: React.Dispatch<React.SetStateAction<string | null>>;
-  setSelectedMessage: React.Dispatch<React.SetStateAction<ChatMsg | null>>;
+  setSelectedMessage: React.Dispatch<React.SetStateAction<ChatMessage | null>>;
+  allMessages: ChatMessage[]; // NEW
 }) => {
-  const me = item.isMe;
+  const me = item.sender?.id === useAuthStore.getState().userId;
   const swipeableRef = useRef<SwipeableRef | null>(null);
 
   const handleSwipeOpen = () => {
@@ -122,15 +125,122 @@ const ChatBubble = ({
           });
         }}
       >
-        <View style={[styles.bubble, me ? styles.bubbleMe : styles.bubbleThem]}>
-          <Text style={styles.messageText}>{item.text}</Text>
-          <View style={styles.timeRow}>
-            <Text style={styles.timeText}>
-              {item.timestamp.toLocaleTimeString("en-GB", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </Text>
+        <View
+          style={[
+            styles.bubbleWrapper,
+            me ? styles.bubbleMe : styles.bubbleThem,
+          ]}
+        >
+          <View style={styles.bubbleContent}>
+            {/* REPLY PREVIEW SECTION */}
+            {item.parentMessageId &&
+              (() => {
+                const parent = allMessages.find(
+                  (msg) => msg.id === item.parentMessageId
+                );
+                if (!parent) return null;
+
+                const isImage =
+                  parent.messageType === "IMAGE" && parent.media?.length > 0;
+                const isDoc =
+                  parent.messageType === "DOCUMENT" && parent.media?.length > 0;
+
+                return (
+                  <View style={styles.replyContainer}>
+                    <View style={styles.replyStrip} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.replySender} numberOfLines={1}>
+                        {parent.sender?.username || "User"}
+                      </Text>
+                      {isImage ? (
+                        <Image
+                          source={{ uri: parent.media[0].url }}
+                          style={styles.replyThumbnail}
+                          resizeMode="cover"
+                        />
+                      ) : isDoc ? (
+                        <View style={styles.replyDocRow}>
+                          <Image
+                            source={require("@/assets/icons/document.png")}
+                            style={{ width: 14, height: 14, marginRight: 6 }}
+                          />
+                          <Text style={styles.replyDocText} numberOfLines={1}>
+                            {parent.media[0].fileName || "Document"}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text style={styles.replyText} numberOfLines={1}>
+                          {parent.content || "[message]"}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                );
+              })()}
+
+            {/* preview reply */}
+
+            {item.messageType === "IMAGE" && item.media?.length > 0 ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-start",
+                  gap: 8,
+                  maxWidth: 220,
+                }}
+              >
+                {item.media.map((mediaItem) => (
+                  <Pressable
+                    key={mediaItem.id}
+                    onPress={() => Linking.openURL(mediaItem.url)}
+                  >
+                    <Image
+                      source={{ uri: mediaItem.url }}
+                      style={{
+                        width: 100,
+                        height: 100,
+                        borderRadius: 10,
+                      }}
+                      resizeMode="cover"
+                    />
+                  </Pressable>
+                ))}
+              </View>
+            ) : item.messageType === "DOCUMENT" && item.media?.length > 0 ? (
+              <View style={{ gap: 6, maxWidth: 220 }}>
+                {item.media.map((mediaItem) => (
+                  <Pressable
+                    key={mediaItem.id}
+                    onPress={() => Linking.openURL(mediaItem.url)}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 4,
+                    }}
+                  >
+                    <Image
+                      source={require("@/assets/icons/document.png")}
+                      style={{ width: 20, height: 20, marginRight: 8 }}
+                    />
+                    <Text numberOfLines={1} style={styles.messageText}>
+                      {mediaItem.fileName || "Document"}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.messageText}>{item.content}</Text>
+            )}
+
+            <View style={styles.timeRow}>
+              <Text style={styles.timeText}>
+                {new Date(item.createdAt).toLocaleTimeString("en-GB", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+            </View>
           </View>
         </View>
       </Pressable>
@@ -170,7 +280,7 @@ export default function ChatBody({
     if (action === "reply") {
       if (onReply) onReply(selectedMessage);
     } else if (action === "star") {
-      if(onStar) onStar(selectedMessage);
+      if (onStar) onStar(selectedMessage);
     } else if (action === "deleteforme") {
       onDelete(selectedMessage?.id || "", "me");
     } else if (action === "deleteforeveryone") {
@@ -185,7 +295,7 @@ export default function ChatBody({
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [transformedMessages]);
+  }, [messages]);
 
   const isMenuVisible = selectedMessageId !== null;
 
@@ -209,7 +319,7 @@ export default function ChatBody({
           leftOffset={messageProps.x > 90 ? 265 : 25}
         />
 
-        {transformedMessages.length > 0 && (
+        {messages.length > 0 && (
           <View style={styles.dateChip}>
             <Text style={styles.dateChipText}>
               {dateLabel(transformedMessages[0].timestamp)}
@@ -217,7 +327,7 @@ export default function ChatBody({
           </View>
         )}
 
-        {transformedMessages.map((item) => (
+        {messages.map((item) => (
           <View key={item.id} style={styles.listContent}>
             <ChatBubble
               item={item}
@@ -227,6 +337,7 @@ export default function ChatBody({
               setMessageprops={setMessageprops}
               setSelectedMessageId={setSelectedMessageId}
               setSelectedMessage={setSelectedMessage}
+              allMessages={messages}
             />
           </View>
         ))}
@@ -269,6 +380,76 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   /* Bubbles */
+  bubbleWrapper: {
+    borderRadius: 16,
+    padding: 10,
+    maxWidth: 250,
+  },
+
+  bubbleContent: {
+    flexDirection: "column",
+    gap: 8,
+  },
+
+  bubbleMe: {
+    backgroundColor: "#BBCF8D",
+    alignSelf: "flex-end",
+  },
+
+  bubbleThem: {
+    backgroundColor: "#E8E8E8",
+    alignSelf: "flex-start",
+  },
+
+  replyContainer: {
+    // flexDirection: "row",
+    // alignItems: "flex-start", // fixes text wrap alignment
+    backgroundColor: "#e2e2e2",
+    borderLeftWidth: 3,
+    borderLeftColor: "#007AFF",
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    gap: 8,
+    maxWidth: "100%", // prevents overflow and allows wrapping
+    flexShrink: 1,
+  },
+
+  replyStrip: {
+    width: 3,
+    backgroundColor: "#007AFF",
+    borderRadius: 2,
+  },
+
+  replySender: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#007AFF",
+    marginBottom: 2,
+  },
+
+  replyText: {
+    fontSize: 12,
+    color: "#444",
+  },
+
+  replyDocRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  replyDocText: {
+    fontSize: 12,
+    color: "#444",
+    flexShrink: 1,
+  },
+
+  replyThumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 6,
+  },
+
   bubble: {
     gap: 10,
     minHeight: 50,
@@ -277,12 +458,6 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: "center",
     flexDirection: "row",
-  },
-  bubbleThem: {
-    backgroundColor: "#E8E8E8",
-  },
-  bubbleMe: {
-    backgroundColor: "#BBCF8D",
   },
 
   messageText: {
@@ -294,7 +469,7 @@ const styles = StyleSheet.create({
 
   timeRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
     marginTop: 4,
   },
   timeText: { fontSize: 10, color: "#4D4D4D" },

@@ -47,7 +47,7 @@ export default function ChatDetailsScreen() {
   const [footerHeight, setFooterHeight] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [clearChatPopUp, setClearChatPopUp] = useState(false);
-  const [selectedMessage, setSelectedMessage] = useState<any>();
+  const [selectedMessage, setSelectedMessage] = useState<ChatMessage>();
   const [contactModal, setContactModal] = useState(false);
   const [media, setMedia] = useState<any[]>([]);
   const [mediaType, setMediaType] = useState<string | null>(null);
@@ -135,7 +135,7 @@ export default function ChatDetailsScreen() {
         isGroup: currentChat?.isGroup,
       },
       messageType: "TEXT",
-      parentMessageId: selectedMessage.id,
+      parentMessageId: selectedMessage?.id,
     };
 
     sendMessage(sendMessagePayload, {

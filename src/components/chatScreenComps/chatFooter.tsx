@@ -10,13 +10,14 @@ import {
   Text,
 } from "react-native";
 import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { ChatMessage } from "@/src/interfaces/chatInterface";
 
 interface ChatFooterProps {
   message: string;
   useMessage: (text: string) => void;
   onPress: () => void;
   onLayout: any;
-  selectedMessage?: any; // Assuming seletedMessage is not used in this component
+  selectedMessage?: ChatMessage; // Assuming seletedMessage is not used in this component
   onCancelReply?: () => void; // Optional callback for canceling reply
   onSendMessage?: (content: string) => void;
 }
@@ -30,6 +31,7 @@ const ChatFooter = ({
   onCancelReply = () => {},
   onSendMessage = () => {},
 }: ChatFooterProps) => {
+  console.log(selectedMessage);
   return (
     <View style={styles.container} onLayout={onLayout}>
       {/* Reply Bar */}
@@ -43,7 +45,9 @@ const ChatFooter = ({
                 justifyContent: "space-between",
               }}
             >
-              <Text style={styles.replyText}>{selectedMessage.name}</Text>
+              <Text style={styles.replyText}>
+                {selectedMessage.sender.username}
+              </Text>
               <TouchableOpacity onPress={onCancelReply}>
                 <Entypo
                   name="cross"
@@ -54,7 +58,7 @@ const ChatFooter = ({
               </TouchableOpacity>
             </View>
             <Text style={styles.replyMessage} numberOfLines={2}>
-              {selectedMessage.text}
+              {selectedMessage.content}
             </Text>
           </View>
         </View>

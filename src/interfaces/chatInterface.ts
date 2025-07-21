@@ -21,9 +21,8 @@ export interface ChatMedia {
 export type MessageType =
   | "TEXT"
   | "IMAGE"
-  | "VIDEO"
-  | "FILE"
-  | "AUDIO"
+  | "CONTACT"
+  | "DOCUMENT"
   | "VCARD" | string; // extend as backend grows
 
 /* ---------- Chat & Message models ---------- */
@@ -52,6 +51,7 @@ export interface ChatMessage {
   updatedAt: string;
   sender: ChatUser;
   chat: Chat;
+  parentMessageId?: string | null;
   media?: ChatMedia[];
 
   /* ----- optional vCard attachment fields (backend sends null when N/A) ----- */
