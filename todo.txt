@@ -72,3 +72,5 @@ PitchScreen bugs
 
 
 18. DELETE ENDPOINTS ARE NOT WORKING
+19. Pitch should also contain feilds, like, pitch type: business/individual etc...
+20. Test react to pitch and report pitch

@@ -28,7 +28,6 @@ import {
   useUserConnectionVbcs,
 } from "@/src/hooks/useConnection";
 import { logout } from "@/src/hooks/useAuth";
-import { useAuthGuard } from "@/src/utility/useAuthGuard";
 import { useGetUserPitch } from "@/src/hooks/usePitch";
 
 const baseUrl = "../../../assets/icons";
@@ -66,54 +65,64 @@ const getIcon = (iconKey: keyof typeof icons, focused: boolean) =>
   );
 
 export default function StackLayout() {
-  //Logout user if user doesn't logged in
-  const user = useAuthStore((state) => state.user);
+  //Calling backend functions
   const router = useRouter();
+  const userId = useAuthStore((s) => s.userId);
+  const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
 
-  //Calling backend function
-  const [userId, setUserId] = useState<string | null>(null);
-  const [vbcId, setVbcId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStoredData = async () => {
-      const storedUserId = await getUserIdFromStorage();
-      const storedVbcId = await getVBCIdFromStorage();
-      setUserId(storedUserId);
-      setVbcId(storedVbcId);
-    };
-    fetchStoredData();
-  }, []);
+  // ✅ Always call hooks statically
+  const { data, isLoading, isError, error } = useUserProfile(userId || "");
 
-  useUserProfile(userId || "");
-  useGetVbcCard(vbcId || "");
-  const { mutate: createVbcCard } = useCreateVbcCard();
-  useEffect(() => {
-    if (!vbcId && user) {
-      createVbcCard({
-        user_id: user.user_id,
-        display_name: user.full_name,
-        job_title: user.job_title,
-        company_name: user.current_company?.[0],
-        location: user.city,
-        allow_vbc_sharing: user.allow_vbc_sharing,
-      });
-    }
-  }, [vbcId, user]);
-
-  //Fetching all requests
-  useConnectionRequests({ userId: userId, enabled: true });
-
-  //Fetching all connections
+  useGetVbcCard(userId || "");
+  useConnectionRequests({ userId, enabled: true });
   useUserConnections(userId || "", true);
-
-  //Fetch all Vbcs card of connections
-  useUserConnectionVbcs({userId: userId || ""});
-
-  //Fetching pitch
+  useUserConnectionVbcs({ userId: userId || "" });
   useGetUserPitch(userId || "");
-
-  //Adding bulk users of recommendations
   useRecommendedProfiles(userId || "");
+
+  // ✅ Control logic in useEffect, not around hooks
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (isError) {
+      const status = error?.response?.status;
+      if (status === 404) {
+        console.warn("User not found — redirecting to profile setup");
+        router.replace("/profileSetup");
+      } else {
+        console.warn("Authentication error — logging out");
+        logout(router); // Pass router to logout
+      }
+      return;
+    }
+
+    if (
+      !data ||
+      (Object.values(data).every((v) => v === null || v === "") && userId)
+    ) {
+      console.warn("No user data — redirecting to login screen");
+      router.replace("/login");
+      return;
+    }
+
+    setUser(data);
+    setLoading(false);
+  }, [data, isLoading, isError, userId, router]);
+
+  if (loading || isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!user && !isLoading) {
+    return null; // Let the useEffect handle navigation
+  }
 
   return (
     <>
