@@ -73,7 +73,7 @@ export const useCreatePitch = () => {
   return useMutation({
     mutationFn: (data: PitchFormData) => createPitch(data),
     onSuccess: (res) => {
-      console.log(res);
+      console.log("Pitch Created Successfully");
       savePitchIdToStorage(res.id);
       setPitchId(res.id);
       savePitchToStorage(res);
@@ -94,7 +94,7 @@ export const useUpdatePitch = () => {
   return useMutation({
     mutationFn: ({ pitchId, data }: { pitchId: string; data: Partial<PitchFormData> }) => updatePitch(pitchId, data),
     onSuccess: (res) => {
-      console.log(res);
+      console.log("Pitch updated Successfully");
       savePitchIdToStorage(res.id);
       setPitchId(res.id);
       savePitchToStorage(res);

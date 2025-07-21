@@ -46,6 +46,7 @@ import ErrorAlert from "@/src/components/errorAlert";
 import { useConnectionStore } from "@/src/store/connectionStore";
 import { useInAppNotify } from "@/src/hooks/useInAppNotify";
 import { fetchUserProfile } from "@/src/api/profile";
+import { usePitchStore } from "@/src/store/pitchStore";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -518,6 +519,9 @@ const Connect = () => {
   const addRecommendation = useConnectionStore((s) => s.addRecommendation);
   const recommendationsId = useConnectionStore((s) => s.recommendationsId);
 
+  //CurrentPitchUser
+  const { currentPitchUser, clearCurrentPitchUser } = usePitchStore();
+
   useEffect(() => {
     const fetchAndStore = async () => {
       const existingIds = new Set(recommendations.map((rec) => rec.user_id));
@@ -553,6 +557,9 @@ const Connect = () => {
 
   const handleSwipeComplete = useCallback(
     (user_id, direction) => {
+      // clear pitch user on any swipe
+      clearCurrentPitchUser();
+
       setSwipedIds((prev) => {
         const updated = [...prev, user_id];
         if (updated.length >= 5 && !showLimitModal) {
@@ -570,7 +577,7 @@ const Connect = () => {
       setHasFlipped(false);
       setExpandedProfileId(null);
     },
-    [showLimitModal]
+    [showLimitModal, clearCurrentPitchUser]
   );
 
   const handleToggleDetails = useCallback((profile) => {
@@ -603,21 +610,21 @@ const Connect = () => {
   );
 
   const visibleProfileData = useMemo(() => {
+    if (currentPitchUser) return [currentPitchUser];
+
     if (!recommendations?.length) return [];
+
     return expandedProfileId
       ? recommendations.filter((item) => item.user_id === expandedProfileId)
       : recommendations
           .filter((item) => !swipedIds.includes(item.user_id))
           .slice(0, 1);
-  }, [recommendations, expandedProfileId, swipedIds]);
+  }, [currentPitchUser, recommendations, expandedProfileId, swipedIds]);
 
   return (
     <View style={styles.container}>
       {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
-      <Header
-        logoSource={logo}
-        onSearch={() => {}}
-      />
+      <Header logoSource={logo} onSearch={() => {}} />
       <FlatList
         data={visibleProfileData}
         renderItem={renderItem}

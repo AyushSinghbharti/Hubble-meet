@@ -11,6 +11,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useFocusEffect } from "expo-router";
+import { useReactToPitch, useReportPitch } from "@/src/hooks/usePitch";
+import { useAuthStore } from "@/src/store/auth";
 
 const MainCardWrapper = ({
   pitch,
@@ -25,8 +27,39 @@ const MainCardWrapper = ({
   const [isPaused, setIsPaused] = useState(false);
   const [isLiked, setLiked] = useState(false);
   const VideoUri = pitch.videoUri;
+  const { mutate: reactToPitch } = useReactToPitch();
+  const { mutate: reportPitch } = useReportPitch();
+  const user = useAuthStore((s) => s.user);
 
   const isMounted = useRef(true);
+  const handleReactPitch = () => {
+    if (!pitch?.id || !user?.user_id) return;
+
+    reactToPitch(
+      { pitch_id: pitch.id, user_id: user.user_id },
+      {
+        onSuccess: (res) => {
+          console.log("reacted to pitch successfull");
+        },
+      }
+    );
+
+    setLiked((prev) => !prev);
+  };
+
+  const handleReportPitch = () => {
+    if (!pitch?.id || !user?.user_id) return;
+
+    reportPitch({
+      pitch_id: pitch.id,
+      owner_id: pitch.user.id,
+      user_id: user.user_id,
+    }, {
+      onSuccess: (res) => {
+        console.log("report pitch successfull");
+      }
+    });
+  };
 
   useEffect(() => {
     return () => {
@@ -70,21 +103,6 @@ const MainCardWrapper = ({
       };
     }, [player, isActive])
   );
-
-  // Manual tap-to-play/pause toggle
-  // const togglePlayPause = () => {
-  //   if (!player) return;
-  //   try {
-  //     if (isPaused) {
-  //       player.play?.();
-  //     } else {
-  //       player.pause?.();
-  //     }
-  //     setIsPaused(!isPaused);
-  //   } catch (err) {
-  //     console.warn("Video toggle error:", err);
-  //   }
-  // };
 
   const togglePlayPause = () => {
     if (
@@ -144,10 +162,7 @@ const MainCardWrapper = ({
 
       {/* Action buttons */}
       <View style={styles.actionRail}>
-        <TouchableOpacity
-          style={styles.likeSection}
-          onPress={() => setLiked(!isLiked)}
-        >
+        <TouchableOpacity style={styles.likeSection} onPress={handleReactPitch}>
           <Image
             source={
               isLiked
@@ -170,28 +185,6 @@ const MainCardWrapper = ({
       </View>
 
       {/* User Info */}
-      {/* <View style={styles.userRow}>
-        <View style={styles.typeShown}>
-          <Text style={styles.typeText}>Individual:</Text>
-          <Text style={styles.pitchTitleText}>John William</Text>
-        </View>
-
-        <TouchableOpacity style={{ flexDirection: "row" }} onPress={onPress}>
-          <Image
-            source={{ uri: pitch.user.avatar }}
-            style={styles.avatar}
-            transition={300}
-          />
-          <View style={{ marginLeft: 10, justifyContent: "center" }}>
-            <Text numberOfLines={1} style={styles.userName}>
-              {pitch.user.name}
-            </Text>
-            <Text numberOfLines={1} style={styles.tagline}>
-              {pitch.user.tagline}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View> */}
       <View style={styles.userRow}>
         <View style={styles.typeShown}>
           <Text style={styles.typeText}>Individual:</Text>
@@ -220,7 +213,7 @@ const MainCardWrapper = ({
       {/* Options Menu */}
       {options && (
         <View style={styles.optionsBox}>
-          <Text style={styles.optionText}>Report Pitch</Text>
+          <Text style={styles.optionText} onPress={handleReportPitch}>Report Pitch</Text>
           <View style={styles.optionDivider} />
           <Text style={styles.optionText}>Not Interested</Text>
         </View>
