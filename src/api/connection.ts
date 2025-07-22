@@ -104,6 +104,7 @@ export const addCloseCircle = async (data: any): Promise<any> => {
   return response.data;
 };
 export const getCloseCircle = async (data: any): Promise<any> => {
-  const response = await api.post(`/api/user/profiles/close-circle`, data);
+  const response = await api.post(`/api/connection/close-circle`, data);
+  console.log(response.data, "response of the close circle");
   return response.data;
-};
+}; 

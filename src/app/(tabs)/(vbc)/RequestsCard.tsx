@@ -20,16 +20,16 @@ import { AntDesign } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import MatchModal from "../../../components/Alerts/RequestModalAlert";
 import AlertModal from "../../../components/Alerts/AlertModal";
-import { UserProfile } from "@/src/interfaces/profileInterface";
-import profileData from "@/src/dummyData/dummyProfiles";
-import {
-  useAcceptConnection,
-  useRejectConnection,
-} from "@/src/hooks/useConnection";
-import { useAuthStore } from "@/src/store/auth";
-import { useConnectionStore } from "@/src/store/connectionStore";
-import { ConnectionRequest } from "@/src/interfaces/connectionInterface";
+
+// } from "@/src/hooks/useConnection";
+// import { useAuthStore } from "@/src/store/auth";
+// import { useConnectionStore } from "@/src/store/connectionStore";
+// import { ConnectionRequest } from "@/src/interfaces/connectionInterface";
 import { useRouter } from "expo-router";
+import { useAcceptConnection, useRejectConnection } from "../../../hooks/useConnection";
+import { useAuthStore } from "../../../store/auth";
+import { useConnectionStore } from "../../../store/connectionStore";
+import { ConnectionRequest } from "../../../interfaces/connectionInterface";
 import { resolveChatAndNavigate } from "@/src/utility/resolveChatAndNavigate";
 
 const { width, height } = Dimensions.get("window");
@@ -40,7 +40,7 @@ interface ProfileCardProps {
   profile: ConnectionRequest;
   setError: any;
   onSwipeComplete: (id: string) => void;
-  onAcceptSuccess: (receiverProfileImage: string) => void;
+  onAcceptSuccess: (profile: ConnectionRequest) => void; // Changed to pass full profile
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -74,7 +74,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       },
       {
         onSuccess: () => {
-          onAcceptSuccess(profile.profile_picture_url); // ✅ Tell parent to show modal
+          onAcceptSuccess(profile); // ✅ Pass full profile instead of just image URL
           setIsSwiped(true);
           onSwipeComplete(profile.user_id);
         },
@@ -238,31 +238,42 @@ const ProfileList = ({}) => {
   const [swipedIds, setSwipedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [matchModalVisible, setMatchModalVisible] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [matchUserPair, setMatchUserPair] = useState<{
     user1: string;
     user2: string;
   } | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<ConnectionRequest | null>(null); // ✅ Store full profile data
   const requests = useConnectionStore((state) => state.requests);
   const currentUser = useAuthStore((state) => state.user);
-  const handleShowMatchModal = (receiverProfileUrl: string) => {
+
+  const handleShowMatchModal = (receiverProfile: ConnectionRequest) => { // ✅ Accept full profile
+    setSelectedProfile(receiverProfile); // ✅ Store full profile data
     setMatchUserPair({
       user1: user?.profile_picture_url ?? "",
-      user2: receiverProfileUrl,
+      user2: receiverProfile.profile_picture_url,
     });
-    setSelectedProfile(receiverProfileUrl);
     setMatchModalVisible(true);
   };
 
-  const handleSendMessage = async() => {
-    console.log(selectedProfile);
+  const handleSendMessage = async () => {
+    // console.log(selectedProfile, "Selected profile data with all details");
+    // ✅ Now you have access to all profile data:
+    // selectedProfile.full_name, selectedProfile.job_title, selectedProfile.bio, etc.
+    
     setMatchModalVisible(false);
-    await resolveChatAndNavigate({ currentUser, targetUser: selectedProfile,isRoutingEnable:true });
+    
+    if (selectedProfile) {
+      await resolveChatAndNavigate({ 
+        currentUser: currentUser, 
+        targetUser: selectedProfile, // ✅ Pass full profile object
+        isRoutingEnable: true 
+      });
+    }
   };
-
 
   const handleBackToRequest = () => {
     setMatchModalVisible(false);
+    setSelectedProfile(null); // ✅ Clear selected profile
   };
 
   useEffect(() => {
@@ -315,7 +326,7 @@ const ProfileList = ({}) => {
       <MatchModal
         visible={matchModalVisible}
         onClose={handleBackToRequest}
-        onSendMessage={handleSendMessage()}
+        onSendMessage={handleSendMessage}
         user1Image={matchUserPair?.user1}
         user2Image={matchUserPair?.user2}
       />
