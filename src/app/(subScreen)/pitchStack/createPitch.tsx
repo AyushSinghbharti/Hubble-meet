@@ -427,9 +427,9 @@ export default function CreatePitch() {
               <View style={{ borderBottomWidth: 1, borderColor: "#DEDEE0" }} />
               <Text
                 style={[styles.cardText, styles.fullText]}
-                onPress={() => handleTypeSelect("Buisness")}
+                onPress={() => handleTypeSelect("Business")}
               >
-                Buisness
+                Business
               </Text>
             </View>
           )}

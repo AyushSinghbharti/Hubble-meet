@@ -19,6 +19,7 @@ export const createPitch = async (data: PitchFormData): Promise<Pitch> => {
   formData.append('user_id', data.user_id);
   formData.append('display_name', data.display_name);
   formData.append('pitch_caption', data.pitch_caption);
+  formData.append('type', data.type);
 
   const response = await api.post('/api/pitch/create', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
