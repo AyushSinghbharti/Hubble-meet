@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Image,
@@ -7,6 +7,7 @@ import {
   Text,
   Dimensions,
   Share,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -18,6 +19,8 @@ import { useAuthStore } from "../store/auth";
 import { resolveChatAndNavigate } from "../utility/resolveChatAndNavigate";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomModal from "./Modal/CustomModal";
+import { getCloseCircle } from "../api/connection";
+ // Import the API function
 
 const { width } = Dimensions.get("window");
 const CENTER = width / 2;
@@ -32,9 +35,53 @@ const ProfileOrbit = ({}: {}) => {
   const [addModal, setAddModal] = useState(false);
   const [blockModal, setBlockModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const outerProfiles = connections.slice(0, 3);
-  const innerProfiles = connections.slice(3, connections.length - 1);
+  const [filteredConnections, setFilteredConnections] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const currentUser = useAuthStore((state) => state.user);
+
+  // Filter connections based on close circle score
+  useEffect(() => {
+    const fetchCloseCircleData = async () => {
+      if (!currentUser?.user_id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        
+        // Call the API to get close circle data
+        const closeCircleData = await getCloseCircle({ 
+          userId: currentUser.user_id 
+        });
+        
+        // Filter connections based on score > 0.5
+        const highScoreUsers = closeCircleData
+          .filter((item: { user_id: string; score: number }) => item.score > 0.5)
+          .map((item: { user_id: string; score: number }) => item.user_id);
+        
+        // Filter the connections to only include users with high scores
+        const filtered = connections.filter((connection) => 
+          highScoreUsers.includes(connection.user_id)
+        );
+        
+        setFilteredConnections(filtered);
+      } catch (error) {
+        console.error("Error fetching close circle data:", error);
+        // Fallback to all connections if API fails
+        setFilteredConnections(connections);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCloseCircleData();
+  }, [connections, currentUser]);
+
+  // Use filtered connections instead of all connections
+  const outerProfiles = filteredConnections.slice(0, 3);
+  const innerProfiles = filteredConnections.slice(3, filteredConnections.length - 1);
 
   //Functions
   const handleChatPress = async () => {
@@ -46,10 +93,12 @@ const ProfileOrbit = ({}: {}) => {
       message: `Hey see my VBC card here ${selectedProfile?.full_name}`,
     });
   };
+  
   const handleBlockPress = () => {
     setBlockModal(true);
     setSelectedUser(selectedProfile);
   };
+  
   const handleBagPress = () => {
     setSelectedUser(selectedProfile);
     setAddModal(true);
@@ -68,7 +117,6 @@ const ProfileOrbit = ({}: {}) => {
   };
 
   //Function
-
   const renderOrbitAvatars = (
     radius: number,
     avatars: UserProfile[],
@@ -101,6 +149,15 @@ const ProfileOrbit = ({}: {}) => {
         </TouchableOpacity>
       );
     });
+
+  // Show loading state while fetching data
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <Text style={styles.loadingText}>Loading close circle...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -143,6 +200,15 @@ const ProfileOrbit = ({}: {}) => {
       <TouchableOpacity style={styles.button} onPress={handleViewAll}>
         <Text style={styles.buttonText}>View All</Text>
       </TouchableOpacity>
+
+      {/* Show message if no high-score connections */}
+      {filteredConnections.length === 0 && (
+        <View style={styles.noConnectionsContainer}>
+          <Text style={styles.noConnectionsText}>
+            No close circle connections found
+          </Text>
+        </View>
+      )}
 
       {selectedProfile && (
         <ProfileCardVertical
@@ -191,6 +257,27 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 30,
     right: 15,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  noConnectionsContainer: {
+    position: 'absolute',
+    top: CENTER - 10,
+    left: CENTER - 100,
+    width: 200,
+    alignItems: 'center',
+  },
+  noConnectionsText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
   gradientCircle: {
     position: "absolute",
