@@ -27,6 +27,7 @@ import ErrorAlert from "./errorAlert";
 import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
 import { getStableColor } from "../utility/getStableColor";
+import { addCloseCircle } from "../api/connection";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;

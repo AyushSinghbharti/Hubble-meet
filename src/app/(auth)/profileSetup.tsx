@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   Image,
-  Switch,
   Animated,
   KeyboardAvoidingView,
   Platform,
@@ -27,7 +26,6 @@ import RandomBackgroundImages, {
 } from "../../components/RandomBGImage";
 import { useAuthStore } from "@/src/store/auth";
 import { useCreateUserProfile } from "@/src/hooks/useProfile";
-import { useCreateVbcCard } from "@/src/hooks/useVbc";
 import ErrorAlert from "@/src/components/errorAlert";
 import { uploadToCloudinary } from "@/src/api/cloudinary";
 import { uploadToS3 } from "@/src/api/aws";
@@ -75,7 +73,7 @@ const ChipInput = ({
 export default function ProfileSetup() {
   const router = useRouter();
 
-  //Fetch Local info
+  // Fetch Local info
   const user = useAuthStore((state) => state.user);
   const userId = useAuthStore((state) => state.userId);
 
@@ -91,7 +89,6 @@ export default function ProfileSetup() {
   const [phoneNumber, setPhoneNumber] = useState(user?.phone);
   const [jobTitle, setJobTitle] = useState("");
   const [address, setAddress] = useState("");
-  const [shareVBC, setShareVBC] = useState(false);
   const [worklist, setWorklist] = useState([]);
   const [spaces, setSpaces] = useState([]);
   const [connectPeople, setConnectPeople] = useState([]);
@@ -183,10 +180,10 @@ export default function ProfileSetup() {
 
   const next = () => {
     if (!name || !dob || !gender) {
-      setError("Please fill all feilds");
+      setError("Please fill all fields");
       return;
     } else if (step == 1 && (!bio || !email || !phoneNumber)) {
-      setError("Please fill all feilds");
+      setError("Please fill all fields");
       return;
     }
     setStep((s) => Math.min(4, s + 1));
@@ -198,8 +195,6 @@ export default function ProfileSetup() {
 
   const { mutateAsync: createProfile, isPending: pendingCreateProfile } =
     useCreateUserProfile();
-  const { mutateAsync: createVbc, isPending: pendingCreateVbc } =
-    useCreateVbcCard();
 
   const submit = async () => {
     if (!user || !userId) {
@@ -208,7 +203,7 @@ export default function ProfileSetup() {
       return;
     }
     if (!name || !dob || !gender || !bio || !email || !phoneNumber) {
-      setError("Please fill all required feilds");
+      setError("Please fill all required fields");
       setFinalScreen(!finalScreen);
       return;
     }
@@ -228,28 +223,12 @@ export default function ProfileSetup() {
       citiesOnRadar: radarCities,
       connectionPreferences: rolesLookingFor,
       profilePictureUrl: image ?? undefined,
-      allowVbcSharing: shareVBC,
     };
 
-    const vbcData = {
-      user_id: userId,
-      display_name: name,
-      job_title: jobTitle,
-      company_name: worklist.length > 0 ? worklist[0] : "",
-      location: address,
-    };
-
-    const [profileRes, vbcRes] = await Promise.all([
-      createProfile(profileData),
-      createVbc(vbcData),
-    ]);
+    const profileRes = await createProfile(profileData);
     console.log("✅ Profile created:", profileRes);
-    console.log("✅ VBC created:", vbcRes);
 
-    console.log(profileRes, vbcRes);
-    console.log(profileRes);
-
-    if (profileRes && vbcRes) {
+    if (profileRes) {
       router.replace("/connect");
     }
     setFinalScreen(!finalScreen);
@@ -488,23 +467,6 @@ export default function ProfileSetup() {
           )}
         </TouchableOpacity>
 
-        <View>
-          <Text style={[styles.label, { marginBottom: 0 }]}>Your VBC</Text>
-          <View style={[styles.switchRow, { width: "100%" }]}>
-            <Text style={[styles.subLabel, { width: "80%" }]}>
-              Allow Matched Users to Share Your VBCs to their Connections in the
-              App
-            </Text>
-            <Switch
-              trackColor={{ false: "#3F3F46", true: "#6366F1" }} // muted gray → indigo
-              thumbColor={shareVBC ? "#E5E7EB" : "#9CA3AF"} // light thumb when on, soft gray when off
-              ios_backgroundColor="#3F3F46" // for iOS fallback
-              onValueChange={setShareVBC}
-              value={shareVBC}
-            />
-          </View>
-        </View>
-
         {/* simple card preview */}
         <ProfileCard
           avatar={image}
@@ -641,7 +603,6 @@ const splashButton = {
 };
 
 const splashButtonText = {
-  // color: "#fff",
   color: "#000",
   fontFamily: "InterSemiBold",
   fontSize: 16,
@@ -703,7 +664,6 @@ const styles = StyleSheet.create({
   subLabel: {
     fontSize: 15,
     fontFamily: "InterMediumItalic",
-    // color: "#606060",
     color: colourPalette.textSecondary,
   },
   input: {
@@ -778,12 +738,6 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 12,
     backgroundColor: colourPalette.inputBackground,
-  },
-  switchRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 20,
   },
 
   /* fab */
