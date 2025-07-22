@@ -85,7 +85,7 @@ export default function MyPitchScreen() {
             name: null,
             desc: null,
             format: "Upload",
-            pitchType: "Business",
+            pitchType: "Individual",
             duration: 30,
             videoUrl: null,
           }),

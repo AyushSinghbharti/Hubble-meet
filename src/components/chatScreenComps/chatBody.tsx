@@ -10,11 +10,9 @@ import {
   Pressable,
   Linking,
 } from "react-native";
-import { Animated } from "react-native";
 import MessageAction from "./messageAction";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Swipeable, {
-  SwipeableMethods,
   SwipeableRef,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
 import { ChatMessage } from "@/src/interfaces/chatInterface";
@@ -53,6 +51,8 @@ interface ChatBodyProps {
   onCancelReply?: () => void;
 }
 
+type PosState = { x: number; y: number; w: number; h: number; isMe: boolean };
+
 const ChatBubble = ({
   item,
   isSelected,
@@ -67,14 +67,14 @@ const ChatBubble = ({
   isSelected: boolean;
   onReply?: (message: ChatMessage) => void;
   currentlyOpenSwipeable: React.MutableRefObject<SwipeableRef | null>;
-  setMessageprops: React.Dispatch<React.SetStateAction<any>>;
+  setMessageprops: React.Dispatch<React.SetStateAction<PosState>>;
   setSelectedMessageId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMessage: React.Dispatch<React.SetStateAction<ChatMessage | null>>;
-  allMessages: ChatMessage[]; // NEW
+  allMessages: ChatMessage[];
 }) => {
   const me = item.sender?.id === useAuthStore.getState().userId;
   const swipeableRef = useRef<SwipeableRef | null>(null);
-  // console.log("item", JSON.stringify(, null, 2));
+  const bubbleRef = useRef<View>(null);
 
   const handleSwipeOpen = () => {
     if (
@@ -85,7 +85,7 @@ const ChatBubble = ({
     }
 
     currentlyOpenSwipeable.current = swipeableRef.current;
-    if (onReply) onReply(item);
+    onReply?.(item);
     setTimeout(() => {
       swipeableRef.current?.close?.();
     }, 300);
@@ -146,16 +146,17 @@ const ChatBubble = ({
       renderLeftActions={!me ? renderRightActions : undefined}
       overshootRight={false}
       friction={5}
-      enableTrackpadTwoFingerGesture={true}
+      enableTrackpadTwoFingerGesture
       onSwipeableOpen={handleSwipeOpen}
       leftThreshold={0}
       rightThreshold={0}
     >
       <Pressable
+        ref={bubbleRef}
         style={[styles.row, me && styles.rowEnd, isSelected && styles.onMenu]}
-        onPress={(event) => {
-          event.target.measure((fx, fy, width, height, px, py) => {
-            setMessageprops({ x: px, y: py, w: width, h: height });
+        onPress={() => {
+          bubbleRef.current?.measureInWindow((x, y, width, height) => {
+            setMessageprops({ x, y, w: width, h: height, isMe: me });
             setSelectedMessageId((prev) => (prev === item.id ? null : item.id));
             setSelectedMessage((prev) => (prev === item ? null : item));
           });
@@ -214,8 +215,7 @@ const ChatBubble = ({
                 );
               })()}
 
-            {/* preview reply */}
-
+            {/* MESSAGE BODY */}
             {item.messageType === "IMAGE" && item.media?.length > 0 ? (
               <View
                 style={{
@@ -234,11 +234,7 @@ const ChatBubble = ({
                     >
                       <Image
                         source={{ uri: mediaItem.url }}
-                        style={{
-                          width: 100,
-                          height: 100,
-                          borderRadius: 10,
-                        }}
+                        style={{ width: 100, height: 100, borderRadius: 10 }}
                         resizeMode="cover"
                       />
                     </Pressable>
@@ -263,7 +259,13 @@ const ChatBubble = ({
                       source={require("@/assets/icons/document.png")}
                       style={{ width: 20, height: 20, marginRight: 8 }}
                     />
-                    <Text numberOfLines={1} style={[styles.messageText, { fontFamily: FONT.MEDIUM, color: "#7174c3ff" }]}>
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.messageText,
+                        { fontFamily: FONT.MEDIUM, color: "#7174c3ff" },
+                      ]}
+                    >
                       {mediaItem.fileName || "Document"}
                     </Text>
                   </Pressable>
@@ -294,11 +296,16 @@ const ChatBubble = ({
 export default function ChatBody({
   messages,
   onReply,
-  onDelete = () => { },
-  onStar = () => { },
-  onCancelReply,
+  onDelete = () => {},
+  onStar = () => {},
 }: ChatBodyProps) {
-  const [messageProps, setMessageprops] = useState({ x: 0, y: 0, h: 0, w: 0 });
+  const [messageProps, setMessageprops] = useState<PosState>({
+    x: 0,
+    y: 0,
+    h: 0,
+    w: 0,
+    isMe: false,
+  });
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
     null
   );
@@ -307,33 +314,30 @@ export default function ChatBody({
   );
   const userId = useAuthStore((state) => state.userId);
 
-  // Convert backend ChatMessage[] → ChatMsg[]
   const transformedMessages: ChatMsg[] = messages.map((msg) => ({
     id: msg.id,
     text: msg.content,
     timestamp: new Date(msg.createdAt),
     isMe: msg.sender?.id === userId,
-    name: msg.sender.username,
-    delivered: true, // Optional, set true by default
+    delivered: true,
   }));
 
   const onAction = (
-    action: "reply" | "star" | "delete" | "deleteforme" | "deleteforeveryone"
+    action: "reply" | "star" | "deleteforme" | "deleteforeveryone"
   ) => {
     if (action === "reply") {
-      if (onReply) onReply(selectedMessage);
+      onReply?.(selectedMessage);
     } else if (action === "star") {
-      if (onStar) onStar(selectedMessage);
+      onStar?.(selectedMessage?.id || "");
     } else if (action === "deleteforme") {
-      onDelete(selectedMessage?.id || "", "me");
+      onDelete?.(selectedMessage?.id || "", "me");
     } else if (action === "deleteforeveryone") {
-      onDelete(selectedMessage?.id || "", "everyone");
+      onDelete?.(selectedMessage?.id || "", "everyone");
     }
     setSelectedMessageId(null);
   };
 
   const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
-
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -342,49 +346,55 @@ export default function ChatBody({
 
   const isMenuVisible = selectedMessageId !== null;
 
+  // Calculate offsets
+  const MENU_WIDTH = 220; // whatever your MessageAction width roughly is
+  const leftOffset = messageProps.isMe
+    ? Math.max(messageProps.x + messageProps.w - MENU_WIDTH, 10)
+    : Math.max(messageProps.x, 10);
+
+  const topOffset = Math.max(messageProps.y - 35, 10); // small offset above bubble
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ScrollView
-        style={styles.container}
-        ref={scrollViewRef}
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
-      >
+      <View style={{ flex: 1 }}>
+        {/* Overlay menu */}
+
         <MessageAction
           onAction={onAction}
           isVisible={isMenuVisible}
-          topOffset={
-            messageProps.y > 550
-              ? messageProps.y - messageProps.y / 2.5
-              : messageProps.y > 515
-                ? messageProps.y - messageProps.y / 2
-                : messageProps.y - 50
-          }
-          leftOffset={messageProps.x > 90 ? 265 : 25}
+          topOffset={topOffset}
+          leftOffset={leftOffset}
         />
+        <ScrollView
+          style={styles.container}
+          ref={scrollViewRef}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {messages.length > 0 && (
+            <View style={styles.dateChip}>
+              <Text style={styles.dateChipText}>
+                {dateLabel(transformedMessages[0].timestamp)}
+              </Text>
+            </View>
+          )}
 
-        {messages.length > 0 && (
-          <View style={styles.dateChip}>
-            <Text style={styles.dateChipText}>
-              {dateLabel(transformedMessages[0].timestamp)}
-            </Text>
-          </View>
-        )}
-
-        {messages.map((item) => (
-          <View key={item.id} style={styles.listContent}>
-            <ChatBubble
-              item={item}
-              isSelected={selectedMessageId === item.id}
-              onReply={onReply}
-              currentlyOpenSwipeable={currentlyOpenSwipeable}
-              setMessageprops={setMessageprops}
-              setSelectedMessageId={setSelectedMessageId}
-              setSelectedMessage={setSelectedMessage}
-              allMessages={messages}
-            />
-          </View>
-        ))}
-      </ScrollView>
+          {messages.map((item) => (
+            <View key={item.id} style={styles.listContent}>
+              <ChatBubble
+                item={item}
+                isSelected={selectedMessageId === item.id}
+                onReply={onReply}
+                currentlyOpenSwipeable={currentlyOpenSwipeable}
+                setMessageprops={setMessageprops}
+                setSelectedMessageId={setSelectedMessageId}
+                setSelectedMessage={setSelectedMessage}
+                allMessages={messages}
+              />
+            </View>
+          ))}
+        </ScrollView>
+      </View>
     </GestureHandlerRootView>
   );
 }
@@ -411,42 +421,35 @@ const styles = StyleSheet.create({
   },
   dateChipText: { fontSize: 10, fontFamily: "Inter", color: "#8E8E8E" },
 
-  /* List content spacing */
   listContent: { paddingBottom: 9 },
 
-  /* Message rows */
   row: { flexDirection: "row", paddingHorizontal: 8 },
   rowEnd: { justifyContent: "flex-end" },
   onMenu: {
     backgroundColor: "#000",
-    opacity: 0.5,
+    opacity: 0.3,
     paddingVertical: 2,
   },
-  /* Bubbles */
+
   bubbleWrapper: {
     borderRadius: 16,
     padding: 10,
     maxWidth: 250,
   },
-
   bubbleContent: {
     flexDirection: "column",
     gap: 8,
   },
-
   bubbleMe: {
     backgroundColor: "#BBCF8D",
     alignSelf: "flex-end",
   },
-
   bubbleThem: {
     backgroundColor: "#E8E8E8",
     alignSelf: "flex-start",
   },
 
   replyContainer: {
-    // flexDirection: "row",
-    // alignItems: "flex-start", // fixes text wrap alignment
     backgroundColor: "#e2e2e2",
     borderLeftWidth: 3,
     borderLeftColor: "#007AFF",
@@ -454,16 +457,14 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
     gap: 8,
-    maxWidth: "100%", // prevents overflow and allows wrapping
+    maxWidth: "100%",
     flexShrink: 1,
   },
-
   replyStrip: {
     width: 3,
     backgroundColor: "#007AFF",
     borderRadius: 2,
   },
-
   replySender: {
     fontSize: 12,
     fontWeight: "600",
@@ -486,27 +487,10 @@ const styles = StyleSheet.create({
   contactActions: { flexDirection: "row", gap: 12 },
   contactActionText: { color: "#007AFF", fontSize: 12 },
 
-  replyText: {
-    fontSize: 12,
-    color: "#444",
-  },
-
-  replyDocRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  replyDocText: {
-    fontSize: 12,
-    color: "#444",
-    flexShrink: 1,
-  },
-
-  replyThumbnail: {
-    width: 50,
-    height: 50,
-    borderRadius: 6,
-  },
+  replyText: { fontSize: 12, color: "#444" },
+  replyDocRow: { flexDirection: "row", alignItems: "center" },
+  replyDocText: { fontSize: 12, color: "#444", flexShrink: 1 },
+  replyThumbnail: { width: 50, height: 50, borderRadius: 6 },
 
   bubble: {
     gap: 10,
