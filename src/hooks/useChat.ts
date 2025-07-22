@@ -229,7 +229,7 @@ export const useUnstarMessage = () => {
     mutationFn: ({ messageId, userId }: { messageId: string; userId: string }) =>
       unStarMessage(messageId, userId),
     onSuccess: (data) => {
-      console.log("Message unstarred:", data);
+      console.log("Message unstarred successfull");
     },
     onError: (err) => {
       console.log("Unstar error:", err);

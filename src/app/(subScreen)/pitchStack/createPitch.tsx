@@ -167,6 +167,7 @@ export default function CreatePitch() {
       user_id: userId,
       display_name: name,
       pitch_caption: desc,
+      type: pitchType
     };
 
     if (pitchId) {

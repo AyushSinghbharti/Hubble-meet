@@ -13,6 +13,7 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import { useFocusEffect } from "expo-router";
 import { useReactToPitch, useReportPitch } from "@/src/hooks/usePitch";
 import { useAuthStore } from "@/src/store/auth";
+import { useConnectionStore } from "@/src/store/connectionStore";
 
 const MainCardWrapper = ({
   pitch,
@@ -30,13 +31,17 @@ const MainCardWrapper = ({
   const { mutate: reactToPitch } = useReactToPitch();
   const { mutate: reportPitch } = useReportPitch();
   const user = useAuthStore((s) => s.user);
+  const removeRecommendation = useConnectionStore(
+    (s) => s.removeRecommendation
+  );
 
   const isMounted = useRef(true);
   const handleReactPitch = () => {
     if (!pitch?.id || !user?.user_id) return;
 
+    console.log(pitch.id, user.user_id);
     reactToPitch(
-      { pitch_id: pitch.id, user_id: user.user_id },
+      { pitchId: pitch.id, userId: user.user_id },
       {
         onSuccess: (res) => {
           console.log("reacted to pitch successfull");
@@ -50,15 +55,18 @@ const MainCardWrapper = ({
   const handleReportPitch = () => {
     if (!pitch?.id || !user?.user_id) return;
 
-    reportPitch({
-      pitch_id: pitch.id,
-      owner_id: pitch.user.id,
-      user_id: user.user_id,
-    }, {
-      onSuccess: (res) => {
-        console.log("report pitch successfull");
+    reportPitch(
+      {
+        pitch_id: pitch.id,
+        owner_id: pitch.user.id,
+        user_id: user.user_id,
+      },
+      {
+        onSuccess: (res) => {
+          console.log("report pitch successfull");
+        },
       }
-    });
+    );
   };
 
   useEffect(() => {
@@ -213,7 +221,9 @@ const MainCardWrapper = ({
       {/* Options Menu */}
       {options && (
         <View style={styles.optionsBox}>
-          <Text style={styles.optionText} onPress={handleReportPitch}>Report Pitch</Text>
+          <Text style={styles.optionText} onPress={handleReportPitch}>
+            Report Pitch
+          </Text>
           <View style={styles.optionDivider} />
           <Text style={styles.optionText}>Not Interested</Text>
         </View>

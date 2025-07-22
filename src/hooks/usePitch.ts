@@ -27,9 +27,12 @@ export const useGetOtherUserPitch = (userId: string): UseQueryResult<Pitch, Erro
     }
     if (queryResult.error) {
       const axiosError = queryResult.error as AxiosError<any>;
-      const errorMessage =
-        axiosError.response?.data?.message || axiosError.message;
-      console.error("Error fetching pitch:", errorMessage);
+      const status = axiosError.response?.status;
+      if (status !== 404) {
+        const errorMessage =
+          axiosError.response?.data?.message || axiosError.message;
+        console.error("Error fetching pitch:", errorMessage);
+      }
     }
   }, [queryResult.data, queryResult.error]);
 
@@ -57,9 +60,12 @@ export const useGetUserPitch = (userId: string): UseQueryResult<Pitch, Error> =>
     }
     if (queryResult.error) {
       const axiosError = queryResult.error as AxiosError<any>;
-      const errorMessage =
-        axiosError.response?.data?.message || axiosError.message;
-      console.error("Error fetching pitch:", errorMessage);
+      const status = axiosError.response?.status;
+      if (status !== 404) {
+        const errorMessage =
+          axiosError.response?.data?.message || axiosError.message;
+        console.error("Error fetching pitch:", errorMessage);
+      }
     }
   }, [queryResult.data, queryResult.error]);
 
