@@ -26,6 +26,7 @@ import { useSendConnection } from "../hooks/useConnection";
 import ErrorAlert from "./errorAlert";
 import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
+import { getStableColor } from "../utility/getStableColor";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
