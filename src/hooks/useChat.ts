@@ -8,8 +8,6 @@ import {
   removeUserFromChat,
   sendMessage,
   getChatMessages,
-  deleteMessage,
-  sendMediaAlternative,
   sendMedia,
   deleteMessageforme,
   deleteMessageforeveryone,
@@ -191,8 +189,9 @@ export const useDeleteMessageForMe = () => {
   const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
 
   return useMutation({
-    mutationFn: ({ messageId }: DeleteMessageRequest) => deleteMessageforme(messageId),
+    mutationFn: ({ messageId, userId }: DeleteMessageRequest) => deleteMessageforme(messageId, userId),
     onSuccess: (data, variable) => {
+      console.log(data, variable);
       deleteMessageFromStore(variable.messageId);
     },
   });
@@ -202,7 +201,7 @@ export const useDeleteMessageForEveryone = () => {
   const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
 
   return useMutation({
-    mutationFn: ({ messageId }: DeleteMessageRequest) => deleteMessageforeveryone(messageId),
+    mutationFn: ({ messageId, userId }: DeleteMessageRequest) => deleteMessageforeveryone(messageId, userId),
     onSuccess: (data, variable) => {
       deleteMessageFromStore(variable.messageId);
     },

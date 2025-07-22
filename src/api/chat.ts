@@ -15,6 +15,7 @@ import {
     GetChatMessagesResponse,
     DeleteMessageResponse,
     SendMediaRequest,
+    DeleteMessageRequest,
 } from '../interfaces/chatInterface';
 
 const CHAT_BASE = '/api/chat';
@@ -126,14 +127,16 @@ export const getChatMessages = (
  * Deletes a specific message by its ID
  */
 export const deleteMessageforme = (
-    messageId: string
+    messageId: string,
+    userId: string
 ): Promise<DeleteMessageResponse> =>
-    apiClient.delete<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}/deleteforme`).then(res => res.data);
+    apiClient.post<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}/deleteforme`, { userId }).then(res => res.data);
 
 export const deleteMessageforeveryone = (
-    messageId: string
+    messageId: string,
+    userId: string
 ): Promise<DeleteMessageResponse> =>
-    apiClient.delete<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}/deleteForEveryone`).then(res => res.data);
+    apiClient.post<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}/deleteForEveryone`, { userId }).then(res => res.data);
 
 /**
  * star a specific message by its ID

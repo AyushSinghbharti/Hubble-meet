@@ -48,7 +48,6 @@ import { fetchUserProfile } from "@/src/api/profile";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { AxiosError } from "axios";
 
-
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
 const SWIPE_THRESHOLD = width * 0.25;
@@ -304,8 +303,9 @@ const ProfileCard = ({
               <TouchableOpacity
                 onPress={handleShareButtonPress}
                 activeOpacity={0.7}
-                accessibilityLabel={`Share ${profile?.full_name || "user"
-                  }'s profile`}
+                accessibilityLabel={`Share ${
+                  profile?.full_name || "user"
+                }'s profile`}
                 accessibilityRole="button"
               >
                 <Animated.View style={[styles.actionButton, buttonStyle]}>
@@ -562,7 +562,12 @@ const Connect = () => {
         />
       );
     },
-    [rightSwipeCount, handleSwipeComplete, expandedProfileId, userProfileCompleted]
+    [
+      rightSwipeCount,
+      handleSwipeComplete,
+      expandedProfileId,
+      userProfileCompleted,
+    ]
   );
   const visibleProfileData = useMemo(() => {
     if (currentPitchUser) return [currentPitchUser];
@@ -570,15 +575,14 @@ const Connect = () => {
     const filtered = expandedProfileId
       ? recommendations.filter((item) => item.user_id === expandedProfileId)
       : recommendations
-        .filter((item) => !swipedIds.includes(item.user_id))
-        .slice(0, 1);
-    console.log("visibleProfileData:", filtered);
+          .filter((item) => !swipedIds.includes(item.user_id))
+          .slice(0, 1);
     return filtered;
   }, [currentPitchUser, recommendations, expandedProfileId, swipedIds]);
   return (
     <View style={styles.container}>
       {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
-      <Header logoSource={logo} onSearch={() => { }} />
+      <Header logoSource={logo} onSearch={() => {}} />
       <FlatList
         data={visibleProfileData}
         renderItem={renderItem}

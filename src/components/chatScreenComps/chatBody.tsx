@@ -362,8 +362,14 @@ export default function ChatBody({
         <MessageAction
           onAction={onAction}
           isVisible={isMenuVisible}
-          topOffset={topOffset}
-          leftOffset={leftOffset}
+          topOffset={
+            messageProps.y > 550
+              ? messageProps.y - messageProps.y / 2.5
+              : messageProps.y > 515
+              ? messageProps.y - messageProps.y / 2
+              : messageProps.y - 50
+          }
+          leftOffset={messageProps.x > 90 ? 265 : 25}
         />
         <ScrollView
           style={styles.container}

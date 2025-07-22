@@ -65,6 +65,7 @@ export default function ChatDetailsScreen() {
   const userId = useAuthStore((state) => state.userId);
   const updatedMessages = useChatStore((state) => state.messages);
   const starredMessages = useChatStore((state) => state.starredMessages);
+  const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
 
   //Mutations
   const { mutate: sendMessage } = useSendMessage();
@@ -275,10 +276,11 @@ export default function ChatDetailsScreen() {
     console.log(messageId, deleteType);
     if (deleteType === "me")
       deleteMessageforme(
-        { messageId: messageId },
+        { messageId: messageId, userId: userId },
         {
           onSuccess: () => {
             console.log("Message deleted for me successfully:", messageId);
+            deleteMessageFromStore(messageId);
           },
           onError: (error) => {
             console.error("Failed to delete message for me", error);
@@ -287,13 +289,14 @@ export default function ChatDetailsScreen() {
       );
     else {
       deleteMessageforeveryone(
-        { messageId: messageId },
+        { messageId: messageId, userId: userId },
         {
           onSuccess: () => {
             console.log(
               "Message deleted for everyone successfully:",
               messageId
             );
+            deleteMessageFromStore(messageId);
           },
           onError: (error) => {
             console.error("Failed to delete message for everyone:", error);
@@ -491,7 +494,6 @@ export default function ChatDetailsScreen() {
             <ChatBody
               messages={messages}
               onReply={handleReply}
-
               onStar={handleStarMessage}
               onCancelReply={onCancelReply}
               onDelete={(messageId, deleteType) =>
