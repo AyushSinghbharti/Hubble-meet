@@ -263,13 +263,7 @@ const ChatBubble = ({
                       source={require("@/assets/icons/document.png")}
                       style={{ width: 20, height: 20, marginRight: 8 }}
                     />
-                    <Text
-                      numberOfLines={1}
-                      style={[
-                        styles.messageText,
-                        { fontFamily: FONT.MEDIUM, color: "#7174c3ff" },
-                      ]}
-                    >
+                    <Text numberOfLines={1} style={[styles.messageText, { fontFamily: FONT.MEDIUM, color: "#7174c3ff" }]}>
                       {mediaItem.fileName || "Document"}
                     </Text>
                   </Pressable>
@@ -300,8 +294,8 @@ const ChatBubble = ({
 export default function ChatBody({
   messages,
   onReply,
-  onDelete = () => {},
-  onStar = () => {},
+  onDelete = () => { },
+  onStar = () => { },
   onCancelReply,
 }: ChatBodyProps) {
   const [messageProps, setMessageprops] = useState({ x: 0, y: 0, h: 0, w: 0 });
@@ -362,8 +356,8 @@ export default function ChatBody({
             messageProps.y > 550
               ? messageProps.y - messageProps.y / 2.5
               : messageProps.y > 515
-              ? messageProps.y - messageProps.y / 2
-              : messageProps.y - 50
+                ? messageProps.y - messageProps.y / 2
+                : messageProps.y - 50
           }
           leftOffset={messageProps.x > 90 ? 265 : 25}
         />

@@ -135,23 +135,23 @@ const CARD_WIDTH = (width - CARD_GAP * 3) / 2;
 
 const styles = StyleSheet.create({
   card: {
-  width: CARD_WIDTH,
-  overflow: "hidden",
-  backgroundColor: "#fff",
-  elevation: 3,
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.1,
-  shadowRadius: 6,
-  borderRadius: 20,
-  marginHorizontal: 4, // ⬅️ Gap between cards
-},
+    width: CARD_WIDTH,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    borderRadius: 20,
+    marginHorizontal: 4, // ⬅️ Gap between cards
+  },
 
- imageSection: {
-  height: 180, // ⬅️ increased from 140
-  padding: 10,
-  justifyContent: "space-between",
-},
+  imageSection: {
+    height: 180, // ⬅️ increased from 140
+    padding: 10,
+    justifyContent: "space-between",
+  },
 
   image: {
     borderTopLeftRadius: 10,

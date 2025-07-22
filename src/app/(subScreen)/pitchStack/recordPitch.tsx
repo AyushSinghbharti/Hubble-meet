@@ -111,7 +111,7 @@ export default function RecordPitch() {
     }, 100);
   };
 
-  const handlePause = () => {};
+  const handlePause = () => { };
 
   const handleContinue = () => {
     router.push({

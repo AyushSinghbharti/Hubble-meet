@@ -26,7 +26,7 @@ import { useSendConnection } from "../hooks/useConnection";
 import ErrorAlert from "./errorAlert";
 import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
-import { addCloseCircle } from "../api/connection";
+import { getStableColor } from "../utility/getStableColor";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
@@ -75,13 +75,13 @@ const VbcCard = ({
     setConnectionDetailModal(true);
   };
 
-  const handleBagPress = async(user: UserProfile) => {
-    console.log(user,"bag pressss")
+  const handleBagPress = async (user: UserProfile) => {
+    console.log(user, "bag pressss")
     const response = await addCloseCircle({
-      user_id:  userId,
+      user_id: userId,
       closed_user_id: user.user_id
-  })
-  console.log(response,"response of the adding to the bag")
+    })
+    console.log(response, "response of the adding to the bag")
     setSelectedUser(user);
     setAddModal(true);
   };
@@ -129,44 +129,47 @@ const VbcCard = ({
         keyExtractor={(item) => item.user_id}
         contentContainerStyle={[styles.listContainer, { spacing }]}
         columnWrapperStyle={styles.row}
-        renderItem={({ item, index }) => (
-          <View
-            style={[styles.cardWrapper, index % 2 !== 0 && { marginTop: 30 }]}
-          >
-            {item.isConnected === false ? (
-              <ConnectionCard
-                id={item.user_id}
-                name={item.full_name}
-                role={item.job_title || ""}
-                location={item.city || ""}
-                backgroundColor={item.color || null}
-                avatar={{ uri: item.profile_picture_url }}
-                onSharePress={() => handleSharePress(item)}
-                onCardPress={() => handleProfilePress(item)} // ⬅️ Show detail modal
-                onAddPress={() => handleBlockPress(item)}
-                onConnectPress={handleSendRequestPress}
-                onPitchPress={() => {}}
-              />
-            ) : (
-              <CustomCard
-                id={item.user_id}
-                name={item.full_name}
-                role={item.job_title || ""}
-                location={item.city || ""}
-                backgroundColor={item.color || null}
-                avatar={{ uri: item.profile_picture_url }}
-                onChatPress={() => handleChatPress(item)}
-                onSharePress={() => handleSharePress(item)}
-                onAddPress={() => handleBlockPress(item)}
-                onBagPress={() => handleBagPress(item)}
-                onProfilePress={() => handleProfilePress(item)}
-              />
-            )}
-          </View>
-        )}
+        renderItem={({ item, index }) => {
+          const cardColor = item.color ?? getStableColor(item.user_id);
+
+          return (
+            <View
+              style={[styles.cardWrapper, index % 2 !== 0 && { marginTop: 30 }]}
+            >
+              {item.isConnected === false ? (
+                <ConnectionCard
+                  id={item.user_id}
+                  name={item.full_name}
+                  role={item.job_title || ""}
+                  location={item.city || ""}
+                  backgroundColor={cardColor}
+                  avatar={{ uri: item.profile_picture_url }}
+                  onSharePress={() => handleSharePress(item)}
+                  onCardPress={() => handleProfilePress(item)}
+                  onAddPress={() => handleBlockPress(item)}
+                  onConnectPress={handleSendRequestPress}
+                  onPitchPress={() => { }}
+                />
+              ) : (
+                <CustomCard
+                  id={item.user_id}
+                  name={item.full_name}
+                  role={item.job_title || ""}
+                  location={item.city || ""}
+                  backgroundColor={cardColor}
+                  avatar={{ uri: item.profile_picture_url }}
+                  onChatPress={() => handleChatPress(item)}
+                  onSharePress={() => handleSharePress(item)}
+                  onAddPress={() => handleBlockPress(item)}
+                  onBagPress={() => handleBagPress(item)}
+                  onProfilePress={() => handleProfilePress(item)}
+                />
+              )}
+            </View>
+          );
+        }}
       />
 
-      {/* Modals */}
       <BlockUserModal
         visible={blockModal}
         userName={selectedUser?.full_name}

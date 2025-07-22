@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,11 +7,15 @@ import {
   TouchableOpacity,
   StatusBar,
   Modal,
+  Image,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useChatStore } from "@/src/store/chatStore";
 import { useAuthStore } from "@/src/store/auth";
+
+const StarFilledIcon = require("../../../../../assets/icons/star2.png");
+const StarOutlineIcon = require("../../../../../assets/icons/star.png");
 
 export default function StarredMessage() {
   const router = useRouter();
@@ -19,6 +23,8 @@ export default function StarredMessage() {
 
   const userId = useAuthStore((s) => s.userId);
   const starredMessages = useChatStore((s) => s.starredMessages);
+
+  const [toggledStars, setToggledStars] = useState<{ [id: string]: boolean }>({});
 
   const messages = starredMessages
     .filter((msg) => msg.chat?.id === chatId)
@@ -31,37 +37,44 @@ export default function StarredMessage() {
         hour: "2-digit",
         minute: "2-digit",
       }),
-      text: msg.content
+      text: msg.content,
     }));
 
-  const renderItem = ({ item }: { item: (typeof messages)[0] }) => (
-    <View style={styles.messageBlock}>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        {!item.isMe && <Text style={styles.senderName}>{item.sender}</Text>}
-        {item.isMe && <Text style={styles.senderName}>You</Text>}
-        <Text style={styles.dateText}>{item.date}</Text>
-      </View>
-      <View
-        style={[
-          styles.bubble,
-          item.isMe ? styles.myBubble : styles.theirBubble,
-        ]}
-      >
-        <View style={styles.meta}>
-          <Text style={styles.messageText}>{item.text}</Text>
-          <View style={{ flexDirection: "row" }}>
-            <Text style={styles.timeText}>{item.time}</Text>
-          </View>
+  const renderItem = ({ item }: { item: (typeof messages)[0] }) => {
+    const isToggled = toggledStars[item.id];
+
+    const handleStarToggle = () => {
+      setToggledStars((prev) => ({
+        ...prev,
+        [item.id]: !prev[item.id],
+      }));
+    };
+
+    return (
+      <View style={styles.messageBlock}>
+        <View style={styles.headerRow}>
+          <Text style={styles.senderName}>{item.isMe ? "You" : item.sender}</Text>
+          <Text style={styles.dateText}>{item.date}</Text>
         </View>
+
+        <TouchableOpacity onPress={handleStarToggle} activeOpacity={0.8}>
+          <View style={[styles.bubble, item.isMe ? styles.myBubble : styles.theirBubble]}>
+            <View style={styles.meta}>
+              <Text style={styles.messageText}>{item.text}</Text>
+              <View style={styles.metaRight}>
+                <Text style={styles.timeText}>{item.time}</Text>
+                <Image
+                  source={isToggled ? StarFilledIcon : StarOutlineIcon}
+                  style={styles.starIcon}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <Modal
@@ -99,7 +112,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-
   topBar: {
     backgroundColor: "#F7F7F7",
     flexDirection: "row",
@@ -124,9 +136,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 2,
   },
-
   messageBlock: {
     marginBottom: 12,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   senderName: {
     marginBottom: 4,
@@ -166,9 +182,20 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     marginTop: 4,
     gap: 4,
+    justifyContent: "space-between",
+  },
+  metaRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   timeText: {
     fontSize: 11,
     color: "#666",
+  },
+  starIcon: {
+    width: 16,
+    height: 16,
+    marginLeft: 4,
   },
 });
