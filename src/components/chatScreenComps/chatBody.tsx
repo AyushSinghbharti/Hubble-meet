@@ -90,6 +90,40 @@ const ChatBubble = ({
     }, 300);
   };
 
+  const renderContacts = () => {
+    try {
+      const contacts = JSON.parse(item.content || "[]");
+      return (
+        <View style={styles.contactsContainer}>
+          {contacts.map((contact: any, index: number) => (
+            <View key={index} style={styles.contactCard}>
+              <Text style={styles.contactName}>{contact.name}</Text>
+              <Text style={styles.contactPhone}>{contact.phone}</Text>
+              <View style={styles.contactActions}>
+                {contact.phone && (
+                  <>
+                    <Pressable
+                      onPress={() => Linking.openURL(`tel:${contact.phone}`)}
+                    >
+                      <Text style={styles.contactActionText}>Call</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => Linking.openURL(`sms:${contact.phone}`)}
+                    >
+                      <Text style={styles.contactActionText}>Message</Text>
+                    </Pressable>
+                  </>
+                )}
+              </View>
+            </View>
+          ))}
+        </View>
+      );
+    } catch {
+      return <Text style={styles.messageText}>Invalid contacts format</Text>;
+    }
+  };
+
   const renderRightActions = () => (
     <View
       style={{
@@ -103,6 +137,8 @@ const ChatBubble = ({
       </Text>
     </View>
   );
+
+  console.log(item.messageType);
 
   return (
     <Swipeable
@@ -208,11 +244,10 @@ const ChatBubble = ({
                       />
                     </Pressable>
                   ))}
-                  {item.content && (
-                    <Text style={styles.messageText}>{item.content}</Text>
-                  )}
                 </View>
               </View>
+            ) : item.messageType === "CONTACTS" ? (
+              renderContacts()
             ) : item.messageType === "DOCUMENT" && item.media?.length > 0 ? (
               <View style={{ gap: 6, maxWidth: 220 }}>
                 {item.media.map((mediaItem) => (
@@ -229,7 +264,13 @@ const ChatBubble = ({
                       source={require("@/assets/icons/document.png")}
                       style={{ width: 20, height: 20, marginRight: 8 }}
                     />
-                    <Text numberOfLines={1} style={[styles.messageText, {fontFamily: FONT.MEDIUM, color: "#7174c3ff"}]}>
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.messageText,
+                        { fontFamily: FONT.MEDIUM, color: "#7174c3ff" },
+                      ]}
+                    >
                       {mediaItem.fileName || "Document"}
                     </Text>
                   </Pressable>
@@ -437,6 +478,21 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
 
+  contactsContainer: { gap: 6, maxWidth: 240 },
+  contactCard: {
+    minWidth: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    marginBottom: 6,
+  },
+  contactName: { fontWeight: "600", fontSize: 14 },
+  contactPhone: { color: "#555", marginBottom: 4 },
+  contactActions: { flexDirection: "row", gap: 12 },
+  contactActionText: { color: "#007AFF", fontSize: 12 },
+
   replyText: {
     fontSize: 12,
     color: "#444",
@@ -470,7 +526,8 @@ const styles = StyleSheet.create({
   },
 
   messageText: {
-    maxWidth: 220,
+    maxWidth: "100%",
+    minWidth: "25%",
     fontSize: 14,
     color: "#000",
     fontFamily: "Inter",
