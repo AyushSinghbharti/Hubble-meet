@@ -27,4 +27,5 @@ export interface PitchFormData {
   user_id: string;
   display_name: string;
   pitch_caption: string;
+  type: string;
 }
