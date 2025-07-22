@@ -27,7 +27,6 @@ import Animated, {
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-
 import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
 import logo from "../../../../assets/logo/logo.png";
@@ -47,19 +46,17 @@ import { useConnectionStore } from "@/src/store/connectionStore";
 import { useInAppNotify } from "@/src/hooks/useInAppNotify";
 import { fetchUserProfile } from "@/src/api/profile";
 import { usePitchStore } from "@/src/store/pitchStore";
-
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
 const SWIPE_THRESHOLD = width * 0.25;
 const ROTATION_DEGREE = 30;
 const MAX_RIGHT_SWIPES = 10;
 const UNDO_DURATION = 2000; // 2 seconds for undo window
-
 const ProfileCard = ({
   profile,
   onSwipeComplete,
   rightSwipeCount,
-  swipeCount, // ✅ added
+  swipeCount,
   isExpanded,
   onToggleDetails,
   setError,
@@ -68,7 +65,7 @@ const ProfileCard = ({
   profile: UserProfile;
   onSwipeComplete: any;
   rightSwipeCount: number;
-  swipeCount: number; // ✅ added
+  swipeCount: number;
   isExpanded: boolean;
   onToggleDetails: any;
   setError: any;
@@ -78,7 +75,6 @@ const ProfileCard = ({
   const rotate = useSharedValue(0);
   const opacity = useSharedValue(1);
   const buttonOpacity = useSharedValue(1);
-
   const [undoVisible, setUndoVisible] = useState(false);
   const [hasFlipped, setHasFlipped] = useState(false);
   const [requestSentVisible, setRequestSentVisible] = useState(false);
@@ -88,17 +84,13 @@ const ProfileCard = ({
   const [thumbImageAlertVisible, setThumbImageAlertVisible] = useState(false);
   const [flippedProfiles, setFlippedProfiles] = useState({});
   const [showShare, setShowShare] = useState(false);
-
-  //Update flipped
+  // Update flipped
   useEffect(() => {
     setHasFlipped(false);
   }, [profile.user_id]);
-
-  //Store data
+  // Store data
   const userId = useAuthStore((state) => state.userId);
-  // const connections = useAuthStore((state) => state.userId);
-
-  //Backend Testing
+  // Backend Testing
   const { mutate: sendConnection } = useSendConnection();
   const { mutate: acceptConnection } = useAcceptConnection();
   const handleSendConnection = () => {
@@ -106,7 +98,6 @@ const ProfileCard = ({
       console.warn("Missing user or receiver id");
       return;
     }
-
     sendConnection(
       {
         user_id: userId,
@@ -122,13 +113,8 @@ const ProfileCard = ({
       }
     );
   };
-
-  // ----- BACKEND FUNNCTION UP ----- \\
-
   const undoTimeoutRef = useRef(null);
-
   const route = useRouter();
-
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
@@ -136,54 +122,43 @@ const ProfileCard = ({
     ],
     opacity: opacity.value,
   }));
-
   const buttonStyle = useAnimatedStyle(() => ({
     opacity: buttonOpacity.value,
   }));
-
   const handleUndo = useCallback(() => {
     if (undoTimeoutRef.current) {
       clearTimeout(undoTimeoutRef.current);
       undoTimeoutRef.current = null;
     }
-
     translateX.value = withSpring(0);
     rotate.value = withSpring(0);
     opacity.value = withTiming(1);
     setUndoVisible(false);
   }, [translateX, rotate, opacity]);
-
   const showUndoModal = useCallback(() => {
     setUndoVisible(true);
   }, []);
-
   const showRequestSentModal = useCallback(() => {
     setRequestSentVisible(true);
   }, []);
-
   const showRightSwipeAlert = useCallback(() => {
     setRightSwipeAlertVisible(true);
   }, []);
-
   const showShareAlert = useCallback(() => {
     setShareAlertVisible(true);
   }, []);
-
   const showBlockAlert = useCallback(() => {
     setBlockAlertVisible(true);
   }, []);
-
   const showThumbImageAlert = useCallback(() => {
     setThumbImageAlertVisible(true);
   }, []);
-
   const completeSwipe = useCallback(
     (profileId: string, direction: string) => {
       onSwipeComplete(profileId, direction);
     },
     [onSwipeComplete]
   );
-
   const startUndoTimer = useCallback(
     (profileId) => {
       undoTimeoutRef.current = setTimeout(() => {
@@ -193,13 +168,11 @@ const ProfileCard = ({
     },
     [onSwipeComplete]
   );
-
   const handleButtonPress = useCallback(() => {
     buttonOpacity.value = withTiming(0.5, { duration: 100 }, () => {
       buttonOpacity.value = withTiming(1, { duration: 100 });
     });
   }, [buttonOpacity]);
-
   const handleShareButtonPress = useCallback(
     (event) => {
       event.stopPropagation();
@@ -209,7 +182,6 @@ const ProfileCard = ({
     },
     [handleButtonPress, showShareAlert]
   );
-
   const handleRestartButtonPress = useCallback(
     (event) => {
       event.stopPropagation();
@@ -218,24 +190,32 @@ const ProfileCard = ({
     },
     [handleButtonPress, showBlockAlert]
   );
-
   const handleThumbImagePress = useCallback(
     (event) => {
       event.stopPropagation();
       showThumbImageAlert();
-      route.push("/(pitch)/pitch"); // ✅ placed correctly
+      route.push("/(pitch)/pitch");
     },
-    [showThumbImageAlert, route] // ✅ dependency array
+    [showThumbImageAlert, route]
   );
-
   const handleImageTap = useCallback(() => {
     setHasFlipped(true);
     onToggleDetails(profile);
   }, [onToggleDetails, profile.user_id]);
-
+  // Handle block success to animate card out and advance to next profile
+  const handleBlockSuccess = useCallback(() => {
+    console.log("handleBlockSuccess triggered for profile:", profile.user_id);
+    translateX.value = withSpring(-width);
+    rotate.value = withSpring(-ROTATION_DEGREE);
+    opacity.value = withTiming(0, { duration: 300 }, (finished) => {
+      if (finished) {
+        runOnJS(completeSwipe)(profile.user_id, "blocked");
+      }
+    });
+  }, [translateX, rotate, opacity, completeSwipe, profile.user_id]);
   // Pan gesture for swiping
   const panGesture = Gesture.Pan()
-    .enabled(hasFlipped && (swipeCount < 5 || isProfileCompleted)) // only allow swipe after flip
+    .enabled(hasFlipped && (swipeCount < 5 || isProfileCompleted))
     .activeOffsetX([-10, 10])
     .onUpdate((e) => {
       "worklet";
@@ -246,7 +226,6 @@ const ProfileCard = ({
       "worklet";
       const swipedLeft = translateX.value < -SWIPE_THRESHOLD;
       const swipedRight = translateX.value > SWIPE_THRESHOLD;
-
       if (swipedLeft) {
         translateX.value = withSpring(-width);
         rotate.value = withSpring(-ROTATION_DEGREE);
@@ -274,13 +253,11 @@ const ProfileCard = ({
         rotate.value = withSpring(0);
       }
     });
-
   // Tap gesture for the image in compact view and detailed view
   const imageTapGesture = Gesture.Tap().onEnd(() => {
     "worklet";
     runOnJS(handleImageTap)();
   });
-
   // Combine gestures: pan for the entire card, tap for the image
   const cardGesture = Gesture.Simultaneous(panGesture);
   const detailGesture = Gesture.Simultaneous(imageTapGesture);
@@ -296,7 +273,6 @@ const ProfileCard = ({
                 resizeMode="cover"
               />
             </GestureDetector>
-
             <TouchableOpacity
               style={styles.expandThumb}
               onPress={handleThumbImagePress}
@@ -313,7 +289,6 @@ const ProfileCard = ({
                 style={styles.expandIcon}
               />
             </TouchableOpacity>
-
             <LinearGradient
               colors={["transparent", "rgba(0,0,0,0.7)", "rgba(0,0,0,0.9)"]}
               style={styles.gradient}
@@ -322,11 +297,13 @@ const ProfileCard = ({
               <Text style={styles.title}>{profile.job_title || ""}</Text>
               <Text style={styles.location}>{profile.city || ""}</Text>
             </LinearGradient>
-
             <View style={styles.bottomActions}>
               <TouchableOpacity
                 onPress={handleShareButtonPress}
                 activeOpacity={0.7}
+                accessibilityLabel={`Share ${profile?.full_name || "user"
+                  }'s profile`}
+                accessibilityRole="button"
               >
                 <Animated.View style={[styles.actionButton, buttonStyle]}>
                   <Image
@@ -335,10 +312,11 @@ const ProfileCard = ({
                   />
                 </Animated.View>
               </TouchableOpacity>
-
               <TouchableOpacity
                 onPress={handleRestartButtonPress}
                 activeOpacity={0.7}
+                accessibilityLabel={`Block ${profile?.full_name || "user"}`}
+                accessibilityRole="button"
               >
                 <Animated.View style={[styles.actionButton, buttonStyle]}>
                   <Image
@@ -399,7 +377,6 @@ const ProfileCard = ({
                     >
                       {profile.city}
                     </Text>
-
                     <View style={styles.section}>
                       <Text style={styles.sectionTitle}>About</Text>
                       <Text
@@ -408,7 +385,6 @@ const ProfileCard = ({
                         {profile.bio}
                       </Text>
                     </View>
-
                     <View style={styles.section}>
                       <Text style={styles.sectionTitle}>Industries</Text>
                       <View style={styles.tagsContainer}>
@@ -421,7 +397,6 @@ const ProfileCard = ({
                         )}
                       </View>
                     </View>
-
                     <View style={styles.section}>
                       <Text style={styles.sectionTitle}>Areas of Interest</Text>
                       <View style={styles.tagsContainer}>
@@ -441,68 +416,54 @@ const ProfileCard = ({
           </Animated.View>
         </GestureDetector>
       )}
-
-      <View>
-        <AlertModal
-          visible={undoVisible}
-          onClose={handleUndo}
-          imageSource={require("../../../../assets/icons/cross.png")}
-          label="Profile Rejected"
-          buttonText="Undo"
-          viewButton
-          onButtonPress={handleUndo}
-          positionTop
-        />
-      </View>
-
-      <View>
-        <AlertModal
-          visible={rightSwipeAlertVisible}
-          onClose={() => setRightSwipeAlertVisible(false)}
-          imageSource={require("../../../../assets/icons/Vfc/vbcactive.png")}
-          label="Daily right swipe limit reached (10/10)"
-          buttonText="OK"
-          viewButton
-          onButtonPress={() => setRightSwipeAlertVisible(false)}
-          positionBottom
-        />
-      </View>
-
-      <View>
-        <AlertModal
-          visible={requestSentVisible}
-          onClose={() => setRequestSentVisible(false)}
-          imageSource={require("../../../../assets/icons/tick1.png")}
-          label="Request Sent"
-          onButtonPress={() => setRequestSentVisible(false)}
-          positionTop
-        />
-      </View>
-
-      <View>
-        <ShareModal
-          visible={shareAlertVisible}
-          onClose={() => setShareAlertVisible(false)}
-        />
-      </View>
-
-      <View>
-        <BlockUserModal
-          visible={blockAlertVisible}
-          onClose={() => setBlockAlertVisible(false)}
-          onSubmit={() => setBlockAlertVisible(false)}
-          label="Profile Blocked"
-          buttonText="OK"
-          userName={profile?.full_name || "This user"}
-        />
-      </View>
+      {/* Alert Modals - These should be rendered outside the conditional logic for the card itself */}
+      <AlertModal
+        visible={undoVisible}
+        onClose={handleUndo}
+        imageSource={require("../../../../assets/icons/cross.png")}
+        label="Profile Rejected"
+        buttonText="Undo"
+        viewButton
+        onButtonPress={handleUndo}
+        positionTop
+      />
+      <AlertModal
+        visible={rightSwipeAlertVisible}
+        onClose={() => setRightSwipeAlertVisible(false)}
+        imageSource={require("../../../../assets/icons/Vfc/vbcactive.png")}
+        label="Daily right swipe limit reached (10/10)"
+        buttonText="OK"
+        viewButton
+        onButtonPress={() => setRightSwipeAlertVisible(false)}
+        positionBottom
+      />
+      <AlertModal
+        visible={requestSentVisible}
+        onClose={() => setRequestSentVisible(false)}
+        imageSource={require("../../../../assets/icons/tick1.png")}
+        label="Request Sent"
+        onButtonPress={() => setRequestSentVisible(false)}
+        positionTop
+      />
+      <ShareModal
+        visible={shareAlertVisible}
+        onClose={() => setShareAlertVisible(false)}
+      />
+      <BlockUserModal
+        visible={blockAlertVisible}
+        onClose={() => setBlockAlertVisible(false)}
+        userName={profile?.full_name || "This user"}
+        blockedUserId={profile?.user_id}
+        onBlockSuccess={handleBlockSuccess}
+      />
     </>
   );
 };
 
 const Connect = () => {
   const [swipedIds, setSwipedIds] = useState([]);
-  const [rightSwipeCount, setRightSwipeCount] = useState(0);
+  const [redactedProfileIds, setRedactedProfileIds] = useState([]); // New state for redacted profiles
+  const [rightSwipeCount, setUserrightSwipeCount] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [userProfileCompleted, setUserProfileCompleted] = useState(false);
@@ -513,22 +474,18 @@ const Connect = () => {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const userId = useAuthStore((s) => s.user?.user_id);
-
-  //Setting recommendation
+  // Setting recommendation
   const recommendations = useConnectionStore((s) => s.recommendations);
   const addRecommendation = useConnectionStore((s) => s.addRecommendation);
   const recommendationsId = useConnectionStore((s) => s.recommendationsId);
-
-  //CurrentPitchUser
+  // CurrentPitchUser
   const { currentPitchUser, clearCurrentPitchUser } = usePitchStore();
-
   useEffect(() => {
     const fetchAndStore = async () => {
       const existingIds = new Set(recommendations.map((rec) => rec.user_id));
-
+      console.log(existingIds);
       for (const id of recommendationsId) {
         if (id === userId || existingIds.has(id)) continue;
-
         try {
           const profile = await fetchUserProfile(id);
           addRecommendation(profile);
@@ -537,55 +494,47 @@ const Connect = () => {
         }
       }
     };
-
     fetchAndStore();
   }, [recommendationsId]);
-
-  // Checking if user have empty feild
+  // Checking if user has empty fields
   useEffect(() => {
     if (!user || typeof user !== "object") {
       setUserProfileCompleted(false);
       return;
     }
-
     const hasIncompleteFields = Object.values(user).some(
       (value) => value === undefined || value === null || value === ""
     );
-
     setUserProfileCompleted(!hasIncompleteFields);
   }, [user]);
-
   const handleSwipeComplete = useCallback(
     (user_id, direction) => {
-      // clear pitch user on any swipe
+      console.log("handleSwipeComplete:", { user_id, direction, swipedIds });
       clearCurrentPitchUser();
-
       setSwipedIds((prev) => {
         const updated = [...prev, user_id];
-        if (updated.length >= 5 && !showLimitModal) {
+        console.log("Updated swipedIds:", updated);
+        if (updated.length >= 5 && !showLimitModal && !userProfileCompleted) {
           setShowLimitModal(true);
         }
         return updated;
       });
-
-      setSwipeCount((prev) => prev + 1); // ✅ Total swipes
-
+      setSwipeCount((prev) => prev + 1);
       if (direction === "right") {
         setRightSwipeCount((prev) => prev + 1);
+      } else if (direction === "blocked") {
+        console.log("Profile blocked, advancing to next profile");
       }
-
       setHasFlipped(false);
       setExpandedProfileId(null);
     },
-    [showLimitModal, clearCurrentPitchUser]
+    [showLimitModal, clearCurrentPitchUser, userProfileCompleted]
   );
-
   const handleToggleDetails = useCallback((profile) => {
     const profileId = profile.user_id;
     setExpandedProfileId((prev) => (prev === profileId ? null : profileId));
     if (profileId) setHasFlipped(true);
   }, []);
-
   const renderItem = useCallback(
     ({ item }: { item: UserProfile }) => {
       return (
@@ -601,30 +550,23 @@ const Connect = () => {
         />
       );
     },
-    [
-      rightSwipeCount,
-      handleSwipeComplete,
-      expandedProfileId,
-      userProfileCompleted,
-    ]
+    [rightSwipeCount, handleSwipeComplete, expandedProfileId, userProfileCompleted]
   );
-
   const visibleProfileData = useMemo(() => {
     if (currentPitchUser) return [currentPitchUser];
-
     if (!recommendations?.length) return [];
-
-    return expandedProfileId
+    const filtered = expandedProfileId
       ? recommendations.filter((item) => item.user_id === expandedProfileId)
       : recommendations
-          .filter((item) => !swipedIds.includes(item.user_id))
-          .slice(0, 1);
+        .filter((item) => !swipedIds.includes(item.user_id))
+        .slice(0, 1);
+    console.log("visibleProfileData:", filtered);
+    return filtered;
   }, [currentPitchUser, recommendations, expandedProfileId, swipedIds]);
-
   return (
     <View style={styles.container}>
       {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
-      <Header logoSource={logo} onSearch={() => {}} />
+      <Header logoSource={logo} onSearch={() => { }} />
       <FlatList
         data={visibleProfileData}
         renderItem={renderItem}
@@ -639,19 +581,15 @@ const Connect = () => {
           </View>
         }
       />
-
-      <View>
-        <ProfilePrompt
-          visible={showLimitModal && !userProfileCompleted}
-          onCancel={() => setShowLimitModal(false)}
-          onProceed={() => {
-            router.push("/Profile1");
-            setShowLimitModal(false);
-          }}
-        />
-      </View>
+      <ProfilePrompt
+        visible={showLimitModal && !userProfileCompleted}
+        onCancel={() => setShowLimitModal(false)}
+        onProceed={() => {
+          router.push("/Profile1");
+          setShowLimitModal(false);
+        }}
+      />
     </View>
   );
 };
-
 export default Connect;

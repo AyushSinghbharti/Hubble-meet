@@ -491,6 +491,7 @@ export default function ChatDetailsScreen() {
             <ChatBody
               messages={messages}
               onReply={handleReply}
+
               onStar={handleStarMessage}
               onCancelReply={onCancelReply}
               onDelete={(messageId, deleteType) =>

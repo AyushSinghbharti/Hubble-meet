@@ -5,91 +5,49 @@ import {
   StyleSheet,
   Image,
   Text,
-  Modal,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 const MessageAction = ({
   isVisible = false,
   topOffset = 150,
   leftOffset = 10,
-  onAction = (action: string) => {},
+  onAction = (action: string) => { },
 }) => {
-  if (!isVisible) return null;
-
   const [viewDelete, setViewDelete] = useState(false);
+  const [isStarred, setIsStarred] = useState(false); // ⭐ New state
+
+  if (!isVisible) return null;
 
   const DeleteOptionModal = () => {
     return (
       <TouchableOpacity
-        style={{
-          flex: 1,
-          height: "100%",
-          width: "100%",
-          backgroundColor: "#0000004D",
-          position: "absolute",
-          elevation: 5,
-          top: 0,
-          right: 0,
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 2,
-        }}
-        onPress={() => {
-          setViewDelete(!viewDelete);
-        }}
+        style={styles.modalOverlay}
+        onPress={() => setViewDelete(!viewDelete)}
       >
-        <View
-          style={[
-            {
-              width: "90%",
-              minHeight: 127,
-              backgroundColor: "white",
-              alignItems: "center",
-              // justifyContent: "space-evenly",
-              justifyContent: "center",
-              gap: 13,
-              borderRadius: 20,
-            },
-          ]}
-        >
+        <View style={styles.deleteModal}>
           <TouchableOpacity
-            style={{
-              width: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+            style={styles.deleteOption}
             hitSlop={15}
             onPress={() => onAction("deleteforeveryone")}
           >
-            <Text style={{ fontSize: 16, fontFamily: "Inter" }}>
-              Delete For everyone
-            </Text>
+            <Text style={styles.optionText}>Delete For everyone</Text>
           </TouchableOpacity>
-          <View
-            style={{ borderWidth: 0.5, width: "90%", borderColor: "#E3E3E3" }}
-          />
+
+          <View style={styles.divider} />
+
           <TouchableOpacity
-            style={{
-              width: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+            style={styles.deleteOption}
             hitSlop={15}
             onPress={() => onAction("deleteforme")}
           >
-            <Text style={{ fontSize: 16, fontFamily: "Inter" }}>
-              Delete For me
-            </Text>
+            <Text style={styles.optionText}>Delete For me</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
   };
 
-  if (viewDelete) {
-    return <DeleteOptionModal />;
-  }
+  if (viewDelete) return <DeleteOptionModal />;
 
   return (
     <View style={[styles.container, { top: topOffset, left: leftOffset }]}>
@@ -100,14 +58,23 @@ const MessageAction = ({
         />
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => onAction("star")}>
+      <TouchableOpacity
+        onPress={() => {
+          setIsStarred(!isStarred); // ⭐ Toggle star state
+          onAction("star");
+        }}
+      >
         <Image
-          source={require("../../../assets/icons/star.png")}
-          style={[styles.icon]}
+          source={
+            isStarred
+              ? require("../../../assets/icons/star2.png")
+              : require("../../../assets/icons/star.png")
+          }
+          style={styles.icon}
         />
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => setViewDelete(!viewDelete)}>
+      <TouchableOpacity onPress={() => setViewDelete(true)}>
         <Image
           source={require("../../../assets/icons/delete.png")}
           style={styles.icon}
@@ -138,5 +105,41 @@ const styles = StyleSheet.create({
   icon: {
     height: 24,
     aspectRatio: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    height: "100%",
+    width: "100%",
+    backgroundColor: "#0000004D",
+    position: "absolute",
+    elevation: 5,
+    top: 0,
+    right: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2,
+  },
+  deleteModal: {
+    width: "90%",
+    minHeight: 127,
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 13,
+    borderRadius: 20,
+  },
+  deleteOption: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  optionText: {
+    fontSize: 16,
+    fontFamily: "Inter",
+  },
+  divider: {
+    borderWidth: 0.5,
+    width: "90%",
+    borderColor: "#E3E3E3",
   },
 });

@@ -1,44 +1,35 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
   ActivityIndicator,
   TextInput,
-  Keyboard,
-  TouchableWithoutFeedback,
+  FlatList,
   TouchableOpacity,
+  Text,
 } from "react-native";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import VbcCard from "@/src/components/VbcCard";
-import { useSearchUser, useSearchVBC } from "@/src/hooks/useConnection";
+import { useSearchUser } from "@/src/hooks/useConnection";
 import { useQueries } from "@tanstack/react-query";
 import { fetchUserProfile } from "@/src/api/profile";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useConnectionStore } from "@/src/store/connectionStore";
+import debounce from "lodash.debounce";
 
 const SearchScreen = () => {
   const { query } = useLocalSearchParams<{ query?: string }>();
   const [searchText, setSearchText] = useState(query || "");
   const [submittedText, setSubmittedText] = useState(query || "");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
   const connections = useConnectionStore((s) => s.connections);
   const router = useRouter();
 
-  useEffect(() => {
-    if (query) {
-      setSearchText(query);
-      setSubmittedText(query);
-    }
-  }, [query]);
-
-  // const { data: VbcResult, isLoading: vbcLoading } = useSearchVBC({
-  //   searchText: submittedText,
-  //   currentPage: 1,
-  //   PageSize: 100,
-  // });
-
+  // Search users based on input
   const { data: searchResults, isLoading: searching } = useSearchUser({
-    searchText: submittedText,
+    searchText,
     currentPage: 1,
     PageSize: 100,
   });
@@ -62,21 +53,46 @@ const SearchScreen = () => {
       isConnected: connectedUserIds.includes(profile.user_id),
     }));
 
+  // Debounce input changes
+  const debouncedSearch = useCallback(
+    debounce((text: string) => {
+      setSearchText(text);
+    }, 300),
+    []
+  );
+
+  const handleInputChange = (text: string) => {
+    debouncedSearch(text);
+    setSubmittedText(text);
+    setShowSuggestions(true);
+  };
+
+  const handleSuggestionPress = (username: string) => {
+    setSearchText(username);
+    setSubmittedText(username);
+    setShowSuggestions(false);
+  };
+
   return (
     <View style={styles.container}>
+      {/* Header with back and search input */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <AntDesign name="left" size={22} color="black" />
         </TouchableOpacity>
+
         <View style={styles.searchBarWrapper}>
           <TextInput
             style={styles.searchInput}
             placeholder="Search profiles..."
             placeholderTextColor="#888"
-            value={searchText}
-            onChangeText={setSearchText}
+            defaultValue={searchText}
+            onChangeText={handleInputChange}
             returnKeyType="search"
-            onSubmitEditing={() => setSubmittedText(searchText)}
+            onSubmitEditing={() => {
+              setSubmittedText(searchText);
+              setShowSuggestions(false);
+            }}
           />
           <TouchableOpacity onPress={() => setSubmittedText(searchText)}>
             <Feather
@@ -88,7 +104,6 @@ const SearchScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
-
       {(searching || queries.some((q) => q.isLoading)) && (
         <ActivityIndicator
           size="large"
@@ -96,8 +111,6 @@ const SearchScreen = () => {
           style={{ marginTop: 20 }}
         />
       )}
-
-      {/* Use FlatList inside VbcCard for proper scrolling */}
       <View style={{ flex: 1 }}>
         <VbcCard profiles={profiles} spacing={20} />
       </View>
@@ -145,5 +158,22 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     marginLeft: 10,
+  },
+  suggestionsContainer: {
+    maxHeight: 200,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginBottom: 8,
+    elevation: 2,
+    paddingHorizontal: 10,
+  },
+  suggestionItem: {
+    paddingVertical: 10,
+    borderBottomColor: "#eee",
+    borderBottomWidth: 1,
+  },
+  suggestionText: {
+    fontSize: 16,
+    color: "#333",
   },
 });
