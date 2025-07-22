@@ -42,26 +42,50 @@ export default function ShareVBCScreen({
 
   const handleShare = (vbc: VbcCard) => {
     if (!user || !chatId) return;
-    console.log(user.user_id, user.email, chatName, chatId, vbc);
+    // console.log(vbc.displayName);
+    console.log(JSON.stringify(vbc, null, 2));
     sendMessage(
       {
-        content: "",
+        content: "This is VBC",
+        messageType: "VCARD",
         sender: {
           id: user.user_id,
           username: user.full_name,
           email: user.email,
         },
-        chat: { id: chatId, name: chatName, isGroup: false } as Chat,
-        messageType: "VCARD",
+        chat: { id: chatId, name: "", isGroup: false },
         vCardData: {
-          userId: vbc.id,
-          displayName: vbc.displayName,
-          jobTitle: vbc.jobTitle || "",
-          companyName: vbc.companyName || "",
-          location: vbc.location || "",
+          userId: vbc.user_id,
+          displayName: vbc.full_name,
+          jobTitle: vbc.job_title || "",
+        //   companyName: vbc.company_name[0] || "",
+          location: vbc.city || "",
           allowSharing: true,
         },
       },
+      // sendMessage(
+      //   {
+      //     content: "Hello from user1",
+      //     messageType: "VCARD",
+      //     sender: {
+      //       id: "69b83914-b7ef-4039-a9b6-61935224b7dd",
+      //       username: "user1",
+      //       email: "testuser200@gmail.com",
+      //     },
+      //     chat: {
+      //       id: "d6384e9f-660c-4db3-bfc0-44e21cd160be",
+      //       name: "",
+      //       isGroup: false,
+      //     },
+      //     vCardData: {
+      //       userId: "AC805aFKMC",
+      //       displayName: "John Doe",
+      //       jobTitle: "Wosk",
+      //       companyName: "Ayu",
+      //       location: "GRAMBEL",
+      //       allowSharing: false,
+      //     },
+      //   },
       {
         onSuccess: () => {
           Alert.alert("Shared", `${vbc.displayName} sent as vCard`);

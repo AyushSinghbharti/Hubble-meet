@@ -403,7 +403,7 @@ export default function ChatDetailsScreen() {
       pickContact();
     }
   };
-
+  console.log(currentChat.name);
   return (
     <Modal
       style={styles.container}
