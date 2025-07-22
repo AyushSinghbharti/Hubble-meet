@@ -16,12 +16,10 @@ import HeaderPopupMenu from "../../../components/chatScreenComps/headerPopup";
 import PopUpOption from "../../../components/chatScreenComps/popUpOption";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import * as Contacts from "expo-contacts";
 import ContactPicker from "../../../components/ContactPicker";
 import MediaShare from "./[id]/mediaShare";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import {
-  useChatById,
   useChatMessages,
   useCreateChat,
   useDeleteMessageForMe,
@@ -36,6 +34,8 @@ import { ChatMessage } from "@/src/interfaces/chatInterface";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useAuthStore } from "@/src/store/auth";
 import { useClearChat } from "@/src/hooks/useChat";
+import { uploadFileToS3 } from "@/src/api/aws";
+import ShareVBCScreen from "./[id]/vbcShare";
 
 export default function ChatDetailsScreen() {
   const router = useRouter();
@@ -52,7 +52,9 @@ export default function ChatDetailsScreen() {
   const [contactModal, setContactModal] = useState(false);
   const [media, setMedia] = useState<any[]>([]);
   const [mediaType, setMediaType] = useState<string | null>(null);
-  const [caption, setCaption] = useState();
+  const [caption, setCaption] = useState("");
+  const [vbcModal, setVbcModal] = useState(false);
+  const [vbcData, setVbcData] = useState();
 
   const [error, setError] = useState("");
 
@@ -77,6 +79,10 @@ export default function ChatDetailsScreen() {
   useEffect(() => {
     setMessages(updatedMessages);
   }, [updatedMessages]);
+
+  useEffect(() => {
+    console.log(media);
+  }, [media]);
 
   //Update last seen
   const { setLastViewed } = useChatStore();
@@ -161,6 +167,50 @@ export default function ChatDetailsScreen() {
 
     if (mediaType === "contact") {
       messageType = "CONTACTS";
+
+      const contactsPayload = media.map((contact) => {
+        const firstPhone = contact.phoneNumbers?.[0] || {};
+        return {
+          name:
+            contact.name ||
+            `${contact.firstName || ""} ${contact.lastName || ""}`.trim(),
+          phone: firstPhone.number || "",
+          label: firstPhone.label || "",
+          email: contact.emails?.[0]?.email || "",
+          imageUri: contact.imageUri || null,
+          source: "device",
+        };
+      });
+
+      const payload = {
+        content: JSON.stringify(contactsPayload),
+        chat: {
+          id: currentChat.id,
+          name: currentChat.name || "",
+          isGroup: currentChat.isGroup,
+        },
+        sender: {
+          id: user.user_id,
+          username: user.full_name,
+          email: user.email,
+        },
+        messageType: "CONTACTS",
+      };
+
+      sendMessage(payload, {
+        onSuccess: () => {
+          console.log("Contacts shared successfully");
+          setMedia([]);
+          setMediaType(null);
+          setViewAttachment(false);
+        },
+        onError: (err) => {
+          console.error("Failed to send contacts", err);
+          setError("Failed to send contact message");
+        },
+      });
+
+      return;
     } else if (mediaType === "vcard") {
       messageType = "VCARD";
     } else if (
@@ -196,7 +246,7 @@ export default function ChatDetailsScreen() {
       messageType,
       files,
     };
-    
+
     sendMediaMessage(payload, {
       onSuccess: () => {
         console.log("Media batch sent successfully");
@@ -209,6 +259,8 @@ export default function ChatDetailsScreen() {
     });
 
     setViewAttachment(false);
+    setCaption("");
+    setMedia([]);
   };
 
   const onPressDeleteMessage = ({
@@ -289,6 +341,11 @@ export default function ChatDetailsScreen() {
     setContactModal(!contactModal);
   };
 
+  const pickVBC = () => {
+    setVbcModal(true);
+    setViewAttachment(false);
+  };
+
   const handleReply = (message: ChatMessage | null) => {
     if (message) {
       setSelectedMessage(message);
@@ -341,7 +398,7 @@ export default function ChatDetailsScreen() {
     } else if (item === "Document") {
       pickDocument();
     } else if (item === "VBC") {
-      alert("VBC selected");
+      pickVBC();
     } else if (item === "Contact") {
       pickContact();
     }
@@ -363,24 +420,19 @@ export default function ChatDetailsScreen() {
           topOffset={70}
           rightOffset={15}
         />
+        {vbcModal && (
+          <ShareVBCScreen
+            visible
+            chatId={currentChat?.id!}
+            chatName={currentChat?.name || ""}
+            onClose={() => setVbcModal(false)}
+          />
+        )}
         <AttachmentSheet
           isVisible={viewAttachment}
           footerHeight={footerHeight ? footerHeight : 115}
           handlePress={handleAttachmentSelect}
         />
-        {/* <PopUpOption
-          visible={clearChatPopUp}
-          onClose={() => setClearChatPopUp(!clearChatPopUp)}
-          onSelect={() => {
-            setMessages([]), setClearChatPopUp(false);
-          }}
-          message={`Clear this chat?`}
-          description={
-            "Also delete media received in this chat from the device gallery"
-          }
-          acceptButtonName={"Clear Chat"}
-          cancelButtonName={"Cancel"}
-        /> */}
         <PopUpOption
           visible={clearChatPopUp}
           onClose={() => setClearChatPopUp(false)}
@@ -411,7 +463,6 @@ export default function ChatDetailsScreen() {
           acceptButtonName={"Clear Chat"}
           cancelButtonName={"Cancel"}
         />
-
         <ContactPicker
           visible={contactModal}
           onClose={() => setContactModal(false)}
@@ -429,7 +480,6 @@ export default function ChatDetailsScreen() {
           onClose={() => setMedia([])}
           onSend={handleSendMedia}
         />
-
         {/* Main Screens */}
         <View style={styles.flex}>
           <ChatHeader
@@ -482,7 +532,6 @@ export default function ChatDetailsScreen() {
             onSendMessage={onPressSendMessage}
           />
         </View>
-
         {error && <ErrorAlert message={error} onClose={() => setError("")} />}
       </View>
     </Modal>
