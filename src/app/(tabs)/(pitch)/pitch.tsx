@@ -106,14 +106,16 @@ export default function PitchScreen() {
     else
       router.push({
         pathname: "/pitchStack/createPitch",
-        params: JSON.stringify({
-          name: null,
-          desc: null,
-          format: "Upload",
-          pitchType: "Business",
-          duration: 30,
-          videoUrl: null,
-        }),
+        params: {
+          item: JSON.stringify({
+            name: null,
+            desc: null,
+            format: "Upload",
+            pitchType: "Business",
+            duration: 30,
+            videoUrl: null,
+          }),
+        },
       });
   };
 

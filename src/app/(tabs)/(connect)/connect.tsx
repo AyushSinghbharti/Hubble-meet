@@ -46,6 +46,9 @@ import { useConnectionStore } from "@/src/store/connectionStore";
 import { useInAppNotify } from "@/src/hooks/useInAppNotify";
 import { fetchUserProfile } from "@/src/api/profile";
 import { usePitchStore } from "@/src/store/pitchStore";
+import { AxiosError } from "axios";
+
+
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
 const SWIPE_THRESHOLD = width * 0.25;
@@ -490,7 +493,16 @@ const Connect = () => {
           const profile = await fetchUserProfile(id);
           addRecommendation(profile);
         } catch (err) {
-          console.warn("Failed to fetch recommendation profile:", id, err);
+          const axiosError = err as AxiosError<any>;
+          const status = axiosError.response?.status;
+
+          if (status !== 404) {
+            console.warn(
+              "Failed to fetch recommendation profile:",
+              id,
+              axiosError
+            );
+          }
         }
       }
     };

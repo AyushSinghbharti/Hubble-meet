@@ -13,6 +13,8 @@ export const useGetVbcCard = (id: string) => {
         queryKey: ['vbc-card', id],
         queryFn: () => getVbcCard(id),
         enabled: !!id,
+        retry: 1,
+        refetchInterval: 10000,
     });
 
     if (queryResult.data) {
