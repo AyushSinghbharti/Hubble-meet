@@ -1,140 +1,167 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   Pressable,
-  Keyboard,
-  TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
-import AlertModal from "../Alerts/AlertModal";
+import { useAuthStore } from "@/src/store/auth";
+import AlertModal from "@/src/components/Alerts/AlertModal";
+import { FONT } from "@/assets/constants/fonts";
+
 
 interface BlockUserModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (reason: string) => void;
   userName: string;
+  blockedUserId: string;
+  onBlockSuccess?: () => void;
 }
 
 const BlockUserModal: React.FC<BlockUserModalProps> = ({
   visible,
   onClose,
   userName,
-  onSubmit,
+  blockedUserId,
+  onBlockSuccess,
 }) => {
-  const [reason, setReason] = useState("");
-  const [fileName, setFileName] = useState("");
   const [blockedModalVisible, setBlockedModalVisible] = useState(false);
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleFileUpload = () => {
-    setFileName("file_example.jpg");
+  const userId = useAuthStore((state) => state.userId);
+  const token = useAuthStore((state) => state.token);
+
+  // Auto-close success modal after 1.5 seconds
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (blockedModalVisible) {
+      timer = setTimeout(() => {
+        setBlockedModalVisible(false);
+        if (onBlockSuccess) {
+          onBlockSuccess(); // Trigger profile removal after modal closes
+        }
+      }, 1500); // 1.5 seconds
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [blockedModalVisible, onBlockSuccess]);
+
+  const handleBlockUser = async (): Promise<boolean> => {
+    if (!userId || !blockedUserId) {
+      setErrorMessage("Missing user data. Cannot block.");
+      setErrorModalVisible(true);
+      return false;
+    }
+
+    try {
+      const response = await fetch(
+        "https://d2aks9kyhua4na.cloudfront.net/api/connection/block",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            blocked_user_id: blockedUserId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        let errMessage = `HTTP Error: ${response.status} - ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          errMessage = errorData.message || responseText || "An unknown error occurred.";
+        } catch {
+          errMessage = responseText || "Failed to block user.";
+        }
+        setErrorMessage(errMessage);
+        setErrorModalVisible(true);
+        return false;
+      }
+
+      // Log success for debugging
+      console.log("User blocked successfully:", { userId, blockedUserId });
+      return true;
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      setErrorMessage(error.message || "Failed to block user. Please try again.");
+      setErrorModalVisible(true);
+      return false;
+    }
   };
 
-  const handleSubmit = () => {
-    if (!reason.trim()) return;
-
-    onSubmit(reason);
-    setReason("");
-    setFileName("");
-    onClose();
-    setBlockedModalVisible(true);
+  const handleConfirmBlock = async () => {
+    onClose(); // Close confirmation modal
+    const success = await handleBlockUser();
+    if (success) {
+      setBlockedModalVisible(true); // Show success modal
+    }
   };
 
   return (
     <>
+      {/* Main Confirmation Modal */}
       <Modal visible={visible} transparent animationType="fade">
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.overlay}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              style={styles.keyboardAvoidingView}
-              keyboardVerticalOffset={Platform.OS === "android" ? 0 : 40}
-            >
-              <View style={styles.modalBox}>
-                <Text style={styles.title}>Block {userName}</Text>
-                <Text style={styles.label}>
-                  What is the reason for blocking{"\n"}
-                  <Text>{userName}</Text>?
-                  <Text style={{ color: "red" }}> *</Text>
-                </Text>
-
-                <TextInput
-                  value={reason}
-                  onChangeText={setReason}
-                  placeholder="Write Here"
-                  placeholderTextColor="#9CA3AF"
-                  multiline
-                  returnKeyType="done"
-                  style={styles.textarea}
-                  onSubmitEditing={() => {
-                    if (reason.trim()) handleSubmit();
-                  }}
-                />
-
-                <Text style={styles.uploadLabel}>
-                  Upload File{" "}
-                  <Text style={{ fontStyle: "italic", color: "#888" }}>
-                    (optional)
-                  </Text>
-                </Text>
-
-                <Pressable style={styles.uploadBox} onPress={handleFileUpload}>
-                  <Feather name="upload" size={24} color="#6B7280" />
-                  <Text style={styles.uploadText}>
-                    {fileName ? fileName : "Click to upload"}
-                  </Text>
-                </Pressable>
-
-                <Text style={styles.warning}>
-                  Note: Once you block this user, the action can be undone via{" "}
-                  <Text style={{ fontWeight: "bold" }}>"Block Users"</Text>{" "}
-                  within Settings
-                </Text>
-
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-                    <Text style={styles.cancelText}>Cancel</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.submitBtn,
-                      reason.trim()
-                        ? styles.submitBtnActive
-                        : styles.submitBtnDisabled,
-                    ]}
-                    onPress={handleSubmit}
-                    disabled={!reason.trim()}
-                  >
-                    <Text
-                      style={[
-                        styles.submitText,
-                        reason.trim()
-                          ? styles.submitTextActive
-                          : styles.submitTextDisabled,
-                      ]}
-                    >
-                      Submit
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </KeyboardAvoidingView>
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <View style={styles.modalBox}>
+            <Text style={styles.title}>Block {userName}?</Text>
+            <Text style={styles.label}>
+              Are you sure you want to block{"\n"}
+              <Text style={styles.boldText}>{userName}</Text>?
+            </Text>
+            <Text style={styles.warning}>
+              Note: You can undo this action in{" "}
+              <Text style={styles.boldText}>"Blocked Users"</Text> within Settings.
+            </Text>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={onClose}
+                accessibilityLabel="Cancel blocking user"
+                accessibilityRole="button"
+              >
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.submitBtnActive}
+                onPress={handleConfirmBlock}
+                accessibilityLabel={`Confirm block ${userName}`}
+                accessibilityRole="button"
+              >
+                <Text style={styles.submitTextActive}>Block</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </TouchableWithoutFeedback>
+        </Pressable>
       </Modal>
 
+      {/* Success Alert Modal */}
       <AlertModal
         visible={blockedModalVisible}
         onClose={() => setBlockedModalVisible(false)}
         label="Connection Blocked"
         imageSource={require("../../../assets/icons/tick1.png")}
+        positionBottom
+      />
+
+      {/* Error Alert Modal */}
+      <AlertModal
+        visible={errorModalVisible}
+        onClose={() => setErrorModalVisible(false)}
+        label="Error Blocking User"
+        message={errorMessage}
+        imageSource={require("../../../assets/icons/cross.png")}
+        buttonText="OK"
+        viewButton
+        onButtonPress={() => setErrorModalVisible(false)}
         positionBottom
       />
     </>
@@ -148,9 +175,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#00000099",
     padding: 16,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -158,99 +182,65 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 20,
     width: "100%",
+    maxWidth: 350,
     paddingVertical: 32,
     paddingHorizontal: 24,
+    alignItems: "center",
   },
   title: {
     fontSize: 22,
-    fontWeight: "700",
+    fontFamily: FONT.BOLD, // Use app's font constants
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: 16,
     color: "#1F2937",
   },
   label: {
-    fontSize: 15,
+    fontSize: 16,
+    fontFamily: FONT.MEDIUM,
     color: "#1F2937",
-    marginBottom: 12,
+    marginBottom: 24,
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: 22,
   },
-  textarea: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 12,
-    padding: 12,
-    height: 120,
-    textAlignVertical: "top",
-    color: "#111827",
-    marginBottom: 20,
-    fontSize: 14,
-  },
-  uploadLabel: {
-    fontSize: 14,
-    marginBottom: 10,
-    color: "#000",
-    textAlign: "center",
-  },
-  uploadBox: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 12,
-    borderStyle: "dashed",
-    height: 100,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  uploadText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: "#6B7280",
+  boldText: {
+    fontFamily: FONT.BOLD,
   },
   warning: {
     fontSize: 12,
-    color: "red",
-    marginBottom: 15,
+    fontFamily: FONT.MEDIUM,
+    color: "#FF4D4D",
+    marginBottom: 24,
     textAlign: "center",
   },
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    width: "100%",
   },
   cancelBtn: {
     flex: 1,
-    backgroundColor: "#111827",
+    backgroundColor: "#E5E7EB",
     paddingVertical: 14,
     borderRadius: 12,
     marginRight: 12,
     alignItems: "center",
   },
   cancelText: {
-    color: "#fff",
+    color: "#1F2937",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: FONT.BOLD,
   },
-  submitBtn: {
+  submitBtnActive: {
     flex: 1,
+    backgroundColor: "#FF4D4D",
     paddingVertical: 14,
     borderRadius: 12,
     marginLeft: 12,
     alignItems: "center",
   },
-  submitBtnActive: {
-    backgroundColor: "#111827",
-  },
-  submitBtnDisabled: {
-    backgroundColor: "#E5E7EB",
-  },
-  submitText: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   submitTextActive: {
     color: "#FFFFFF",
-  },
-  submitTextDisabled: {
-    color: "#111827",
+    fontSize: 16,
+    fontFamily: FONT.BOLD,
   },
 });

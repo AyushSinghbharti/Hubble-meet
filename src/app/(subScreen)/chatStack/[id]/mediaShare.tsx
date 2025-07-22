@@ -41,7 +41,7 @@ const MediaShare: React.FC<MediaShareProps> = ({
   name,
   media,
   mediaType,
-  caption="",
+  caption = "",
   setCaption,
   onSend,
   onClose,
@@ -232,8 +232,8 @@ const MediaShare: React.FC<MediaShareProps> = ({
             {mediaType === "contact"
               ? "Contacts"
               : media.length === 1
-              ? media[0].fileName || media[0].name
-              : `${media.length} files`}
+                ? media[0].fileName || media[0].name
+                : `${media.length} files`}
           </Text>
         </View>
 
@@ -280,7 +280,6 @@ const MediaShare: React.FC<MediaShareProps> = ({
           </View>
         </View>
 
-        {/* Notifications */}
         <PopUpOption
           visible={!!errorTitle}
           altStyle={true}
