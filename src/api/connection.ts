@@ -99,3 +99,7 @@ export const searchUserVbc = async (data: SearchInterface): Promise<SearchVBCRes
   const response = await api.post(`/api/user/profiles/search/users`, data);
   return response.data;
 };
+export const addCloseCircle = async (data: any): Promise<any> => {
+  const response = await api.post(`/api/connection/close`, data);
+  return response.data;
+};
