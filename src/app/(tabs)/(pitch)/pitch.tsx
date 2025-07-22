@@ -111,7 +111,7 @@ export default function PitchScreen() {
             name: null,
             desc: null,
             format: "Upload",
-            pitchType: "Business",
+            pitchType: "Individual",
             duration: 30,
             videoUrl: null,
           }),
@@ -173,7 +173,7 @@ export default function PitchScreen() {
             style={{ flex: 1 }}
             contentContainerStyle={{ flexGrow: 1 }}
             data={validPitches}
-            keyExtractor={(item) => item.pitch.id}
+            keyExtractor={(item, index) => item.pitch.id + index}
             pagingEnabled
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={() => {

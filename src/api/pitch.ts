@@ -45,6 +45,7 @@ export const updatePitch = async (
   }
   if (data.display_name) formData.append('display_name', data.display_name);
   if (data.pitch_caption) formData.append('pitch_caption', data.pitch_caption);
+  if (data.pitch_caption) formData.append('type', data.type);
 
   const response = await api.put(`/api/pitch/update/${pitchId}`, formData, {
     headers: {
