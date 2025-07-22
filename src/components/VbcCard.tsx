@@ -26,6 +26,7 @@ import { useSendConnection } from "../hooks/useConnection";
 import ErrorAlert from "./errorAlert";
 import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
+import { addCloseCircle } from "../api/connection";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
@@ -55,6 +56,7 @@ const VbcCard = ({
   const { mutate: sendConnection } = useSendConnection();
   const [error, setError] = useState<string | null>();
 
+
   const handleChatPress = async (user: UserProfile) => {
     await resolveChatAndNavigate({ currentUser, targetUser: user });
   };
@@ -73,7 +75,13 @@ const VbcCard = ({
     setConnectionDetailModal(true);
   };
 
-  const handleBagPress = (user: UserProfile) => {
+  const handleBagPress = async(user: UserProfile) => {
+    console.log(user,"bag pressss")
+    const response = await addCloseCircle({
+      user_id:  userId,
+      closed_user_id: user.user_id
+  })
+  console.log(response,"response of the adding to the bag")
     setSelectedUser(user);
     setAddModal(true);
   };

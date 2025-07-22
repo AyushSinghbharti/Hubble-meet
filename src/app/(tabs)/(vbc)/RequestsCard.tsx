@@ -30,6 +30,7 @@ import { useAuthStore } from "@/src/store/auth";
 import { useConnectionStore } from "@/src/store/connectionStore";
 import { ConnectionRequest } from "@/src/interfaces/connectionInterface";
 import { useRouter } from "expo-router";
+import { resolveChatAndNavigate } from "@/src/utility/resolveChatAndNavigate";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -237,23 +238,28 @@ const ProfileList = ({}) => {
   const [swipedIds, setSwipedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [matchModalVisible, setMatchModalVisible] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [matchUserPair, setMatchUserPair] = useState<{
     user1: string;
     user2: string;
   } | null>(null);
   const requests = useConnectionStore((state) => state.requests);
+  const currentUser = useAuthStore((state) => state.user);
   const handleShowMatchModal = (receiverProfileUrl: string) => {
     setMatchUserPair({
       user1: user?.profile_picture_url ?? "",
       user2: receiverProfileUrl,
     });
+    setSelectedProfile(receiverProfileUrl);
     setMatchModalVisible(true);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async() => {
+    console.log(selectedProfile);
     setMatchModalVisible(false);
-    router.push("/chatStack/connection");
+    await resolveChatAndNavigate({ currentUser, targetUser: selectedProfile,isRoutingEnable:true });
   };
+
 
   const handleBackToRequest = () => {
     setMatchModalVisible(false);
@@ -309,7 +315,7 @@ const ProfileList = ({}) => {
       <MatchModal
         visible={matchModalVisible}
         onClose={handleBackToRequest}
-        onSendMessage={handleSendMessage}
+        onSendMessage={handleSendMessage()}
         user1Image={matchUserPair?.user1}
         user2Image={matchUserPair?.user2}
       />
