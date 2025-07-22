@@ -74,6 +74,7 @@ const ChatBubble = ({
 }) => {
   const me = item.sender?.id === useAuthStore.getState().userId;
   const swipeableRef = useRef<SwipeableRef | null>(null);
+  // console.log("item", JSON.stringify(, null, 2));
 
   const handleSwipeOpen = () => {
     if (
@@ -137,8 +138,6 @@ const ChatBubble = ({
       </Text>
     </View>
   );
-
-  console.log(item.messageType);
 
   return (
     <Swipeable
