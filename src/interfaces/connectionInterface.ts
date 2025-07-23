@@ -1,6 +1,6 @@
 import { UserProfile } from "./profileInterface";
 import { VbcCard } from "./vbcInterface";
-export type ConnectionStatus = 'CONNECTED' | 'PENDING' | 'BLOCKED';
+export type ConnectionStatus = 'CONNECTED' | 'PENDING' | 'BLOCKED' | 'CLOSE_CONNECTION';
 
 // ---------- Request Interfaces ----------
 export interface SendConnectionRequestBody {

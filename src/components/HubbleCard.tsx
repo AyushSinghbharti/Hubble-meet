@@ -19,8 +19,8 @@ import { useAuthStore } from "../store/auth";
 import { resolveChatAndNavigate } from "../utility/resolveChatAndNavigate";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomModal from "./Modal/CustomModal";
-import { getCloseCircle } from "../api/connection";
- // Import the API function
+import { getAllConnections, getCloseCircle } from "../api/connection";
+// Import the API function
 
 const { width } = Dimensions.get("window");
 const CENTER = width / 2;
@@ -35,53 +35,102 @@ const ProfileOrbit = ({}: {}) => {
   const [addModal, setAddModal] = useState(false);
   const [blockModal, setBlockModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [filteredConnections, setFilteredConnections] = useState<UserProfile[]>([]);
+  const [filteredConnections, setFilteredConnections] = useState<UserProfile[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
-  
+
   const currentUser = useAuthStore((state) => state.user);
 
   // Filter connections based on close circle score
+  // useEffect(() => {
+  //   const fetchCloseCircleData = async () => {
+  //     if (!currentUser?.user_id) {
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     try {
+  //       setLoading(true);
+
+  //       // Call the API to get close circle data
+  //       const closeCircleData = await getCloseCircle({
+  //         userId: currentUser.user_id
+  //       });
+
+  //       // Filter connections based on score > 0.5
+  //       const highScoreUsers = closeCircleData
+  //         .filter((item: { user_id: string; score: number }) => item.score > 0.5)
+  //         .map((item: { user_id: string; score: number }) => item.user_id);
+
+  //       // Filter the connections to only include users with high scores
+  //       const filtered = connections.filter((connection) =>
+  //         highScoreUsers.includes(connection.user_id)
+  //       );
+
+  //       setFilteredConnections(filtered);
+  //     } catch (error) {
+  //       console.error("Error fetching close circle data:", error);
+  //       // Fallback to all connections if API fails
+  //       setFilteredConnections(connections);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchCloseCircleData();
+  // }, [connections, currentUser]);
+
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchCloseCircleData = async () => {
       if (!currentUser?.user_id) {
-        setLoading(false);
+        if (!isCancelled) {
+          setFilteredConnections([]);
+          setLoading(false);
+        }
         return;
       }
 
       try {
         setLoading(true);
-        
-        // Call the API to get close circle data
-        const closeCircleData = await getCloseCircle({ 
-          userId: currentUser.user_id 
-        });
-        
-        // Filter connections based on score > 0.5
-        const highScoreUsers = closeCircleData
-          .filter((item: { user_id: string; score: number }) => item.score > 0.5)
-          .map((item: { user_id: string; score: number }) => item.user_id);
-        
-        // Filter the connections to only include users with high scores
-        const filtered = connections.filter((connection) => 
-          highScoreUsers.includes(connection.user_id)
+
+        // If you really need the server list, keep this:
+        const all = await getAllConnections({ userId: currentUser.user_id });
+
+        const filtered = (all || connections).filter(
+          (c) => c.connection_status === "CLOSE_CONNECTION"
         );
-        
-        setFilteredConnections(filtered);
-      } catch (error) {
-        console.error("Error fetching close circle data:", error);
-        // Fallback to all connections if API fails
-        setFilteredConnections(connections);
+
+        if (!isCancelled) setFilteredConnections(filtered);
+      } catch (err) {
+        console.error("Error fetching close circle data:", err);
+        if (!isCancelled) {
+          // Fallback: just use local store connections with CLOSE
+          setFilteredConnections(
+            connections.filter(
+              (c) => c.connection_status?.toLowerCase() === "CLOSE_CONNECTION"
+            )
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     };
 
     fetchCloseCircleData();
-  }, [connections, currentUser]);
+    return () => {
+      isCancelled = true;
+    };
+  }, [connections, currentUser?.user_id]);
 
   // Use filtered connections instead of all connections
   const outerProfiles = filteredConnections.slice(0, 3);
-  const innerProfiles = filteredConnections.slice(3, filteredConnections.length - 1);
+  const innerProfiles = filteredConnections.slice(
+    3,
+    filteredConnections.length - 1
+  );
 
   //Functions
   const handleChatPress = async () => {
@@ -93,12 +142,12 @@ const ProfileOrbit = ({}: {}) => {
       message: `Hey see my VBC card here ${selectedProfile?.full_name}`,
     });
   };
-  
+
   const handleBlockPress = () => {
     setBlockModal(true);
     setSelectedUser(selectedProfile);
   };
-  
+
   const handleBagPress = () => {
     setSelectedUser(selectedProfile);
     setAddModal(true);
@@ -136,7 +185,11 @@ const ProfileOrbit = ({}: {}) => {
           style={[styles.avatarWrapper, { left: x, top: y }]}
         >
           <Image
-            source={{ uri: avatar.profile_picture_url }}
+            source={{
+              uri:
+                avatar.profile_picture_url ||
+                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
+            }}
             style={[
               styles.avatar,
               {
@@ -259,25 +312,25 @@ const styles = StyleSheet.create({
     right: 15,
   },
   loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   noConnectionsContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: CENTER - 10,
     left: CENTER - 100,
     width: 200,
-    alignItems: 'center',
+    alignItems: "center",
   },
   noConnectionsText: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   gradientCircle: {
     position: "absolute",

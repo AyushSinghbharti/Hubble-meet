@@ -15,7 +15,7 @@ import {
   getVBCIdFromStorage,
 } from "@/src/store/localStorage";
 import { useOtherUserProfile, useUserProfile } from "@/src/hooks/useProfile";
-import { useCreateVbcCard, useGetVbcCard } from "@/src/hooks/useVbc";
+import { useGetVbcCard } from "@/src/hooks/useVbc";
 import { useAuthStore } from "@/src/store/auth";
 import { useConnectionStore } from "@/src/store/connectionStore";
 import { dummyUserId } from "@/src/dummyData/dummyUserId";

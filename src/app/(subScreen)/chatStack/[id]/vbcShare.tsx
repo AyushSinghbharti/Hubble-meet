@@ -56,8 +56,8 @@ export default function ShareVBCScreen({
           userId: vbc.user_id,
           displayName: vbc.full_name,
           jobTitle: vbc.job_title || "",
-        //   companyName: vbc.company_name[0] || "",
-        //   location: vbc.city || "",
+          // companyName: vbc.company_name[0] || "",
+          // location: vbc.city || "",
           allowSharing: true,
         },
       },
@@ -112,7 +112,7 @@ export default function ShareVBCScreen({
                     name={item.full_name}
                     backgroundColor={item.color}
                     title={item.job_title}
-                    location={item.city}
+                    location={item.cities_on_radar[0]}
                     viewShareButton={false}
                   />
                 </TouchableOpacity>
