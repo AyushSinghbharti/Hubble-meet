@@ -12,6 +12,7 @@ import {
   UIManager,
   ActivityIndicator,
   Pressable,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -190,6 +191,7 @@ export default function SettingsScreen() {
             "Profile updated successfully",
             JSON.stringify(res, null, 2)
           );
+          Alert.alert("Profile updated successfully");
         },
         onError: (err) => {
           console.error("Error updating profile", err);

@@ -657,7 +657,7 @@ const Connect = () => {
 
 
     if (!isComplete && !hasShownProfilePrompt) {
-      showLimitModal(true);
+      setShowLimitModal(true);
       setProfilePromptShown(true);
     }
   }, [user, setProfileComplete, hasShownProfilePrompt, setProfilePromptShown]);
