@@ -115,7 +115,7 @@ const ConnectionCard = memo(
               style={[styles.iconButton, { backgroundColor: iconBgColor }]}
               onPress={onAddPress}
             >
-              <Feather name="alert-triangle" size={18} color={iconColor} />
+              <Image style={{ height: 20, width: 20 }} source={require('../../../assets/icons/block.png')} />
             </TouchableOpacity>
           </View>
         </View>

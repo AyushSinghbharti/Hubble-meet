@@ -12,6 +12,7 @@ import {
   UIManager,
   ActivityIndicator,
   Pressable,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -35,6 +36,7 @@ import {
   topCompaniesForChipData,
 } from "@/src/dummyData/chipOptions";
 import { uploadFileToS3 } from "@/src/api/aws";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SettingsScreen() {
   const profileData: UserProfile | null = useAuthStore((state) => state.user);
@@ -53,6 +55,8 @@ export default function SettingsScreen() {
   const [bio, setBio] = useState(profileData?.bio || "");
   const [image, setImage] = useState(profileData?.profile_picture_url || null);
   const [uploadingImage, setUploadImage] = useState(false);
+  const [swipedIds, setSwipedIds] = useState([]);
+  const [swipeCount, setSwipeCount] = useState(0);
   const [companies, setCompanies] = useState(
     profileData?.current_company || []
   );
@@ -123,6 +127,28 @@ export default function SettingsScreen() {
       });
     }
   };
+  const isProfileComplete = () => {
+    return name && bio && email && companies?.length && jobTitle && location && dob;
+  };
+  useEffect(() => {
+    const loadSwipeData = async () => {
+      try {
+        const storedIds = await AsyncStorage.getItem('swipedIds');
+        const storedCount = await AsyncStorage.getItem('swipeCount');
+        if (storedIds) setSwipedIds(JSON.parse(storedIds));
+        if (storedCount) setSwipeCount(parseInt(storedCount));
+      } catch (err) {
+        console.log('Failed to load swipe data:', err);
+      }
+    };
+    loadSwipeData();
+  }, []);
+
+  // ✅ Save swipe data when changed
+  useEffect(() => {
+    AsyncStorage.setItem('swipedIds', JSON.stringify(swipedIds));
+    AsyncStorage.setItem('swipeCount', swipeCount.toString());
+  }, [swipedIds, swipeCount]);
 
   const handleSave = () => {
     if (!profileData?.user_id) {
@@ -165,6 +191,7 @@ export default function SettingsScreen() {
             "Profile updated successfully",
             JSON.stringify(res, null, 2)
           );
+          Alert.alert("Profile updated successfully");
         },
         onError: (err) => {
           console.error("Error updating profile", err);

@@ -47,6 +47,8 @@ import { useInAppNotify } from "@/src/hooks/useInAppNotify";
 import { fetchUserProfile } from "@/src/api/profile";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { AxiosError } from "axios";
+import { useAppState } from "@/src/store/appState"; // Import the updated store
+
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -54,11 +56,13 @@ const SWIPE_THRESHOLD = width * 0.25;
 const ROTATION_DEGREE = 30;
 const MAX_RIGHT_SWIPES = 10;
 const UNDO_DURATION = 2000; // 2 seconds for undo window
+
+
 const ProfileCard = ({
   profile,
   onSwipeComplete,
   rightSwipeCount,
-  swipeCount,
+  persistentSwipeCount, // Use persistent swipe count instead
   isExpanded,
   onToggleDetails,
   setError,
@@ -67,7 +71,7 @@ const ProfileCard = ({
   profile: UserProfile;
   onSwipeComplete: any;
   rightSwipeCount: number;
-  swipeCount: number;
+  persistentSwipeCount: number; // Updated prop name
   isExpanded: boolean;
   onToggleDetails: any;
   setError: any;
@@ -86,15 +90,23 @@ const ProfileCard = ({
   const [thumbImageAlertVisible, setThumbImageAlertVisible] = useState(false);
   const [flippedProfiles, setFlippedProfiles] = useState({});
   const [showShare, setShowShare] = useState(false);
+
+
   // Update flipped
   useEffect(() => {
     setHasFlipped(false);
   }, [profile.user_id]);
+
+
   // Store data
   const userId = useAuthStore((state) => state.userId);
+
+
   // Backend Testing
   const { mutate: sendConnection } = useSendConnection();
   const { mutate: acceptConnection } = useAcceptConnection();
+
+
   const handleSendConnection = () => {
     if (!userId || !profile?.user_id) {
       console.warn("Missing user or receiver id");
@@ -115,8 +127,14 @@ const ProfileCard = ({
       }
     );
   };
+
+
+
+
   const undoTimeoutRef = useRef(null);
   const route = useRouter();
+
+
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
@@ -124,9 +142,13 @@ const ProfileCard = ({
     ],
     opacity: opacity.value,
   }));
+
+
   const buttonStyle = useAnimatedStyle(() => ({
     opacity: buttonOpacity.value,
   }));
+
+
   const handleUndo = useCallback(() => {
     if (undoTimeoutRef.current) {
       clearTimeout(undoTimeoutRef.current);
@@ -137,30 +159,46 @@ const ProfileCard = ({
     opacity.value = withTiming(1);
     setUndoVisible(false);
   }, [translateX, rotate, opacity]);
+
+
   const showUndoModal = useCallback(() => {
     setUndoVisible(true);
   }, []);
+
+
   const showRequestSentModal = useCallback(() => {
     setRequestSentVisible(true);
   }, []);
+
+
   const showRightSwipeAlert = useCallback(() => {
     setRightSwipeAlertVisible(true);
   }, []);
+
+
   const showShareAlert = useCallback(() => {
     setShareAlertVisible(true);
   }, []);
-  const showBlockAlert = useCallback(() => {  
+
+
+  const showBlockAlert = useCallback(() => {
     setBlockAlertVisible(true);
   }, []);
+
+
   const showThumbImageAlert = useCallback(() => {
     setThumbImageAlertVisible(true);
   }, []);
+
+
   const completeSwipe = useCallback(
     (profileId: string, direction: string) => {
       onSwipeComplete(profileId, direction);
     },
     [onSwipeComplete]
   );
+
+
   const startUndoTimer = useCallback(
     (profileId) => {
       undoTimeoutRef.current = setTimeout(() => {
@@ -170,11 +208,15 @@ const ProfileCard = ({
     },
     [onSwipeComplete]
   );
+
+
   const handleButtonPress = useCallback(() => {
     buttonOpacity.value = withTiming(0.5, { duration: 100 }, () => {
       buttonOpacity.value = withTiming(1, { duration: 100 });
     });
   }, [buttonOpacity]);
+
+
   const handleShareButtonPress = useCallback(
     (event) => {
       event.stopPropagation();
@@ -184,6 +226,8 @@ const ProfileCard = ({
     },
     [handleButtonPress, showShareAlert]
   );
+
+
   const handleRestartButtonPress = useCallback(
     (event) => {
       event.stopPropagation();
@@ -192,6 +236,8 @@ const ProfileCard = ({
     },
     [handleButtonPress, showBlockAlert]
   );
+
+
   const handleThumbImagePress = useCallback(
     (event) => {
       event.stopPropagation();
@@ -200,11 +246,16 @@ const ProfileCard = ({
     },
     [showThumbImageAlert, route]
   );
+
+
+
+
   const handleImageTap = useCallback(() => {
     setHasFlipped(true);
     onToggleDetails(profile);
   }, [onToggleDetails, profile.user_id]);
-  // Handle block success to animate card out and advance to next profile
+
+
   const handleBlockSuccess = useCallback(() => {
     console.log("handleBlockSuccess triggered for profile:", profile.user_id);
     translateX.value = withSpring(-width);
@@ -215,9 +266,12 @@ const ProfileCard = ({
       }
     });
   }, [translateX, rotate, opacity, completeSwipe, profile.user_id]);
-  // Pan gesture for swiping
+
+
   const panGesture = Gesture.Pan()
-    .enabled(hasFlipped && (swipeCount < 5 || isProfileCompleted))
+    .enabled(hasFlipped && (persistentSwipeCount < 5 || isProfileCompleted))
+
+
     .activeOffsetX([-10, 10])
     .onUpdate((e) => {
       "worklet";
@@ -228,6 +282,8 @@ const ProfileCard = ({
       "worklet";
       const swipedLeft = translateX.value < -SWIPE_THRESHOLD;
       const swipedRight = translateX.value > SWIPE_THRESHOLD;
+
+
       if (swipedLeft) {
         translateX.value = withSpring(-width);
         rotate.value = withSpring(-ROTATION_DEGREE);
@@ -255,14 +311,18 @@ const ProfileCard = ({
         rotate.value = withSpring(0);
       }
     });
-  // Tap gesture for the image in compact view and detailed view
+
+
   const imageTapGesture = Gesture.Tap().onEnd(() => {
     "worklet";
     runOnJS(handleImageTap)();
   });
-  // Combine gestures: pan for the entire card, tap for the image
+
+
   const cardGesture = Gesture.Simultaneous(panGesture);
   const detailGesture = Gesture.Simultaneous(imageTapGesture);
+
+
   return (
     <>
       {!isExpanded ? (
@@ -419,7 +479,6 @@ const ProfileCard = ({
           </Animated.View>
         </GestureDetector>
       )}
-      {/* Alert Modals - These should be rendered outside the conditional logic for the card itself */}
       <AlertModal
         visible={undoVisible}
         onClose={handleUndo}
@@ -464,26 +523,62 @@ const ProfileCard = ({
   );
 };
 
+
 const Connect = () => {
-  const [swipedIds, setSwipedIds] = useState([]);
-  const [redactedProfileIds, setRedactedProfileIds] = useState([]); // New state for redacted profiles
+  const [redactedProfileIds, setRedactedProfileIds] = useState([]);
   const [rightSwipeCount, setUserrightSwipeCount] = useState(0);
-  const [swipeCount, setSwipeCount] = useState(0);
-  const [showLimitModal, setShowLimitModal] = useState(false);
-  const [userProfileCompleted, setUserProfileCompleted] = useState(false);
   const [expandedProfileId, setExpandedProfileId] = useState(null);
   const [hasFlipped, setHasFlipped] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const userId = useAuthStore((s) => s.user?.user_id);
-  // Setting recommendation
   const recommendations = useConnectionStore((s) => s.recommendations);
   const addRecommendation = useConnectionStore((s) => s.addRecommendation);
   const recommendationsId = useConnectionStore((s) => s.recommendationsId);
-  // CurrentPitchUser
   const { currentPitchUser, clearCurrentPitchUser } = usePitchStore();
+
+
+  const {
+    isProfileComplete,
+    swipeCount: persistentSwipeCount,
+    swipedProfileIds,
+    hasShownProfilePrompt,
+    incrementSwipeCount,
+    addSwipedProfileId,
+    setProfileComplete,
+    setProfilePromptShown,
+    initializeAppState,
+  } = useAppState();
+
+
+  const [showLimitModal, setShowLimitModal] = useState(false);
+
+
+
+  useEffect(() => {
+    initializeAppState();
+  }, [initializeAppState]);
+
+
+
+  useEffect(() => {
+    if (!user || typeof user !== "object") {
+      setProfileComplete(false);
+      return;
+    }
+    const hasIncompleteFields = Object.values(user).some(
+      (value) => value === undefined || value === null || value === ""
+    );
+    const isComplete = !hasIncompleteFields;
+    setProfileComplete(isComplete);
+  }, [user, setProfileComplete]);
+
+
+
   useEffect(() => {
     const fetchAndStore = async () => {
       const existingIds = new Set(recommendations.map((rec) => rec.user_id));
@@ -495,6 +590,7 @@ const Connect = () => {
         } catch (err) {
           const axiosError = err as AxiosError<any>;
           const status = axiosError.response?.status;
+
 
           if (status !== 404) {
             console.warn(
@@ -508,45 +604,74 @@ const Connect = () => {
     };
     fetchAndStore();
   }, [recommendationsId]);
-  // Checking if user has empty fields
+
+
+  const handleSwipeComplete = useCallback(
+    async (user_id: string, direction: string) => {
+      clearCurrentPitchUser();
+
+
+
+      await addSwipedProfileId(user_id);
+
+      const newSwipeCount = await incrementSwipeCount();
+
+
+
+      if (newSwipeCount >= 5 && !isProfileComplete && !hasShownProfilePrompt) {
+        setShowLimitModal(true);
+        setProfilePromptShown(true);
+      }
+
+
+      if (direction === "right") {
+        setUserrightSwipeCount((prev) => prev + 1);
+      }
+
+      setHasFlipped(false);
+      setExpandedProfileId(null);
+    },
+    [
+      clearCurrentPitchUser,
+      addSwipedProfileId,
+      incrementSwipeCount,
+      isProfileComplete,
+      hasShownProfilePrompt,
+      setProfilePromptShown,
+    ]
+  );
+
+
   useEffect(() => {
     if (!user || typeof user !== "object") {
-      setUserProfileCompleted(false);
+      setProfileComplete(false);
       return;
     }
     const hasIncompleteFields = Object.values(user).some(
       (value) => value === undefined || value === null || value === ""
     );
-    setUserProfileCompleted(!hasIncompleteFields);
-  }, [user]);
-  const handleSwipeComplete = useCallback(
-    (user_id, direction) => {
-      console.log("handleSwipeComplete:", { user_id, direction, swipedIds });
-      clearCurrentPitchUser();
-      setSwipedIds((prev) => {
-        const updated = [...prev, user_id];
-        console.log("Updated swipedIds:", updated);
-        if (updated.length >= 5 && !showLimitModal && !userProfileCompleted) {
-          setShowLimitModal(true);
-        }
-        return updated;
-      });
-      setSwipeCount((prev) => prev + 1);
-      if (direction === "right") {
-        setRightSwipeCount((prev) => prev + 1);
-      } else if (direction === "blocked") {
-        console.log("Profile blocked, advancing to next profile");
-      }
-      setHasFlipped(false);
-      setExpandedProfileId(null);
-    },
-    [showLimitModal, clearCurrentPitchUser, userProfileCompleted]
-  );
+    const isComplete = !hasIncompleteFields;
+
+
+    setProfileComplete(isComplete);
+
+
+
+    if (!isComplete && !hasShownProfilePrompt) {
+      setShowLimitModal(true);
+      setProfilePromptShown(true);
+    }
+  }, [user, setProfileComplete, hasShownProfilePrompt, setProfilePromptShown]);
+
+
+
   const handleToggleDetails = useCallback((profile) => {
     const profileId = profile.user_id;
     setExpandedProfileId((prev) => (prev === profileId ? null : profileId));
     if (profileId) setHasFlipped(true);
   }, []);
+
+
   const renderItem = useCallback(
     ({ item }: { item: UserProfile }) => {
       return (
@@ -556,9 +681,9 @@ const Connect = () => {
           rightSwipeCount={rightSwipeCount}
           isExpanded={expandedProfileId === item.user_id}
           onToggleDetails={handleToggleDetails}
-          swipeCount={swipeCount}
+          persistentSwipeCount={persistentSwipeCount}
           setError={setError}
-          isProfileCompleted={userProfileCompleted}
+          isProfileCompleted={isProfileComplete}
         />
       );
     },
@@ -566,19 +691,25 @@ const Connect = () => {
       rightSwipeCount,
       handleSwipeComplete,
       expandedProfileId,
-      userProfileCompleted,
+      persistentSwipeCount,
+      isProfileComplete,
     ]
   );
+
+
   const visibleProfileData = useMemo(() => {
     if (currentPitchUser) return [currentPitchUser];
     if (!recommendations?.length) return [];
     const filtered = expandedProfileId
       ? recommendations.filter((item) => item.user_id === expandedProfileId)
       : recommendations
-          .filter((item) => !swipedIds.includes(item.user_id))
-          .slice(0, 1);
+        .filter((item) => !swipedProfileIds.includes(item.user_id))
+        .slice(0, 1);
+    console.log("visibleProfileData:", filtered);
     return filtered;
-  }, [currentPitchUser, recommendations, expandedProfileId, swipedIds]);
+  }, [currentPitchUser, recommendations, expandedProfileId, swipedProfileIds]);
+
+
   return (
     <View style={styles.container}>
       {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
@@ -598,7 +729,7 @@ const Connect = () => {
         }
       />
       <ProfilePrompt
-        visible={showLimitModal && !userProfileCompleted}
+        visible={showLimitModal && !isProfileComplete}
         onCancel={() => setShowLimitModal(false)}
         onProceed={() => {
           router.push("/Profile1");
@@ -608,4 +739,6 @@ const Connect = () => {
     </View>
   );
 };
-export default Connect;
+
+
+export default Connect; 

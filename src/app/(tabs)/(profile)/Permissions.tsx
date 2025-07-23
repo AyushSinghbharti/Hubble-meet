@@ -1,5 +1,5 @@
 // App.tsx or SettingScreen.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import { Ionicons } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
 import NavHeader from "../../../components/NavHeader";
 import Button from "../../../components/Button";
+import requestAndSavePermission from "@/utils/requestAndSavePermission";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SettingsScreen() {
   const [bio, setBio] = useState("");
@@ -46,9 +48,44 @@ export default function SettingsScreen() {
     marketingEmails: false,
   });
 
-  const toggleSwitch = (key: keyof typeof toggles) => {
-    setToggles({ ...toggles, [key]: !toggles[key] });
+  const toggleSwitch = async (key: keyof typeof toggles) => {
+    const updated = { ...toggles, [key]: !toggles[key] };
+    setToggles(updated);
+    saveSettingsToStorage(updated);
+
+    if (key === "accessContacts" && updated.accessContacts) {
+      await requestAndSavePermission("contacts");
+    }
+    if (key === "accessPhotos" && updated.accessPhotos) {
+      await requestAndSavePermission("photos");
+    }
   };
+
+  const saveSettingsToStorage = async (settings: typeof toggles) => {
+    try {
+      await AsyncStorage.setItem("userSettings", JSON.stringify(settings));
+      console.log("Settings saved");
+    } catch (e) {
+      console.error("Failed to save settings", e);
+    }
+  };
+
+  // Load settings from storage when screen loads
+  useEffect(() => {
+    const loadSettingsFromStorage = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("userSettings");
+        if (stored) {
+          setToggles(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error("Failed to load settings", e);
+      }
+    };
+
+    loadSettingsFromStorage();
+  }, []);
+
 
   return (
     <ScrollView
@@ -82,14 +119,14 @@ export default function SettingsScreen() {
 
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
 
-        <Button label="Save settings" onPress={() => {}} />
+        <Button label="Save settings" onPress={() => { }} />
       </View>
     </ScrollView>
   );
 }
 
 const SettingItem = ({ label, value, onValueChange, subLabel, bottomWidth }: any) => (
-  <View style={[styles.settingItem, {borderBottomWidth: bottomWidth}]}>
+  <View style={[styles.settingItem, { borderBottomWidth: bottomWidth }]}>
     <View>
       <Text style={styles.settingLabel}>{label}</Text>
       {subLabel && <Text style={styles.settingSubLabel}>{subLabel}</Text>}
