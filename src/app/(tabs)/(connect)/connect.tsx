@@ -705,7 +705,6 @@ const Connect = () => {
       : recommendations
         .filter((item) => !swipedProfileIds.includes(item.user_id))
         .slice(0, 1);
-    console.log("visibleProfileData:", filtered);
     return filtered;
   }, [currentPitchUser, recommendations, expandedProfileId, swipedProfileIds]);
 

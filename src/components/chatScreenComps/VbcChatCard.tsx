@@ -1,5 +1,14 @@
-import React from "react";
-import { View, Text, StyleSheet, Image, Pressable } from "react-native";
+import React, { useMemo } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+  Share,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { FONT } from "@/assets/constants/fonts";
 import { VbcCard as VbcInterface } from "@/src/interfaces/vbcInterface";
 
@@ -11,67 +20,217 @@ type Props = {
     vCardLocation?: string | null;
     vCardAllowSharing?: boolean;
     avatarUrl?: string | null;
+
+    displayName?: string;
+    jobTitle?: string;
+    companyName?: string | null;
+    location?: string | null;
+    allowSharing?: boolean;
+
+    profile_picture_url?: string | null;
+    allow_vbc_sharing?: boolean;
+    color?: string | null;
   };
-  onPressPrimary?: () => void;     // e.g. View Profile
-  onPressSecondary?: () => void;   // e.g. Share / Save
+  /* same API as ProfileCard */
+  onVideoPress?: () => void;
+  onChatPress?: () => void;
+  onBlockPress?: () => void;
+  onSharePress?: () => void; // optional override
+  backgroundColor?: string;
+  viewShareButton?: boolean;
+  viewChatButton?: boolean;
+  viewBlockButton?: boolean;
+  style?: any;
+};
+
+const FALLBACK_AVATAR = require("@/assets/icons/profile.png");
+
+const shareProfile = async ({
+  name,
+  title,
+  location,
+}: {
+  name: string;
+  title: string;
+  location: string;
+}) => {
+  try {
+    await Share.share({
+      title: "Share profile",
+      message: `${name} • ${title} • ${location}\nCheck this profile: <link>`,
+    });
+  } catch (e) {
+    console.warn("Share error:", e);
+  }
 };
 
 const VbcChatCard: React.FC<Props> = ({
   vbc,
-  onPressPrimary,
-  onPressSecondary,
+  onVideoPress = () => {},
+  onChatPress = () => {},
+  onBlockPress = () => {},
+  onSharePress,
+  backgroundColor,
+  viewShareButton = true,
+  viewChatButton = true,
+  viewBlockButton = true,
+  style,
 }) => {
-  const name = vbc.vCardDisplayName || vbc.displayName || "Unknown";
-  const job = vbc.vCardJobTitle || vbc.jobTitle || "";
-  const company = vbc.vCardCompanyName || vbc.companyName || "";
-  const location = vbc.vCardLocation || vbc.location || "";
-  const allowShare = vbc.vCardAllowSharing ?? vbc.allowSharing ?? false;
+  // ---- resolve fields ----
+  console.log("VbcChatCard props:", JSON.stringify(vbc, null, 4));
+  const name =
+    vbc.vCardDisplayName || vbc.full_name || (vbc as any).display_name || "Unknown";
+  const title =
+    vbc.vCardJobTitle || vbc.jobTitle || (vbc as any).job_title || "";
+  const company =
+    vbc.vCardCompanyName || vbc.companyName || (vbc as any).company_name || "";
+  const location =
+    vbc.vCardLocation || vbc.location || (vbc as any).city || "";
+  const avatar = vbc.avatarUrl || vbc.profile_picture_url || null;
+  const bgColor = backgroundColor || vbc.color || "#FFE699";
+
+  const showActions = viewShareButton || viewChatButton || viewBlockButton;
+
+  // ---- responsive sizing (chat bubble width) ----
+  const { width } = useWindowDimensions();
+  const maxWidth = Math.min(width * 0.75, 360);
+  const compact = maxWidth < 340;
+
+  const AVATAR = compact ? 72 : 96;
+  const ACTION = compact ? 30 : 36;
+  const ICON = ACTION * 0.6;
+
+  const s = useMemo(
+    () =>
+      StyleSheet.create({
+        card: {
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: bgColor,
+          padding: compact ? 10 : 14,
+          borderRadius: compact ? 16 : 20,
+          width: maxWidth,
+          shadowColor: "#000",
+          shadowOpacity: 0.08,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 3,
+        },
+        avatar: {
+          width: AVATAR,
+          height: AVATAR * 1.05,
+          borderRadius: 18,
+          backgroundColor: "#EAEAEA",
+        },
+        body: {
+          flex: 1,
+          marginLeft: compact ? 10 : 14,
+        },
+        header: {
+          flexDirection: "row",
+          alignItems: "flex-start",
+        },
+        textWrap: {
+          flex: 1,
+          flexShrink: 1,
+        },
+        name: {
+          fontSize: compact ? 16 : 18,
+          fontFamily: FONT.BOLD || "Inter-Bold",
+          lineHeight: compact ? 20 : 22,
+          color: "#1B1B1B",
+        },
+        title: {
+          fontSize: compact ? 12 : 13.5,
+          color: "#646464",
+          fontFamily: FONT.SEMI_BOLD || "Inter-SemiBold",
+          marginTop: 2,
+        },
+        company: {
+          fontSize: compact ? 12 : 13,
+          color: "#7A7A7A",
+          fontFamily: FONT.REGULAR || "Inter-Regular",
+          marginTop: 1,
+        },
+        location: {
+          fontSize: compact ? 11 : 12,
+          color: "#7A7A7A",
+          fontFamily: FONT.MEDIUM || "Inter-Medium",
+          marginTop: 1,
+        },
+        actions: {
+          flexDirection: "row",
+          marginTop: compact ? 8 : 12,
+        },
+        actionBtn: {
+          width: ACTION,
+          height: ACTION,
+          borderRadius: 99,
+          backgroundColor: "#FFF0C3",
+          justifyContent: "center",
+          alignItems: "center",
+          marginRight: 10,
+        },
+      }),
+    [bgColor, maxWidth, compact, AVATAR, ACTION, ICON, showActions]
+  );
 
   return (
-    <View style={styles.card}>
-      <View style={styles.row}>
-        <Image
-          source={
-            vbc.avatarUrl
-              ? { uri: vbc.avatarUrl }
-              : require("@/assets/icons/profile.png")
-          }
-          style={styles.avatar}
-        />
+    <View style={[s.card, style]}>
+      <Image source={avatar ? { uri: avatar } : FALLBACK_AVATAR} style={s.avatar} />
 
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.name} numberOfLines={1}>
-            {name}
-          </Text>
-          {!!job && (
-            <Text style={styles.sub} numberOfLines={1}>
-              {job}
+      <View style={s.body}>
+        <View style={s.header}>
+          <View style={s.textWrap}>
+            <Text style={s.name} numberOfLines={2}>
+              {name}
             </Text>
-          )}
-          {!!company && (
-            <Text style={styles.subLight} numberOfLines={1}>
-              {company}
-            </Text>
-          )}
-          {!!location && (
-            <Text style={styles.subLight} numberOfLines={1}>
-              {location}
-            </Text>
-          )}
+            {!!title && <Text style={s.title} numberOfLines={1}>{title}</Text>}
+            {!!company && <Text style={s.company} numberOfLines={1}>{company}</Text>}
+            {!!location && <Text style={s.location} numberOfLines={1}>{location}</Text>}
+          </View>
+
+          <TouchableOpacity style={s.actionBtn} onPress={onVideoPress}>
+            <Image
+              source={require("@/assets/icons/pitch2.png")}
+              style={{ width: ICON + 4, height: ICON + 4 }}
+            />
+          </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.divider} />
+        {showActions && (
+          <View style={s.actions}>
+            {viewChatButton && (
+              <TouchableOpacity style={s.actionBtn} onPress={onChatPress}>
+                <Image
+                  source={require("@/assets/icons/chat.png")}
+                  style={{ width: ICON, height: ICON, tintColor: "#000" }}
+                />
+              </TouchableOpacity>
+            )}
 
-      <View style={styles.actionsRow}>
-        <Pressable style={styles.primaryBtn} onPress={onPressPrimary}>
-          <Text style={styles.primaryTxt}>View Profile</Text>
-        </Pressable>
+            {viewShareButton && (
+              <TouchableOpacity
+                style={s.actionBtn}
+                onPress={
+                  onSharePress
+                    ? onSharePress
+                    : () => shareProfile({ name, title, location })
+                }
+              >
+                <Feather name="share-2" size={ICON} />
+              </TouchableOpacity>
+            )}
 
-        {allowShare && (
-          <Pressable style={styles.secondaryBtn} onPress={onPressSecondary}>
-            <Text style={styles.secondaryTxt}>Share</Text>
-          </Pressable>
+            {viewBlockButton && (
+              <TouchableOpacity style={s.actionBtn} onPress={onBlockPress}>
+                <Image
+                  source={require("@/assets/icons/block2.png")}
+                  style={{ width: ICON, height: ICON }}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
         )}
       </View>
     </View>
@@ -79,73 +238,3 @@ const VbcChatCard: React.FC<Props> = ({
 };
 
 export default VbcChatCard;
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 14,
-    width: 230,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  row: { flexDirection: "row", alignItems: "center" },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#EAEAEA",
-  },
-  name: {
-    fontFamily: FONT.SEMI_BOLD || FONT.BOLD || "Inter-SemiBold",
-    fontSize: 15,
-    color: "#1B1B1B",
-  },
-  sub: {
-    fontFamily: FONT.MEDIUM || "Inter-Medium",
-    fontSize: 13,
-    color: "#4A4A4A",
-    marginTop: 2,
-  },
-  subLight: {
-    fontFamily: FONT.REGULAR || "Inter-Regular",
-    fontSize: 12,
-    color: "#7A7A7A",
-    marginTop: 1,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#EDEDED",
-    marginVertical: 12,
-  },
-  actionsRow: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
-  primaryBtn: {
-    flex: 1,
-    backgroundColor: "#6C63FF",
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  primaryTxt: {
-    color: "#fff",
-    fontFamily: FONT.MEDIUM || "Inter-Medium",
-    fontSize: 12,
-  },
-  secondaryBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#6C63FF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  secondaryTxt: {
-    color: "#6C63FF",
-    fontFamily: FONT.MEDIUM || "Inter-Medium",
-    fontSize: 12,
-  },
-});

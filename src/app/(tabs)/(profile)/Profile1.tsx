@@ -26,7 +26,6 @@ import Button from "../../../components/Button";
 import { useAuthStore } from "@/src/store/auth";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import { useUpdateUserProfile } from "@/src/hooks/useProfile";
-import { useUpdateVbcCard } from "@/src/hooks/useVbc";
 import { useVbcStore } from "@/src/store/vbc";
 import { uploadToCloudinary } from "@/src/api/cloudinary";
 import ErrorAlert from "@/src/components/errorAlert";
@@ -43,8 +42,6 @@ export default function SettingsScreen() {
   const vbcStore = useVbcStore((state) => state.vbcId);
   const { mutate: updateUserProfile, isPending: pendingUpdateUserProfile } =
     useUpdateUserProfile();
-  const { mutate: updateVbcCard, isPending: pendingUpdateVbcCard } =
-    useUpdateVbcCard();
 
   const [error, setError] = useState<string | null>();
   const [name, setName] = useState(profileData?.full_name || "");
@@ -173,15 +170,7 @@ export default function SettingsScreen() {
       dateOfBirth: dob?.toISOString().split("T")[0] || undefined,
     };
 
-    const vbcData = {
-      display_name: name || undefined,
-      job_title: jobTitle || undefined,
-      company_name: companies[0] || undefined,
-      location: location || undefined,
-    };
-
     console.log("vbcStore", vbcStore);
-    console.log("vbcData", vbcData);
 
     updateUserProfile(
       { userId: profileData.user_id, data: formData },
@@ -196,22 +185,6 @@ export default function SettingsScreen() {
         onError: (err) => {
           console.error("Error updating profile", err);
           setError("Failed to update profile. Please try again later.");
-        },
-      }
-    );
-
-    updateVbcCard(
-      {
-        id: vbcStore || "",
-        data: vbcData,
-      },
-      {
-        onSuccess: (res) => {
-          console.log("VBC updated successfully", JSON.stringify(res, null, 2));
-        },
-        onError: (error) => {
-          console.log("VBC update error", error);
-          setError("Failed to update VBC info. Try again.");
         },
       }
     );

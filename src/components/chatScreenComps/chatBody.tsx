@@ -1,5 +1,5 @@
 // components/ChatBody.tsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -19,10 +19,12 @@ import { ChatMessage } from "@/src/interfaces/chatInterface";
 import { useAuthStore } from "@/src/store/auth";
 import { FONT } from "@/assets/constants/fonts";
 import { VbcCard as VbcInterface } from "@/src/interfaces/vbcInterface";
-import { useGetVbcCard } from "@/src/hooks/useVbc";
+import { useGetOtherVbcCard, useGetVbcCard } from "@/src/hooks/useVbc";
 import VbcCard from "../VbcCard";
 import VbcChatCard from "./VbcChatCard";
-// import VbcCard from "../VbcCard";
+import { useWindowDimensions } from "react-native";
+import { useGetOtherUserPitch } from "@/src/hooks/usePitch";
+import { useOtherUserProfile } from "@/src/hooks/useProfile";
 
 interface ChatMsg {
   id: string;
@@ -47,6 +49,12 @@ function dateLabel(date: Date) {
     year: "numeric",
   });
 }
+
+const formatTime = (d: string | Date) =>
+  new Date(d).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 interface ChatBodyProps {
   messages: ChatMessage[];
@@ -80,9 +88,20 @@ const ChatBubble = ({
   const me = item.sender?.id === useAuthStore.getState().userId;
   const swipeableRef = useRef<SwipeableRef | null>(null);
   const bubbleRef = useRef<View>(null);
-  console.log(item);
-  const vbcId = item.vCardUserId;
-  const { data: vbcData } = useGetVbcCard(item ?? "");
+  const isVcard = item.messageType === "VCARD";
+
+  const { data: vbcData } = useGetOtherVbcCard(item.vCardUserId || "");
+  const { data: userData } = useOtherUserProfile(item.vCardUserId || "");
+
+  // 👉 merge color from vbcData into userData and expose a new field
+  const mergedUserData = useMemo(() => {
+    if (!userData) return undefined;
+    return {
+      ...userData,
+      color: vbcData?.color, // overwrite/ensure color
+      vbcColor: vbcData?.color, // <<< new field if you want it explicit
+    };
+  }, [userData, vbcData]);
 
   const handleSwipeOpen = () => {
     if (
@@ -161,7 +180,11 @@ const ChatBubble = ({
     >
       <Pressable
         ref={bubbleRef}
-        style={[styles.row, me && styles.rowEnd, isSelected && styles.onMenu]}
+        style={[
+          styles.msgRow,
+          me ? styles.msgRight : styles.msgLeft,
+          isSelected && styles.onMenu,
+        ]}
         onPress={() => {
           bubbleRef.current?.measureInWindow((x, y, width, height) => {
             setMessageprops({ x, y, w: width, h: height, isMe: me });
@@ -172,8 +195,13 @@ const ChatBubble = ({
       >
         <View
           style={[
-            styles.bubbleWrapper,
-            me ? styles.bubbleMe : styles.bubbleThem,
+            isVcard
+              ? styles.vcardWrapper
+              : [
+                  styles.bubbleWrapper,
+                  me ? styles.bubbleMe : styles.bubbleThem,
+                  me ? styles.clampRight : styles.clampLeft,
+                ],
           ]}
         >
           <View style={styles.bubbleContent}>
@@ -253,22 +281,14 @@ const ChatBubble = ({
               renderContacts()
             ) : item.messageType === "VCARD" ? (
               <VbcChatCard
-                vbc={{
-                  ...vbcData,
-                  vCardDisplayName: item.vCardDisplayName,
-                  vCardJobTitle: item.vCardJobTitle,
-                  vCardCompanyName: item.vCardCompanyName,
-                  vCardLocation: item.vCardLocation,
-                  vCardAllowSharing: item.vCardAllowSharing,
-                  vCardUserId: item.vCardUserId,
-                }}
-                onPressPrimary={() => {
-                  // navigate to full profile / VBC screen
-                  // router.push(`/vbc/${item.vCardUserId}`)
-                }}
-                onPressSecondary={() => {
-                  // trigger your share flow
-                }}
+                vbc={{ ...mergedUserData }}
+                onVideoPress={() => {}}
+                onChatPress={() => {}}
+                onBlockPress={() => {}}
+                onSharePress={() => {}}
+                viewShareButton
+                viewChatButton
+                viewBlockButton
               />
             ) : item.messageType === "DOCUMENT" && item.media?.length > 0 ? (
               <View style={{ gap: 6, maxWidth: 220 }}>
@@ -304,17 +324,14 @@ const ChatBubble = ({
             ) : (
               <Text style={styles.messageText}>{item.content}</Text>
             )}
-
-            <View style={styles.timeRow}>
-              <Text style={styles.timeText}>
-                {new Date(item.createdAt).toLocaleTimeString("en-GB", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </Text>
-            </View>
           </View>
         </View>
+
+        <Text
+          style={[styles.timeText, me ? styles.timeRight : styles.timeLeft]}
+        >
+          {formatTime(item.createdAt)}
+        </Text>
       </Pressable>
     </Swipeable>
   );
@@ -455,6 +472,27 @@ const styles = StyleSheet.create({
   dateChipText: { fontSize: 10, fontFamily: "Inter", color: "#8E8E8E" },
 
   listContent: { paddingBottom: 9 },
+  msgRow: {
+    paddingHorizontal: 8,
+    marginVertical: 4,
+    flexDirection: "column", // <- stack bubble then time
+    maxWidth: "100%",
+  },
+
+  msgRight: { alignSelf: "flex-end", alignItems: "flex-end" },
+  msgLeft: { alignSelf: "flex-start", alignItems: "flex-start" },
+
+  // keep these if you still want bubble clamp
+  clampRight: { maxWidth: "80%", marginLeft: "20%" },
+  clampLeft: { maxWidth: "80%", marginRight: "20%" },
+
+  timeText: {
+    fontSize: 10,
+    color: "#4D4D4D",
+    opacity: 0.7,
+  },
+  timeRight: { alignSelf: "flex-end", marginRight: 4, marginTop: 8 },
+  timeLeft: { alignSelf: "flex-start", marginLeft: 4, marginTop: 8 },
 
   row: { flexDirection: "row", paddingHorizontal: 8 },
   rowEnd: { justifyContent: "flex-end" },
@@ -463,11 +501,16 @@ const styles = StyleSheet.create({
     opacity: 0.3,
     paddingVertical: 2,
   },
+  vcardWrapper: {
+    padding: 0,
+    maxWidth: "100%",
+    backgroundColor: "transparent",
+  },
 
   bubbleWrapper: {
     borderRadius: 16,
     padding: 10,
-    maxWidth: 250,
+    maxWidth: "80%",
   },
   bubbleContent: {
     flexDirection: "column",
@@ -475,11 +518,9 @@ const styles = StyleSheet.create({
   },
   bubbleMe: {
     backgroundColor: "#BBCF8D",
-    alignSelf: "flex-end",
   },
   bubbleThem: {
     backgroundColor: "#E8E8E8",
-    alignSelf: "flex-start",
   },
 
   replyContainer: {
@@ -542,11 +583,4 @@ const styles = StyleSheet.create({
     color: "#000",
     fontFamily: "Inter",
   },
-
-  timeRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    marginTop: 4,
-  },
-  timeText: { fontSize: 10, color: "#4D4D4D" },
 });

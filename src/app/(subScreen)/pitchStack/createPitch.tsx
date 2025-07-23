@@ -43,7 +43,7 @@ interface Item {
   videoUrl: string | null;
 }
 
-const MAX_SIZE = 10 * 1024 * 1000; //5MB
+const MAX_SIZE = 50 * 1024 * 1000; //50MB
 
 export default function CreatePitch() {
   const router = useRouter();

@@ -11,7 +11,6 @@ import { Camera, CameraView } from "expo-camera";
 import { useVideoPlayer, VideoView } from "expo-video";
 import Entypo from "@expo/vector-icons/Entypo";
 import {
-  AntDesign,
   Feather,
   MaterialCommunityIcons,
   MaterialIcons,
@@ -22,7 +21,7 @@ import * as FileSystem from "expo-file-system";
 
 //Global Variable
 const MAX_DURATION = 30;
-const MAX_SIZE = 10 * 1024 * 1000; //10MB
+const MAX_SIZE = 50 * 1024 * 1000; //50MB
 const buttonSize = (Dimensions.get("window").width * 13) / 100;
 
 export default function RecordPitch() {
