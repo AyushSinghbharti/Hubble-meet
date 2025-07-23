@@ -31,6 +31,7 @@ const dummyData = {
     "Invite friends and peers to join HubbleMeet and grow the community",
 };
 
+
 export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [MyInviteModalVisible, setMyInviteModalVisible] = useState(false);
@@ -122,9 +123,9 @@ export default function ProfileScreen() {
         name={profileData?.full_name}
         title={profileData?.job_title}
         location={profileData?.city}
-        onVideoPress={() => {}}
-        onChatPress={() => {}}
-        onBlockPress={() => {}}
+        onVideoPress={() => { }}
+        onChatPress={() => { }}
+        onBlockPress={() => { }}
         backgroundColor="#FFE699"
         viewShareButton={true}
         viewChatButton={false}
