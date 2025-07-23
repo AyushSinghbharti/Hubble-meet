@@ -68,7 +68,7 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
         <View style={styles.card}>
           <View style={styles.imageContainer}>
             <ImageBackground
-              source={{ uri: selectedProfile.profile_picture_url }}
+              source={{ uri: selectedProfile.profile_picture_url || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s"}}
               style={styles.image}
               imageStyle={{ borderTopLeftRadius: 30, borderTopRightRadius: 30 }}
             >
