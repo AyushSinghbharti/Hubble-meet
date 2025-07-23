@@ -18,6 +18,11 @@ import Swipeable, {
 import { ChatMessage } from "@/src/interfaces/chatInterface";
 import { useAuthStore } from "@/src/store/auth";
 import { FONT } from "@/assets/constants/fonts";
+import { VbcCard as VbcInterface } from "@/src/interfaces/vbcInterface";
+import { useGetVbcCard } from "@/src/hooks/useVbc";
+import VbcCard from "../VbcCard";
+import VbcChatCard from "./VbcChatCard";
+// import VbcCard from "../VbcCard";
 
 interface ChatMsg {
   id: string;
@@ -75,6 +80,9 @@ const ChatBubble = ({
   const me = item.sender?.id === useAuthStore.getState().userId;
   const swipeableRef = useRef<SwipeableRef | null>(null);
   const bubbleRef = useRef<View>(null);
+  console.log(item);
+  const vbcId = item.vCardUserId;
+  const { data: vbcData } = useGetVbcCard(item ?? "");
 
   const handleSwipeOpen = () => {
     if (
@@ -243,6 +251,25 @@ const ChatBubble = ({
               </View>
             ) : item.messageType === "CONTACTS" ? (
               renderContacts()
+            ) : item.messageType === "VCARD" ? (
+              <VbcChatCard
+                vbc={{
+                  ...vbcData,
+                  vCardDisplayName: item.vCardDisplayName,
+                  vCardJobTitle: item.vCardJobTitle,
+                  vCardCompanyName: item.vCardCompanyName,
+                  vCardLocation: item.vCardLocation,
+                  vCardAllowSharing: item.vCardAllowSharing,
+                  vCardUserId: item.vCardUserId,
+                }}
+                onPressPrimary={() => {
+                  // navigate to full profile / VBC screen
+                  // router.push(`/vbc/${item.vCardUserId}`)
+                }}
+                onPressSecondary={() => {
+                  // trigger your share flow
+                }}
+              />
             ) : item.messageType === "DOCUMENT" && item.media?.length > 0 ? (
               <View style={{ gap: 6, maxWidth: 220 }}>
                 {item.media.map((mediaItem) => (

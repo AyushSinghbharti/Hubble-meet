@@ -39,7 +39,6 @@ const MainCardWrapper = ({
   const handleReactPitch = () => {
     if (!pitch?.id || !user?.user_id) return;
 
-    console.log(pitch.id, user.user_id);
     reactToPitch(
       { pitchId: pitch.id, userId: user.user_id },
       {

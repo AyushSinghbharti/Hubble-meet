@@ -199,7 +199,6 @@ export const useRecommendedProfiles = (userId: string, enabled = true) => {
 
   useEffect(() => {
     if (query.data) {
-      console.log(query.data);
       addRecommendationsIdBulk(query.data.recommendations);
     }
 
@@ -223,7 +222,7 @@ export const useSearchUser = (data: SearchInterface, enabled = true) => {
 
   useEffect(() => {
     if (query.data) {
-      console.log(query.data);
+
     }
 
     if (query.error) {
@@ -246,7 +245,7 @@ export const useSearchVBC = (data: SearchInterface, enabled = true) => {
 
   useEffect(() => {
     if (query.data) {
-      console.log(query.data);
+      
     }
 
     if (query.error) {

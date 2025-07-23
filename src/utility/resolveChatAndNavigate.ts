@@ -11,18 +11,35 @@ import { fetchUserProfile } from "../api/profile"; // use the direct API version
  * Otherwise, creates a new one with the given user and navigates to it.
  * Optionally sends a message after resolution.
  */
+
+export interface VbcDataProp {
+  id: string;
+  DisplayName: string;
+  Title: string;
+  CompanyName: string;
+  Location: string;
+  IsDeleted: boolean;
+  AllowSharing: boolean | null;
+}
+
+
 export const resolveChatAndNavigate = async ({
   currentUser,
   targetUser,
   isRoutingEnable = true,
   initialMessage,
+  messageType = "TEXT",
+  vbcData,
 }: {
   currentUser: UserProfile;
   targetUser: UserProfile;
   isRoutingEnable?: boolean;
   initialMessage?: string;
+  messageType?: "VCARD" | "TEXT" | "IMAGE" | "DOCUMENT";
+  vbcData?: VbcDataProp;
 }) => {
   let targetUserEmail = targetUser.email;
+  console.log("called");
 
   if (!targetUserEmail) {
     try {
@@ -36,7 +53,6 @@ export const resolveChatAndNavigate = async ({
 
   try {
     const chats: Chat[] = await getUserChats(currentUser.user_id);
-
     // Declare chat object
     let resolvedChat: Chat | undefined = chats.find((chat) => {
       if (chat.isGroup) return false;
@@ -72,9 +88,11 @@ export const resolveChatAndNavigate = async ({
     }
 
     // Send message if provided
+    //Pass intitial as a object payload noww 
     if (initialMessage && resolvedChat) {
       const payload = {
         content: initialMessage,
+        messageType: messageType,
         sender: {
           id: currentUser.user_id,
           username: currentUser.full_name,
@@ -85,7 +103,16 @@ export const resolveChatAndNavigate = async ({
           name: resolvedChat.name || "",
           isGroup: resolvedChat.isGroup,
         },
-        messageType: "TEXT",
+
+        //Passing VBC data
+        vCardData: {
+          userId: vbcData?.id || undefined,
+          displayName: vbcData?.DisplayName || undefined,
+          jobTitle: vbcData?.Title || undefined,
+          companyName: vbcData?.CompanyName || undefined,
+          location: vbcData?.Location || undefined,
+          allowSharing: vbcData?.AllowSharing || undefined,
+        },
       };
 
       try {

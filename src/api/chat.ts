@@ -100,14 +100,11 @@ export const sendMedia = async (
     };
 
     try {
-        console.log(formData);
         const response = await apiClient.post<SendMessageResponse>(
             `${CHAT_BASE}/send`,
             formData,
             config
         );
-
-        console.log("Upload success:", JSON.stringify(response.data, null, 2));
         return response.data;
     } catch (error) {
         console.error("Axios upload error:", error);
@@ -121,7 +118,7 @@ export const sendMedia = async (
 export const getChatMessages = (
     chatId: string
 ): Promise<GetChatMessagesResponse> =>
-    apiClient.get<GetChatMessagesResponse>(`${CHAT_BASE}/${chatId}`).then(res => res.data);
+    apiClient.get<GetChatMessagesResponse>(`${CHAT_BASE}/msg/${chatId}`).then(res => res.data);
 
 /**
  * Deletes a specific message by its ID

@@ -149,7 +149,7 @@ const ProfileCard = ({
   const showShareAlert = useCallback(() => {
     setShareAlertVisible(true);
   }, []);
-  const showBlockAlert = useCallback(() => {
+  const showBlockAlert = useCallback(() => {  
     setBlockAlertVisible(true);
   }, []);
   const showThumbImageAlert = useCallback(() => {
@@ -451,6 +451,7 @@ const ProfileCard = ({
       <ShareModal
         visible={shareAlertVisible}
         onClose={() => setShareAlertVisible(false)}
+        cardProfile={profile}
       />
       <BlockUserModal
         visible={blockAlertVisible}
@@ -486,7 +487,6 @@ const Connect = () => {
   useEffect(() => {
     const fetchAndStore = async () => {
       const existingIds = new Set(recommendations.map((rec) => rec.user_id));
-      console.log(existingIds);
       for (const id of recommendationsId) {
         if (id === userId || existingIds.has(id)) continue;
         try {

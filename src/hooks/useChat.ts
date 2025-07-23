@@ -58,8 +58,6 @@ export const useChatById = (chatId: string): UseQueryResult<Chat, Error> => {
     enabled: !!chatId,
   });
 
-  console.log(queryResult);
-
   useEffect(() => {
     if (queryResult.data) {
       setCurrentChat(queryResult.data);
@@ -86,7 +84,6 @@ export const useUserChats = (userId: string): UseQueryResult<Chat[], Error> => {
 
   useEffect(() => {
     if (queryResult.data) {
-      console.log(queryResult.data);
       saveChatToStorage(queryResult.data);
       setChat(queryResult.data);
     }
@@ -173,8 +170,9 @@ export const useChatMessages = (chatId: string): UseQueryResult<Chat, Error> => 
 
   useEffect(() => {
     if (queryResult.data) {
-      setMessages(queryResult.data.messages);
-      setCurrentChat(queryResult.data);
+      // setMessages(queryResult.data.messages);
+      setMessages(queryResult.data); //The interface is not updated for this
+      // setCurrentChat(queryResult?.data[0]?.chat); //The interface is not updated for this
     }
     if (queryResult.error) {
       console.error("Error fetching chat messages:", queryResult.error);
@@ -191,11 +189,10 @@ export const useDeleteMessageForMe = () => {
   return useMutation({
     mutationFn: ({ messageId, userId }: DeleteMessageRequest) => deleteMessageforme(messageId, userId),
     onSuccess: (data, variable) => {
-      console.log(data, variable);
       deleteMessageFromStore(variable.messageId);
     },
   });
-};
+};``
 
 export const useDeleteMessageForEveryone = () => {
   const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
