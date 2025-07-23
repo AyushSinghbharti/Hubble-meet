@@ -70,6 +70,7 @@ export default function StackLayout() {
   const userId = useAuthStore((s) => s.userId);
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const addRecommendationsIdBulk = useConnectionStore((s) => s.addRecommendationsIdBulk);
 
   const [loading, setLoading] = useState(true);
 
@@ -82,6 +83,10 @@ export default function StackLayout() {
   useUserConnectionVbcs({ userId: userId || "" });
   useGetUserPitch(userId || "");
   useRecommendedProfiles(userId || "");
+  useEffect(() => {
+    addRecommendationsIdBulk(dummyUserId);
+  }, []);
+  
 
   // ✅ Control logic in useEffect, not around hooks
   useEffect(() => {

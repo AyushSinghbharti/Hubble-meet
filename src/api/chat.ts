@@ -15,6 +15,7 @@ import {
     GetChatMessagesResponse,
     DeleteMessageResponse,
     SendMediaRequest,
+    DeleteMessageRequest,
 } from '../interfaces/chatInterface';
 
 const CHAT_BASE = '/api/chat';
@@ -99,14 +100,11 @@ export const sendMedia = async (
     };
 
     try {
-        console.log(formData);
         const response = await apiClient.post<SendMessageResponse>(
             `${CHAT_BASE}/send`,
             formData,
             config
         );
-
-        console.log("Upload success:", JSON.stringify(response.data, null, 2));
         return response.data;
     } catch (error) {
         console.error("Axios upload error:", error);
@@ -120,20 +118,22 @@ export const sendMedia = async (
 export const getChatMessages = (
     chatId: string
 ): Promise<GetChatMessagesResponse> =>
-    apiClient.get<GetChatMessagesResponse>(`${CHAT_BASE}/${chatId}`).then(res => res.data);
+    apiClient.get<GetChatMessagesResponse>(`${CHAT_BASE}/msg/${chatId}`).then(res => res.data);
 
 /**
  * Deletes a specific message by its ID
  */
 export const deleteMessageforme = (
-    messageId: string
+    messageId: string,
+    userId: string
 ): Promise<DeleteMessageResponse> =>
-    apiClient.delete<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}/deleteforme`).then(res => res.data);
+    apiClient.post<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}/deleteforme`, { userId }).then(res => res.data);
 
 export const deleteMessageforeveryone = (
-    messageId: string
+    messageId: string,
+    userId: string
 ): Promise<DeleteMessageResponse> =>
-    apiClient.delete<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}/deleteForEveryone`).then(res => res.data);
+    apiClient.post<DeleteMessageResponse>(`${CHAT_BASE}/${messageId}/deleteForEveryone`, { userId }).then(res => res.data);
 
 /**
  * star a specific message by its ID

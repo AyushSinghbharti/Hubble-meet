@@ -28,6 +28,7 @@ import {
   useSendMessage,
   useStarMessage,
   useUnstarMessage,
+  useChatById,
 } from "@/src/hooks/useChat";
 import { useChatStore } from "@/src/store/chatStore";
 import { ChatMessage } from "@/src/interfaces/chatInterface";
@@ -65,6 +66,7 @@ export default function ChatDetailsScreen() {
   const userId = useAuthStore((state) => state.userId);
   const updatedMessages = useChatStore((state) => state.messages);
   const starredMessages = useChatStore((state) => state.starredMessages);
+  const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
 
   //Mutations
   const { mutate: sendMessage } = useSendMessage();
@@ -80,10 +82,6 @@ export default function ChatDetailsScreen() {
     setMessages(updatedMessages);
   }, [updatedMessages]);
 
-  useEffect(() => {
-    console.log(media);
-  }, [media]);
-
   //Update last seen
   const { setLastViewed } = useChatStore();
   useEffect(() => {
@@ -93,6 +91,7 @@ export default function ChatDetailsScreen() {
   }, [id]);
 
   //Fetching all messages
+  useChatById(id);
   useChatMessages(id);
 
   const onPressSendMessage = (content: string) => {
@@ -147,9 +146,7 @@ export default function ChatDetailsScreen() {
     };
 
     sendMessage(sendMessagePayload, {
-      onSuccess: (res) => {
-        console.log(JSON.stringify(res, null, 4));
-      },
+      onSuccess: (res) => {},
       onError: (error) => {
         console.error("Failed to send message", error);
         setError("Failed to send message");
@@ -159,7 +156,6 @@ export default function ChatDetailsScreen() {
   };
 
   const handleSendMedia = () => {
-    console.log(caption);
     if (!media || media.length === 0 || !currentChat || !user) return;
 
     // Determine message type
@@ -272,13 +268,13 @@ export default function ChatDetailsScreen() {
   }) => {
     if (!messageId) return;
 
-    console.log(messageId, deleteType);
     if (deleteType === "me")
       deleteMessageforme(
-        { messageId: messageId },
+        { messageId: messageId, userId: userId },
         {
           onSuccess: () => {
             console.log("Message deleted for me successfully:", messageId);
+            deleteMessageFromStore(messageId);
           },
           onError: (error) => {
             console.error("Failed to delete message for me", error);
@@ -287,13 +283,14 @@ export default function ChatDetailsScreen() {
       );
     else {
       deleteMessageforeveryone(
-        { messageId: messageId },
+        { messageId: messageId, userId: userId },
         {
           onSuccess: () => {
             console.log(
               "Message deleted for everyone successfully:",
               messageId
             );
+            deleteMessageFromStore(messageId);
           },
           onError: (error) => {
             console.error("Failed to delete message for everyone:", error);
@@ -491,7 +488,6 @@ export default function ChatDetailsScreen() {
             <ChatBody
               messages={messages}
               onReply={handleReply}
-
               onStar={handleStarMessage}
               onCancelReply={onCancelReply}
               onDelete={(messageId, deleteType) =>

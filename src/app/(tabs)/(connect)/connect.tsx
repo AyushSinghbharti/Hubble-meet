@@ -363,8 +363,9 @@ const ProfileCard = ({
               <TouchableOpacity
                 onPress={handleShareButtonPress}
                 activeOpacity={0.7}
-                accessibilityLabel={`Share ${profile?.full_name || "user"
-                  }'s profile`}
+                accessibilityLabel={`Share ${
+                  profile?.full_name || "user"
+                }'s profile`}
                 accessibilityRole="button"
               >
                 <Animated.View style={[styles.actionButton, buttonStyle]}>
@@ -509,6 +510,7 @@ const ProfileCard = ({
       <ShareModal
         visible={shareAlertVisible}
         onClose={() => setShareAlertVisible(false)}
+        cardProfile={profile}
       />
       <BlockUserModal
         visible={blockAlertVisible}
@@ -580,7 +582,6 @@ const Connect = () => {
   useEffect(() => {
     const fetchAndStore = async () => {
       const existingIds = new Set(recommendations.map((rec) => rec.user_id));
-      console.log(existingIds);
       for (const id of recommendationsId) {
         if (id === userId || existingIds.has(id)) continue;
         try {
@@ -712,7 +713,7 @@ const Connect = () => {
   return (
     <View style={styles.container}>
       {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
-      <Header logoSource={logo} onSearch={() => { }} />
+      <Header logoSource={logo} onSearch={() => {}} />
       <FlatList
         data={visibleProfileData}
         renderItem={renderItem}

@@ -104,6 +104,7 @@ export interface RemoveUserFromChatRequest {
 
 export interface DeleteMessageRequest {
   messageId: string;
+  userId: string;
 }
 
 /* ---------- Convenience response aliases ---------- */

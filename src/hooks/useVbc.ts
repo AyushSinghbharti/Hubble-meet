@@ -26,6 +26,25 @@ export const useGetVbcCard = (id: string) => {
     return queryResult;
 };
 
+//Get other VBC card
+export const useGetOtherVbcCard = (id: string) => {
+    const setVbcId = useVbcStore((state) => state.setVbcId);
+    const setVbc = useVbcStore((state) => state.setVbc);
+
+    const queryResult = useQuery<VbcCard, Error>({
+        queryKey: ['vbc-card', id],
+        queryFn: () => getVbcCard(id),
+        enabled: !!id,
+        retry: 1,
+        refetchInterval: 10000,
+    });
+
+    if (queryResult.data) {
+        
+    }
+    return queryResult;
+};
+
 // Create VBC Card
 export const useCreateVbcCard = () => {
     const setVbcId = useVbcStore((state) => state.setVbcId);

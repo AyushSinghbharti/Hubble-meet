@@ -23,7 +23,7 @@ import { resolveChatAndNavigate } from '@/src/utility/resolveChatAndNavigate';
 
 const INVITE_LINK = `http://com.hubblemeet/`;
 
-const ShareModal = ({ visible, onClose }) => {
+const ShareModal = ({ visible, onClose, cardProfile }) => {
   const [search, setSearch] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [requestSentVisible, setRequestSentVisible] = useState(false);
@@ -44,10 +44,20 @@ const ShareModal = ({ visible, onClose }) => {
 
     for (const target of selectedUsers) {
       await resolveChatAndNavigate({
+        initialMessage: `This is a VBC Card of ${cardProfile.full_name}`,
+        messageType: 'VCARD',
         currentUser: user,
         targetUser: target,
         isRoutingEnable: false,
-        initialMessage: `Hey! Check this amazing app: ${INVITE_LINK}/${user.user_id}`
+        vbcData: {
+          id: cardProfile?.user_id,
+          DisplayName: cardProfile?.full_name,
+          Title: cardProfile?.job_title,
+          CompanyName: cardProfile?.current_company?.[0] || "",
+          Location: cardProfile?.city,
+          IsDeleted: cardProfile.is_active,
+          AllowSharing: cardProfile?.allow_vbc_sharing ,
+        }
       });
     }
 

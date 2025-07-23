@@ -94,19 +94,21 @@ export default function ChatScreen() {
     let lastMessageText = "No messages yet";
 
     if (lastMsg) {
-      if (lastMsg.content) {
+      if (lastMsg.content && lastMsg.messageType !== "CONTACTS") {
         lastMessageText = lastMsg.content;
       } else if (lastMsg.messageType === "IMAGE") {
         lastMessageText = "📷 Photo";
       } else if (lastMsg.messageType === "VIDEO") {
         lastMessageText = "🎥 Video";
+      } else if (lastMsg.messageType === "VCARD") {
+        lastMessageText = "📇 VCard shared";
+      } else if (lastMsg.messageType === "CONTACTS") {
+        lastMessageText = "📞 Contact shared";
       } else if (
         lastMsg.messageType === "DOCUMENT" ||
         lastMsg.messageType === "FILE"
       ) {
         lastMessageText = "📄 Document";
-      } else if (lastMsg.messageType === "VCARD") {
-        lastMessageText = "🔖 VCard shared";
       } else {
         lastMessageText = "New message";
       }

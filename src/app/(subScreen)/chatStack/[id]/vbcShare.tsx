@@ -42,7 +42,6 @@ export default function ShareVBCScreen({
 
   const handleShare = (vbc: VbcCard) => {
     if (!user || !chatId) return;
-    console.log(JSON.stringify(vbc, null, 2));
     sendMessage(
       {
         content: "This is VBC",
