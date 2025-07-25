@@ -40,11 +40,11 @@ export const useUserProfile = (userId: string): UseQueryResult<UserProfile, Erro
 };
 
 //Get Other User Info (Rather than us)
-export const useOtherUserProfile = (userId: string): UseQueryResult<UserProfile, Error> => {
+export const useOtherUserProfile = (userId: string, enable: boolean = true): UseQueryResult<UserProfile, Error> => {
   const queryResult = useQuery<UserProfile, Error, UserProfile, [string, string]>({
     queryKey: ['other-user-profile', userId],
     queryFn: () => fetchUserProfile(userId),
-    enabled: !!userId,
+    enabled: enable && !!userId,
   });
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import { UserProfile } from "../interfaces/profileInterface";
 import ErrorAlert from "./errorAlert";
+import { useOtherUserProfile } from "../hooks/useProfile";
 
 const aspectRatio = 3 / 4;
 
@@ -29,6 +30,8 @@ const ProfileViewer = ({
   setError: any;
 }) => {
   const scrollY = React.useRef(new Animated.Value(0)).current;
+  const userProfile = useOtherUserProfile(item.user_id);
+  const profile = userProfile.data || item;
 
   return (
     <View style={styles.root}>
@@ -37,7 +40,7 @@ const ProfileViewer = ({
       {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
 
       <Image
-        source={{ uri: item.profile_picture_url }}
+        source={{ uri: profile.profile_picture_url }}
         style={[
           styles.backgroundImage,
           { aspectRatio, flex: 1, width: "100%" },
@@ -61,7 +64,7 @@ const ProfileViewer = ({
       {/* Top Icons: Connect & Close */}
       <View style={styles.topIcons}>
         <TouchableOpacity
-          onPress={() => onAddPress(item.user_id)}
+          onPress={() => onAddPress(profile.user_id)}
           style={styles.iconBtn}
         >
           <MaterialIcons name="person-add" size={24} color="#fff" />
@@ -97,17 +100,17 @@ const ProfileViewer = ({
         >
           {/* HEADER */}
           <View style={styles.headerTextBlock}>
-            <Text style={styles.name}>{item.full_name}</Text>
-            <Text style={styles.position}>{item.job_title || ""}</Text>
-            <Text style={styles.location}>{item.city || ""}</Text>
+            <Text style={styles.name}>{profile.full_name}</Text>
+            <Text style={styles.position}>{profile.job_title || ""}</Text>
+            <Text style={styles.location}>{profile.city || ""}</Text>
           </View>
 
           <Text style={styles.sectionTitle}>About</Text>
-          <Text style={styles.paragraph}>{item.bio}</Text>
+          <Text style={styles.paragraph}>{profile.bio}</Text>
 
           <Text style={styles.sectionTitle}>Industries work</Text>
           <View style={styles.chipRow}>
-            {item.current_industry?.map((chip) => (
+            {profile.current_industry?.map((chip) => (
               <View key={chip} style={styles.chip}>
                 <Text style={styles.chipText}>{chip}</Text>
               </View>
@@ -116,7 +119,7 @@ const ProfileViewer = ({
 
           <Text style={styles.sectionTitle}>Area of Interest</Text>
           <View style={styles.chipRow}>
-            {item.industries_of_interest?.map((chip) => (
+            {profile.industries_of_interest?.map((chip) => (
               <View key={chip} style={styles.chip}>
                 <Text style={styles.chipText}>{chip}</Text>
               </View>

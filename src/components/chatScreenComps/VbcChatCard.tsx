@@ -8,10 +8,16 @@ import {
   useWindowDimensions,
   Share,
   Pressable,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { FONT } from "@/assets/constants/fonts";
 import { VbcCard as VbcInterface } from "@/src/interfaces/vbcInterface";
+import { getStableColor } from "@/src/utility/getStableColor";
+import { usePitchStore } from "@/src/store/pitchStore";
+import { useRouter } from "expo-router";
+import { useOtherUserProfile } from "@/src/hooks/useProfile";
+import { lightenColor } from "@/utils/lightenColor";
 
 type Props = {
   vbc: Partial<VbcInterface> & {
@@ -89,9 +95,13 @@ const VbcChatCard: React.FC<Props> = ({
     vbc.vCardCompanyName || vbc.companyName || (vbc as any).company_name || "";
   const location = vbc.vCardLocation || vbc.location || (vbc as any).city || "";
   const avatar = vbc.avatarUrl || vbc.profile_picture_url || null;
-  const bgColor = backgroundColor || vbc.color || "#FFE699";
+  const bgColor =
+    backgroundColor || vbc.color || getStableColor(vbc.user_id || "");
 
   const showActions = viewShareButton || viewChatButton || viewBlockButton;
+
+  const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
+  const router = useRouter();
 
   // ---- responsive sizing (chat bubble width) ----
   const { width } = useWindowDimensions();
@@ -102,8 +112,8 @@ const VbcChatCard: React.FC<Props> = ({
   const ACTION = compact ? 30 : 36;
   const ICON = ACTION * 0.6;
 
-  const handleProfilePress = (user: any) => {
-    setCurrentPitchUser(user);
+  const handleProfilePress = async () => {
+    setCurrentPitchUser(vbc);
     router.push("/connect");
   };
 
@@ -173,7 +183,7 @@ const VbcChatCard: React.FC<Props> = ({
           width: ACTION,
           height: ACTION,
           borderRadius: 99,
-          backgroundColor: "#FFF0C3",
+          backgroundColor: lightenColor(bgColor, 50) || "#FFF0C3",
           justifyContent: "center",
           alignItems: "center",
           marginRight: 10,
@@ -183,7 +193,7 @@ const VbcChatCard: React.FC<Props> = ({
   );
 
   return (
-    <Pressable style={[s.card, style]}>
+    <Pressable style={[s.card, style]} onPress={handleProfilePress}>
       <Image
         source={avatar ? { uri: avatar } : FALLBACK_AVATAR}
         style={s.avatar}

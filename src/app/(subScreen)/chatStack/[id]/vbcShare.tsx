@@ -16,6 +16,7 @@ import { useSendMessage } from "@/src/hooks/useChat";
 import { Chat } from "@/src/interfaces/chatInterface";
 import { VbcCard } from "@/src/interfaces/vbcInterface";
 import ProfileCard from "@/src/components/profileSetupComps/profileCard";
+import { getStableColor } from "@/src/utility/getStableColor";
 
 type Props = {
   visible: boolean;
@@ -98,7 +99,7 @@ export default function ShareVBCScreen({
             </View>
           ) : (
             <FlatList
-              data={vbcCards}
+              data={vbcCards.filter((vbc) => vbc.connection_status === "CONNECTED")}
               keyExtractor={(i) => i.id}
               contentContainerStyle={{ paddingBottom: 32 }}
               renderItem={({ item }) => (
@@ -110,7 +111,7 @@ export default function ShareVBCScreen({
                   <ProfileCard
                     avatar={item.profile_picture_url}
                     name={item.full_name}
-                    backgroundColor={item.color}
+                    backgroundColor={item.color || getStableColor(item.user_id || "")}
                     title={item.job_title}
                     location={item.cities_on_radar[0]}
                     viewShareButton={false}
