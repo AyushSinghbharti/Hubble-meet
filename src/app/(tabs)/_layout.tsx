@@ -83,10 +83,9 @@ export default function StackLayout() {
   useUserConnectionVbcs({ userId: userId || "" });
   useGetUserPitch(userId || "");
   useRecommendedProfiles(userId || "");
-  useEffect(() => {
-    addRecommendationsIdBulk(dummyUserId);
-  }, []);
-  
+  // useEffect(() => {
+  //   addRecommendationsIdBulk(dummyUserId);
+  // }, []);
 
   // ✅ Control logic in useEffect, not around hooks
   useEffect(() => {

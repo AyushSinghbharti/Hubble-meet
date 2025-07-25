@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import auth from "@react-native-firebase/auth";
 import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 /**
  * Shape returned by the hook & sent to `/api/auth/social-login`.
@@ -26,6 +27,7 @@ interface UseSocialAuthReturn {
     loading: boolean;
     error: unknown;
     signInWithGoogle: () => Promise<SocialUserPayload | null>;
+    signInWithApple: () => Promise<SocialUserPayload | null>;
     signOut: () => Promise<void>;
 }
 
@@ -75,6 +77,64 @@ export function useSocialAuth(): UseSocialAuthReturn {
         }
     }, []);
 
+    const signInWithApple = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const isAvailable = await AppleAuthentication.isAvailableAsync();
+            if (!isAvailable) {
+                throw new Error("Apple Sign-In is not available on this device");
+            }
+
+            const appleAuthRequest = await AppleAuthentication.signInAsync({
+                requestedScopes: [
+                    AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+                    AppleAuthentication.AppleAuthenticationScope.EMAIL,
+                ],
+            });
+
+            console.log("Apple Sign-In Success:", JSON.stringify(appleAuthRequest, null, 2));
+
+            const { identityToken, email, fullName, user: appleUserId } = appleAuthRequest;
+
+            if (!identityToken) {
+                throw new Error("Apple Sign-In returned no identityToken");
+            }
+
+            const credential = auth.AppleAuthProvider.credential(identityToken);
+            const firebaseUser = (await auth().signInWithCredential(credential)).user;
+
+            return {
+                providerId: "apple" as const,
+                data: appleAuthRequest,
+                email: firebaseUser.email ?? email ?? "",
+                phoneNumber: firebaseUser.phoneNumber,
+                displayName:
+                    firebaseUser.displayName ??
+                    `${fullName?.givenName ?? ""} ${fullName?.familyName ?? ""}`.trim(),
+                photoURL: firebaseUser.photoURL,
+                idToken: identityToken,
+                user: {
+                    photo: firebaseUser.photoURL ?? "",
+                    name:
+                        firebaseUser.displayName ??
+                        `${fullName?.givenName ?? ""} ${fullName?.familyName ?? ""}`.trim(),
+                    id: firebaseUser.uid,
+                    email: firebaseUser.email ?? email ?? "",
+                },
+            } satisfies SocialUserPayload;
+        } catch (e: any) {
+            console.error("Apple Sign-In Error:", e);
+            if (e.code === "ERR_CANCELED") return null;
+            setError(e);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+
     const signOut = useCallback(async () => {
         try {
             setLoading(true);
@@ -89,6 +149,7 @@ export function useSocialAuth(): UseSocialAuthReturn {
         loading,
         error,
         signInWithGoogle,
+        signInWithApple,
         signOut,
     };
 }

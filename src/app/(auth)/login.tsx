@@ -67,7 +67,7 @@ export default function Login() {
   const { mutate: login, isPending } = useLogin();
   const { mutate: socialLogin } = useSocialLogin();
 
-  const { signInWithGoogle, loading } = useSocialAuth();
+  const { signInWithGoogle, signInWithApple, loading } = useSocialAuth();
   const [userId, setUserId] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<SocialUserPayload | null>(
     null
@@ -117,7 +117,6 @@ export default function Login() {
     setUserId(null);
     const payload = await signInWithGoogle();
     const currentUser = payload;
-    console.log("payload", JSON.stringify(payload, null, 4));
 
     socialLogin(
       {
@@ -132,6 +131,58 @@ export default function Login() {
         },
         onError: (err: any) => {
           console.log(err);
+          setError(
+            err?.response?.data?.message || "Login failed. Please try again"
+          );
+        },
+      }
+    );
+  };
+
+  const handleAppleButtonPress = async () => {
+    setUserId(null);
+
+    let payload: SocialUserPayload | null = null;
+
+    try {
+      payload = await signInWithApple();
+    } catch (err: any) {
+      console.error("Apple Sign-In Error:", err);
+
+      if (
+        err?.message?.includes("not available") ||
+        err?.message?.includes("Apple Sign-In is not available")
+      ) {
+        setError("Apple Sign-In is not supported on this device.");
+      } else if (err?.code === "ERR_CANCELED") {
+        setError("Apple Sign-In was cancelled.");
+      } else {
+        setError("Apple Sign-In failed. Please try again.");
+      }
+      return;
+    }
+
+    if (!payload) {
+      setError("Apple Sign-In was cancelled.");
+      return;
+    }
+
+    const currentUser = payload;
+    console.log("Apple payload", JSON.stringify(payload, null, 4));
+
+    socialLogin(
+      {
+        provider: "apple",
+        providerId: payload?.data?.user ?? "", // Apple returns `user` string ID
+        email: payload?.email ?? "",
+      },
+      {
+        onSuccess: async (res) => {
+          setUserId(res.user.id);
+          setUserProfile(currentUser);
+        },
+        onError: (err: any) => {
+          console.log("Apple login error:", err);
           setError(
             err?.response?.data?.message || "Login failed. Please try again"
           );
@@ -272,7 +323,7 @@ export default function Login() {
 
       <View style={styles.socialContainer}>
         <IconButton image={GOOGLE_ICON} onPress={handleGoogleButtonPress} />
-        <IconButton>
+        <IconButton onPress={handleAppleButtonPress}>
           <FontAwesome name="apple" size={24} color="black" />
         </IconButton>
         <IconButton image={FACEBOOK_ICON} />

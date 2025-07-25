@@ -39,7 +39,6 @@ export const resolveChatAndNavigate = async ({
   vbcData?: VbcDataProp;
 }) => {
   let targetUserEmail = targetUser.email;
-  console.log("called");
 
   if (!targetUserEmail) {
     try {

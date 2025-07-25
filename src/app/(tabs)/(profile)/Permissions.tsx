@@ -4,36 +4,17 @@ import {
   View,
   Text,
   ScrollView,
-  TextInput,
   StyleSheet,
-  TouchableOpacity,
   Platform,
   Switch,
-  Modal,
 } from "react-native";
 
-import { Ionicons } from "@expo/vector-icons";
-import DropDownPicker from "react-native-dropdown-picker";
 import NavHeader from "../../../components/NavHeader";
 import Button from "../../../components/Button";
 import requestAndSavePermission from "@/utils/requestAndSavePermission";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SettingsScreen() {
-  const [bio, setBio] = useState("");
-  const [companies, setCompanies] = useState(["Google", "Amazon"]);
-  const [industries, setIndustries] = useState(["Tech", "Finance"]);
-  const [interests, setInterests] = useState(["Fintech", "Hospitality"]);
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
-  const [items, setItems] = useState([
-    { label: "Google", value: "Google" },
-    { label: "Amazon", value: "Amazon" },
-    { label: "Apple", value: "Apple" },
-    { label: "Netflix", value: "Netflix" },
-    { label: "Meta", value: "Meta" },
-  ]);
-  const [modalVisible, setModalVisible] = useState(false);
   const [toggles, setToggles] = useState({
     shareVBC: false,
     accessContacts: true,

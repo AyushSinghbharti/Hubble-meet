@@ -77,7 +77,6 @@ const VbcChatCard: React.FC<Props> = ({
   style,
 }) => {
   // ---- resolve fields ----
-  console.log("VbcChatCard props:", JSON.stringify(vbc, null, 4));
   const name =
     vbc.vCardDisplayName || vbc.full_name || (vbc as any).display_name || "Unknown";
   const title =

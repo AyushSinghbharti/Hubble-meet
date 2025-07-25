@@ -180,11 +180,12 @@ const ChatBubble = ({
     >
       <Pressable
         ref={bubbleRef}
-        style={[
-          styles.msgRow,
-          me ? styles.msgRight : styles.msgLeft,
-          isSelected && styles.onMenu,
-        ]}
+        // style={[
+        //   styles.msgRow,
+        //   me ? styles.msgRight : styles.msgLeft,
+        //   isSelected && styles.onMenu,
+        // ]}
+        style={[styles.row, me && styles.rowEnd, isSelected && styles.onMenu]}
         onPress={() => {
           bubbleRef.current?.measureInWindow((x, y, width, height) => {
             setMessageprops({ x, y, w: width, h: height, isMe: me });
@@ -200,7 +201,6 @@ const ChatBubble = ({
               : [
                   styles.bubbleWrapper,
                   me ? styles.bubbleMe : styles.bubbleThem,
-                  me ? styles.clampRight : styles.clampLeft,
                 ],
           ]}
         >
@@ -325,13 +325,10 @@ const ChatBubble = ({
               <Text style={styles.messageText}>{item.content}</Text>
             )}
           </View>
+          <View style={[styles.timeRow, {alignSelf: me ? "flex-end" : "flex-start"}]}>
+            <Text style={styles.timeText}>{formatTime(item.createdAt)}</Text>
+          </View>
         </View>
-
-        <Text
-          style={[styles.timeText, me ? styles.timeRight : styles.timeLeft]}
-        >
-          {formatTime(item.createdAt)}
-        </Text>
       </Pressable>
     </Swipeable>
   );
@@ -471,59 +468,42 @@ const styles = StyleSheet.create({
   },
   dateChipText: { fontSize: 10, fontFamily: "Inter", color: "#8E8E8E" },
 
+  /* List content spacing */
   listContent: { paddingBottom: 9 },
-  msgRow: {
-    paddingHorizontal: 8,
-    marginVertical: 4,
-    flexDirection: "column", // <- stack bubble then time
-    maxWidth: "100%",
-  },
 
-  msgRight: { alignSelf: "flex-end", alignItems: "flex-end" },
-  msgLeft: { alignSelf: "flex-start", alignItems: "flex-start" },
-
-  // keep these if you still want bubble clamp
-  clampRight: { maxWidth: "80%", marginLeft: "20%" },
-  clampLeft: { maxWidth: "80%", marginRight: "20%" },
-
-  timeText: {
-    fontSize: 10,
-    color: "#4D4D4D",
-    opacity: 0.7,
-  },
-  timeRight: { alignSelf: "flex-end", marginRight: 4, marginTop: 8 },
-  timeLeft: { alignSelf: "flex-start", marginLeft: 4, marginTop: 8 },
-
+  /* Message rows */
   row: { flexDirection: "row", paddingHorizontal: 8 },
   rowEnd: { justifyContent: "flex-end" },
   onMenu: {
     backgroundColor: "#000",
-    opacity: 0.3,
+    opacity: 0.5,
     paddingVertical: 2,
   },
-  vcardWrapper: {
-    padding: 0,
-    maxWidth: "100%",
-    backgroundColor: "transparent",
-  },
-
+  /* Bubbles */
   bubbleWrapper: {
     borderRadius: 16,
     padding: 10,
-    maxWidth: "80%",
+    maxWidth: 250,
   },
+
   bubbleContent: {
     flexDirection: "column",
     gap: 8,
   },
+
   bubbleMe: {
     backgroundColor: "#BBCF8D",
+    alignSelf: "flex-end",
   },
+
   bubbleThem: {
     backgroundColor: "#E8E8E8",
+    alignSelf: "flex-start",
   },
 
   replyContainer: {
+    // flexDirection: "row",
+    // alignItems: "flex-start", // fixes text wrap alignment
     backgroundColor: "#e2e2e2",
     borderLeftWidth: 3,
     borderLeftColor: "#007AFF",
@@ -531,14 +511,16 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
     gap: 8,
-    maxWidth: "100%",
+    maxWidth: "100%", // prevents overflow and allows wrapping
     flexShrink: 1,
   },
+
   replyStrip: {
     width: 3,
     backgroundColor: "#007AFF",
     borderRadius: 2,
   },
+
   replySender: {
     fontSize: 12,
     fontWeight: "600",
@@ -561,10 +543,27 @@ const styles = StyleSheet.create({
   contactActions: { flexDirection: "row", gap: 12 },
   contactActionText: { color: "#007AFF", fontSize: 12 },
 
-  replyText: { fontSize: 12, color: "#444" },
-  replyDocRow: { flexDirection: "row", alignItems: "center" },
-  replyDocText: { fontSize: 12, color: "#444", flexShrink: 1 },
-  replyThumbnail: { width: 50, height: 50, borderRadius: 6 },
+  replyText: {
+    fontSize: 12,
+    color: "#444",
+  },
+
+  replyDocRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  replyDocText: {
+    fontSize: 12,
+    color: "#444",
+    flexShrink: 1,
+  },
+
+  replyThumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 6,
+  },
 
   bubble: {
     gap: 10,
@@ -583,4 +582,11 @@ const styles = StyleSheet.create({
     color: "#000",
     fontFamily: "Inter",
   },
+
+  timeRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 4
+  },
+  timeText: { fontSize: 10, color: "#4D4D4D" },
 });

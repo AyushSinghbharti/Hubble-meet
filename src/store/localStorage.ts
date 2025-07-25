@@ -16,6 +16,7 @@ const keys = {
   chat: "@chat",
   connections: "@connections",
   connectionVbcs: "@connectionsvbcs",
+  setting: "@setting",
 };
 
 // ---------- Token ----------

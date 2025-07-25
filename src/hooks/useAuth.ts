@@ -9,7 +9,6 @@ export const useSignup = () => {
   return useMutation({
     mutationFn: signup,
     onSuccess: async (data) => {
-      console.log(data);
     },
   });
 };
@@ -32,7 +31,6 @@ export const useVerifyOTP = () => {
         saveUserIdToStorage(user.id);
         setToken(token);
       }
-      console.log(data);
     },
   });
 };
@@ -71,7 +69,6 @@ export const useSocialLogin = () => {
         saveUserIdToStorage(data.user.id);
         setUserId(data.user.id);
       }
-      console.log(data);
     },
   });
 };

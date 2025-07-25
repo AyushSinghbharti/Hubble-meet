@@ -20,6 +20,7 @@ import { useQueries } from "@tanstack/react-query";
 import { Pitch } from "@/src/interfaces/pitchInterface";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import { FONT } from "@/assets/constants/fonts";
+import PitchScreenLoader from "@/src/components/skeletons/pitchCard";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const TAB_BAR_HEIGHT = 100;
@@ -178,13 +179,8 @@ export default function PitchScreen() {
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={() => {
               return (
-                <View style={styles.cardWrapper}>
-                  <Text style={{ fontFamily: FONT.SEMIBOLD, fontSize: 16 }}>
-                    No relavant pitch found for you!!!
-                  </Text>
-                  <Text style={{ fontFamily: FONT.ITALICMEDIUM, fontSize: 12 }}>
-                    Please try again later
-                  </Text>
+                <View style={{flex: 1, justifyContent: "center"}}>
+                  <PitchScreenLoader />
                 </View>
               );
             }}
