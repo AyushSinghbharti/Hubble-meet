@@ -14,6 +14,7 @@ interface ChatStore {
   setMessages: (msgs: ChatMessage[]) => void;
   addMessage: (msg: ChatMessage) => void;
   deleteMessage: (msgId: string) => void;
+  clearMessages: () => void;
 
   isChatOpen: boolean;
   setIsChatOpen: (val: boolean) => void;
@@ -52,6 +53,7 @@ export const useChatStore = create<ChatStore>((set) => ({
     set((state) => ({
       messages: state.messages.filter((msg) => msg.id !== msgId),
     })),
+  clearMessages: () => set({ messages: [] }),
 
   isChatOpen: false,
   setIsChatOpen: (val) => set({ isChatOpen: val }),

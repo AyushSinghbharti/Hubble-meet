@@ -32,6 +32,7 @@ export interface ChatPreview {
   id: string;
   name: string;
   isGroup: boolean;
+  participants: ChatUser[],
   createdAt?: string;
   updatedAt?: string;
 }
@@ -71,6 +72,12 @@ export interface CreateChatRequest {
   users: Pick<ChatUser, "id" | "username" | "email">[];
   /** Optional display name; ignored for 1-to-1 chats */
   name?: string;
+}
+
+export interface GetAllChatMessageRequestPayload {
+  userId: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface SendMessageRequest {

@@ -24,6 +24,7 @@ import {
   Chat,
   ChatMessage,
   SendMediaRequest,
+  GetAllChatMessageRequestPayload,
 } from '../interfaces/chatInterface';
 import {
   saveChatToStorage
@@ -95,6 +96,30 @@ export const useUserChats = (userId: string): UseQueryResult<Chat[], Error> => {
   return queryResult;
 };
 
+/* ---------- Get all chat messages ---------- */
+export const useChatMessages = (chatId: string, data: GetAllChatMessageRequestPayload): UseQueryResult<Chat, Error> => {
+  const setMessages = useChatStore((state) => state.setMessages);
+  const setCurrentChat = useChatStore((state) => state.setCurrentChat);
+
+  const queryResult = useQuery<ChatMessage[], Error, Chat, [string, string]>({
+    queryKey: ['messages', chatId],
+    queryFn: () => getChatMessages(chatId, data),
+    enabled: !!chatId,
+    refetchInterval: 10,
+  });
+
+  useEffect(() => {
+    if (queryResult.data) {
+      setMessages(queryResult.data); //The interface is not updated for this
+    }
+    if (queryResult.error) {
+      console.error("Error fetching chat messages:", queryResult.error);
+    }
+  }, [queryResult.data, queryResult.error]);
+
+  return queryResult;
+};
+
 /* ---------- Add user to chat ---------- */
 export const useAddUserToChat = () => {
   const setCurrentChat = useChatStore((state) => state.setCurrentChat);
@@ -156,32 +181,6 @@ export const useSendMediaMessage = () => {
   });
 };
 
-/* ---------- Get chat messages ---------- */
-export const useChatMessages = (chatId: string): UseQueryResult<Chat, Error> => {
-  const setMessages = useChatStore((state) => state.setMessages);
-  const setCurrentChat = useChatStore((state) => state.setCurrentChat);
-
-  const queryResult = useQuery<ChatMessage[], Error, Chat, [string, string]>({
-    queryKey: ['messages', chatId],
-    queryFn: () => getChatMessages(chatId),
-    enabled: !!chatId,
-    refetchInterval: 10,
-  });
-
-  useEffect(() => {
-    if (queryResult.data) {
-      // setMessages(queryResult.data.messages);
-      setMessages(queryResult.data); //The interface is not updated for this
-      // setCurrentChat(queryResult?.data[0]?.chat); //The interface is not updated for this
-    }
-    if (queryResult.error) {
-      console.error("Error fetching chat messages:", queryResult.error);
-    }
-  }, [queryResult.data, queryResult.error]);
-
-  return queryResult;
-};
-
 /* ---------- Delete a message ---------- */
 export const useDeleteMessageForMe = () => {
   const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
@@ -192,7 +191,7 @@ export const useDeleteMessageForMe = () => {
       deleteMessageFromStore(variable.messageId);
     },
   });
-};``
+}; ``
 
 export const useDeleteMessageForEveryone = () => {
   const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);

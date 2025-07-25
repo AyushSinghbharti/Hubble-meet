@@ -67,6 +67,7 @@ export default function ChatDetailsScreen() {
   const updatedMessages = useChatStore((state) => state.messages);
   const starredMessages = useChatStore((state) => state.starredMessages);
   const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
+  const clearMessages = useChatStore((state) => state.clearMessages);
 
   //Mutations
   const { mutate: sendMessage } = useSendMessage();
@@ -77,6 +78,11 @@ export default function ChatDetailsScreen() {
   const { mutate: star } = useStarMessage();
   const { mutate: unstar } = useUnstarMessage();
   const { mutate: clearChatMutation } = useClearChat();
+
+  // Clear on chat id change BEFORE useChatMessages runs
+  useEffect(() => {
+    clearMessages(); // 🔥 Important
+  }, [id]);
 
   useEffect(() => {
     setMessages(updatedMessages);
@@ -92,7 +98,7 @@ export default function ChatDetailsScreen() {
 
   //Fetching all messages
   useChatById(id);
-  useChatMessages(id);
+  useChatMessages(id, { userId: userId, page: 1, limit: 50 });
 
   const onPressSendMessage = (content: string) => {
     if (!content) return;
@@ -140,12 +146,16 @@ export default function ChatDetailsScreen() {
         id: currentChat?.id,
         name: currentChat?.name || "",
         isGroup: currentChat?.isGroup,
+        participants: [],
       },
       messageType: "TEXT",
       parentMessageId: selectedMessage?.id,
     };
 
-    console.log("send message payload", JSON.stringify(sendMessagePayload, null, 4));
+    console.log(
+      "send message payload",
+      JSON.stringify(sendMessagePayload, null, 4)
+    );
 
     sendMessage(sendMessagePayload, {
       onSuccess: (res) => {},
