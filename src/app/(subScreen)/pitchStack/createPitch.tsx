@@ -93,7 +93,6 @@ export default function CreatePitch() {
         result.assets[0].fileSize !== undefined &&
         result.assets[0].fileSize >= MAX_SIZE
       ) {
-        console.log(result.assets[0].fileSize);
         setStatus("error");
         setError("Media size is larger than limit");
       } else {
@@ -132,7 +131,6 @@ export default function CreatePitch() {
 
     if (media) {
       const size = await FileSystem.getInfoAsync(media);
-      console.log(size.size / MAX_SIZE);
       if (size.exists && size.size && size.size > MAX_SIZE) {
         setError("Video too large, Please select another");
         setStatus("error");

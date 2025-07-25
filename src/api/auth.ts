@@ -1,4 +1,6 @@
+import { Platform } from 'react-native';
 import api from './axios';
+import { getFirebaseToken } from './notification';
 
 export const signup = async (data: {
   email: string;
@@ -21,7 +23,22 @@ export const socialLogin = async (data: {
   providerId: string;
   email: string;
 }) => {
-  const response = await api.post('/api/auth/social-login', data);
+  const deviceType = Platform.OS;
+  let fcmToken: string | null = null;
+
+  try {
+    fcmToken = await getFirebaseToken();
+  } catch (err) {
+    console.warn('Failed to get FCM token:', err);
+  }
+
+  const enrichedPayload = {
+    ...data,
+    ...(deviceType === 'ios' || deviceType === 'android' ? { deviceType } : {}),
+    ...(fcmToken ? { fcmToken } : {}),
+  };
+
+  const response = await api.post('/api/auth/social-login', enrichedPayload);
   return response.data;
 };
 
@@ -30,7 +47,22 @@ export const verifyOTP = async (data: {
   userId?: string,
   otp: number | string,
 }) => {
-  const response = await api.post('/api/auth/verify-otp', data);
+  const deviceType = Platform.OS;
+  let fcmToken: string | null = null;
+
+  try {
+    fcmToken = await getFirebaseToken();
+  } catch (err) {
+    console.warn('Failed to get FCM token:', err);
+  }
+
+  const enrichedPayload = {
+    ...data,
+    ...(deviceType === 'ios' || deviceType === 'android' ? { deviceType } : {}),
+    ...(fcmToken ? { fcmToken } : {}),
+  };
+
+  const response = await api.post('/api/auth/verify-otp', enrichedPayload);
   return response.data;
 };
 

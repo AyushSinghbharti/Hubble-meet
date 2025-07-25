@@ -7,10 +7,17 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   Share,
+  Pressable,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { FONT } from "@/assets/constants/fonts";
 import { VbcCard as VbcInterface } from "@/src/interfaces/vbcInterface";
+import { getStableColor } from "@/src/utility/getStableColor";
+import { usePitchStore } from "@/src/store/pitchStore";
+import { useRouter } from "expo-router";
+import { useOtherUserProfile } from "@/src/hooks/useProfile";
+import { lightenColor } from "@/utils/lightenColor";
 
 type Props = {
   vbc: Partial<VbcInterface> & {
@@ -77,19 +84,24 @@ const VbcChatCard: React.FC<Props> = ({
   style,
 }) => {
   // ---- resolve fields ----
-  console.log("VbcChatCard props:", JSON.stringify(vbc, null, 4));
   const name =
-    vbc.vCardDisplayName || vbc.full_name || (vbc as any).display_name || "Unknown";
+    vbc.vCardDisplayName ||
+    vbc.full_name ||
+    (vbc as any).display_name ||
+    "Unknown";
   const title =
     vbc.vCardJobTitle || vbc.jobTitle || (vbc as any).job_title || "";
   const company =
     vbc.vCardCompanyName || vbc.companyName || (vbc as any).company_name || "";
-  const location =
-    vbc.vCardLocation || vbc.location || (vbc as any).city || "";
+  const location = vbc.vCardLocation || vbc.location || (vbc as any).city || "";
   const avatar = vbc.avatarUrl || vbc.profile_picture_url || null;
-  const bgColor = backgroundColor || vbc.color || "#FFE699";
+  const bgColor =
+    backgroundColor || vbc.color || getStableColor(vbc.user_id || "");
 
   const showActions = viewShareButton || viewChatButton || viewBlockButton;
+
+  const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
+  const router = useRouter();
 
   // ---- responsive sizing (chat bubble width) ----
   const { width } = useWindowDimensions();
@@ -99,6 +111,11 @@ const VbcChatCard: React.FC<Props> = ({
   const AVATAR = compact ? 72 : 96;
   const ACTION = compact ? 30 : 36;
   const ICON = ACTION * 0.6;
+
+  const handleProfilePress = async () => {
+    setCurrentPitchUser(vbc);
+    router.push("/connect");
+  };
 
   const s = useMemo(
     () =>
@@ -166,7 +183,7 @@ const VbcChatCard: React.FC<Props> = ({
           width: ACTION,
           height: ACTION,
           borderRadius: 99,
-          backgroundColor: "#FFF0C3",
+          backgroundColor: lightenColor(bgColor, 50) || "#FFF0C3",
           justifyContent: "center",
           alignItems: "center",
           marginRight: 10,
@@ -176,8 +193,11 @@ const VbcChatCard: React.FC<Props> = ({
   );
 
   return (
-    <View style={[s.card, style]}>
-      <Image source={avatar ? { uri: avatar } : FALLBACK_AVATAR} style={s.avatar} />
+    <Pressable style={[s.card, style]} onPress={handleProfilePress}>
+      <Image
+        source={avatar ? { uri: avatar } : FALLBACK_AVATAR}
+        style={s.avatar}
+      />
 
       <View style={s.body}>
         <View style={s.header}>
@@ -185,9 +205,21 @@ const VbcChatCard: React.FC<Props> = ({
             <Text style={s.name} numberOfLines={2}>
               {name}
             </Text>
-            {!!title && <Text style={s.title} numberOfLines={1}>{title}</Text>}
-            {!!company && <Text style={s.company} numberOfLines={1}>{company}</Text>}
-            {!!location && <Text style={s.location} numberOfLines={1}>{location}</Text>}
+            {!!title && (
+              <Text style={s.title} numberOfLines={1}>
+                {title}
+              </Text>
+            )}
+            {!!company && (
+              <Text style={s.company} numberOfLines={1}>
+                {company}
+              </Text>
+            )}
+            {!!location && (
+              <Text style={s.location} numberOfLines={1}>
+                {location}
+              </Text>
+            )}
           </View>
 
           <TouchableOpacity style={s.actionBtn} onPress={onVideoPress}>
@@ -233,7 +265,7 @@ const VbcChatCard: React.FC<Props> = ({
           </View>
         )}
       </View>
-    </View>
+    </Pressable>
   );
 };
 

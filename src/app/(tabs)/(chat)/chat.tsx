@@ -21,6 +21,7 @@ import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { useChatStore } from "@/src/store/chatStore";
 import { getChatFromStorage } from "@/src/store/localStorage";
 import { useDeleteChat } from "@/src/hooks/useChat";
+import ChatCardSkeleton from "@/src/components/skeletons/chatCard";
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -35,8 +36,8 @@ export default function ChatScreen() {
   const currentChat = useChatStore((state) => state.currentChat);
   const clearCurrentChat = useChatStore((state) => state.currentChat);
   const setMessages = useChatStore((state) => state.setMessages);
+  const messages = useChatStore((state) => state.messages);
   const deleteChatMutation = useDeleteChat();
-  console.log(user?.user_id);
 
   //LoadStarred message
   useStarredMessages(user?.user_id || "");
@@ -134,7 +135,10 @@ export default function ChatScreen() {
 
     const otherUser = item.participants.find((p) => p.id !== user?.user_id);
     const result = useOtherUserProfile(otherUser?.id);
+    const loading = result.isLoading;
     const otherUserInfo = result.data;
+
+    if(loading) return <ChatCardSkeleton />
 
     return (
       <Swipeable
@@ -217,6 +221,9 @@ export default function ChatScreen() {
 
           return bTime - aTime;
         })}
+        maxToRenderPerBatch={5}
+        initialNumToRender={10}
+        windowSize={1}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingTop: 10 }}
         renderItem={({ item }) => <RenderCard item={item} />}

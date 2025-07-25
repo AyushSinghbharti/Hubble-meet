@@ -43,7 +43,7 @@ const OtpVerificationUI = () => {
           else router.push("/profileSetup");
         },
         onError: (err: any) => {
-          console.log(err);
+          console.log(err?.response?.data?.message);
           setError(
             err?.response?.data?.message || "Login failed. Please try again"
           );

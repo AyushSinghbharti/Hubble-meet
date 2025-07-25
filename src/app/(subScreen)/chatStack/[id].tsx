@@ -145,10 +145,12 @@ export default function ChatDetailsScreen() {
       parentMessageId: selectedMessage?.id,
     };
 
+    console.log("send message payload", JSON.stringify(sendMessagePayload, null, 4));
+
     sendMessage(sendMessagePayload, {
       onSuccess: (res) => {},
       onError: (error) => {
-        console.error("Failed to send message", error);
+        console.error("Failed to send message", error?.response?.data?.message);
         setError("Failed to send message");
       },
     });

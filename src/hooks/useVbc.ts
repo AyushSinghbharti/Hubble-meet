@@ -14,11 +14,11 @@ export const useGetVbcCard = (id: string) => {
         queryFn: () => getVbcCard(id),
         enabled: !!id,
         retry: 1,
-        refetchInterval: 10000,
+        refetchInterval: 10000000,
     });
 
     if (queryResult.data) {
-        console.log("VBC card fetched succesfully");
+        // console.log("VBC card fetched succesfully");
         saveVBCIdToStorage(queryResult.data.id);
         setVbcId(queryResult.data.id);
         setVbc(queryResult.data);

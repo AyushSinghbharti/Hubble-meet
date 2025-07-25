@@ -14,6 +14,9 @@ import { useFocusEffect } from "expo-router";
 import { useReactToPitch, useReportPitch } from "@/src/hooks/usePitch";
 import { useAuthStore } from "@/src/store/auth";
 import { useConnectionStore } from "@/src/store/connectionStore";
+import ReportSuccessModal from "../ReportSuccessModal";
+import ErrorAlert from "../errorAlert";
+import { set } from "lodash";
 
 const MainCardWrapper = ({
   pitch,
@@ -27,6 +30,9 @@ const MainCardWrapper = ({
   const [options, setOptions] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isLiked, setLiked] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+
   const VideoUri = pitch.videoUri;
   const { mutate: reactToPitch } = useReactToPitch();
   const { mutate: reportPitch } = useReportPitch();
@@ -62,10 +68,16 @@ const MainCardWrapper = ({
       },
       {
         onSuccess: (res) => {
-          console.log("report pitch successfull");
+          console.log("report pitch successful");
+          setReportModalVisible(true); // 🔥 Show modal here
+        },
+        onError: (err) => {
+          setError(err?.response?.data?.message);
         },
       }
     );
+
+    setOptions(false);
   };
 
   useEffect(() => {
@@ -194,7 +206,7 @@ const MainCardWrapper = ({
       {/* User Info */}
       <View style={styles.userRow}>
         <View style={styles.typeShown}>
-          <Text style={styles.typeText}>Individual:</Text>
+          <Text style={styles.typeText}>{pitch.type || "Individual"}: </Text>
           <Text style={styles.pitchTitleText}>
             {pitch.user?.name || "Unknown"}
           </Text>
@@ -227,6 +239,13 @@ const MainCardWrapper = ({
           <Text style={styles.optionText}>Not Interested</Text>
         </View>
       )}
+
+      <ReportSuccessModal
+        visible={reportModalVisible}
+        onClose={() => setReportModalVisible(false)}
+      />
+
+      {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
     </View>
   );
 };

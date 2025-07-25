@@ -48,7 +48,8 @@ import { fetchUserProfile } from "@/src/api/profile";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { AxiosError } from "axios";
 import { useAppState } from "@/src/store/appState"; // Import the updated store
-
+import { MotiView } from "moti";
+import ConnectCard from "@/src/components/skeletons/connectCard";
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
@@ -56,7 +57,6 @@ const SWIPE_THRESHOLD = width * 0.25;
 const ROTATION_DEGREE = 30;
 const MAX_RIGHT_SWIPES = 10;
 const UNDO_DURATION = 2000; // 2 seconds for undo window
-
 
 const ProfileCard = ({
   profile,
@@ -67,6 +67,7 @@ const ProfileCard = ({
   onToggleDetails,
   setError,
   isProfileCompleted,
+  isPromptVisible,
 }: {
   profile: UserProfile;
   onSwipeComplete: any;
@@ -76,6 +77,7 @@ const ProfileCard = ({
   onToggleDetails: any;
   setError: any;
   isProfileCompleted: boolean;
+  isPromptVisible: boolean;
 }) => {
   const translateX = useSharedValue(0);
   const rotate = useSharedValue(0);
@@ -91,21 +93,17 @@ const ProfileCard = ({
   const [flippedProfiles, setFlippedProfiles] = useState({});
   const [showShare, setShowShare] = useState(false);
 
-
   // Update flipped
   useEffect(() => {
     setHasFlipped(false);
   }, [profile.user_id]);
 
-
   // Store data
   const userId = useAuthStore((state) => state.userId);
-
 
   // Backend Testing
   const { mutate: sendConnection } = useSendConnection();
   const { mutate: acceptConnection } = useAcceptConnection();
-
 
   const handleSendConnection = () => {
     if (!userId || !profile?.user_id) {
@@ -128,12 +126,8 @@ const ProfileCard = ({
     );
   };
 
-
-
-
   const undoTimeoutRef = useRef(null);
   const route = useRouter();
-
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
@@ -143,11 +137,9 @@ const ProfileCard = ({
     opacity: opacity.value,
   }));
 
-
   const buttonStyle = useAnimatedStyle(() => ({
     opacity: buttonOpacity.value,
   }));
-
 
   const handleUndo = useCallback(() => {
     if (undoTimeoutRef.current) {
@@ -160,36 +152,29 @@ const ProfileCard = ({
     setUndoVisible(false);
   }, [translateX, rotate, opacity]);
 
-
   const showUndoModal = useCallback(() => {
     setUndoVisible(true);
   }, []);
-
 
   const showRequestSentModal = useCallback(() => {
     setRequestSentVisible(true);
   }, []);
 
-
   const showRightSwipeAlert = useCallback(() => {
     setRightSwipeAlertVisible(true);
   }, []);
-
 
   const showShareAlert = useCallback(() => {
     setShareAlertVisible(true);
   }, []);
 
-
   const showBlockAlert = useCallback(() => {
     setBlockAlertVisible(true);
   }, []);
 
-
   const showThumbImageAlert = useCallback(() => {
     setThumbImageAlertVisible(true);
   }, []);
-
 
   const completeSwipe = useCallback(
     (profileId: string, direction: string) => {
@@ -197,7 +182,6 @@ const ProfileCard = ({
     },
     [onSwipeComplete]
   );
-
 
   const startUndoTimer = useCallback(
     (profileId) => {
@@ -209,13 +193,11 @@ const ProfileCard = ({
     [onSwipeComplete]
   );
 
-
   const handleButtonPress = useCallback(() => {
     buttonOpacity.value = withTiming(0.5, { duration: 100 }, () => {
       buttonOpacity.value = withTiming(1, { duration: 100 });
     });
   }, [buttonOpacity]);
-
 
   const handleShareButtonPress = useCallback(
     (event) => {
@@ -227,7 +209,6 @@ const ProfileCard = ({
     [handleButtonPress, showShareAlert]
   );
 
-
   const handleRestartButtonPress = useCallback(
     (event) => {
       event.stopPropagation();
@@ -236,7 +217,6 @@ const ProfileCard = ({
     },
     [handleButtonPress, showBlockAlert]
   );
-
 
   const handleThumbImagePress = useCallback(
     (event) => {
@@ -247,14 +227,10 @@ const ProfileCard = ({
     [showThumbImageAlert, route]
   );
 
-
-
-
   const handleImageTap = useCallback(() => {
     setHasFlipped(true);
     onToggleDetails(profile);
   }, [onToggleDetails, profile.user_id]);
-
 
   const handleBlockSuccess = useCallback(() => {
     console.log("handleBlockSuccess triggered for profile:", profile.user_id);
@@ -267,10 +243,12 @@ const ProfileCard = ({
     });
   }, [translateX, rotate, opacity, completeSwipe, profile.user_id]);
 
-
   const panGesture = Gesture.Pan()
-    .enabled(hasFlipped && (persistentSwipeCount < 5 || isProfileCompleted))
-
+    .enabled(
+      hasFlipped &&
+        (persistentSwipeCount < 5 || isProfileCompleted) &&
+        !isPromptVisible
+    )
 
     .activeOffsetX([-10, 10])
     .onUpdate((e) => {
@@ -282,7 +260,6 @@ const ProfileCard = ({
       "worklet";
       const swipedLeft = translateX.value < -SWIPE_THRESHOLD;
       const swipedRight = translateX.value > SWIPE_THRESHOLD;
-
 
       if (swipedLeft) {
         translateX.value = withSpring(-width);
@@ -312,16 +289,13 @@ const ProfileCard = ({
       }
     });
 
-
   const imageTapGesture = Gesture.Tap().onEnd(() => {
     "worklet";
     runOnJS(handleImageTap)();
   });
 
-
   const cardGesture = Gesture.Simultaneous(panGesture);
   const detailGesture = Gesture.Simultaneous(imageTapGesture);
-
 
   return (
     <>
@@ -523,7 +497,6 @@ const ProfileCard = ({
   );
 };
 
-
 const Connect = () => {
   const [redactedProfileIds, setRedactedProfileIds] = useState([]);
   const [rightSwipeCount, setUserrightSwipeCount] = useState(0);
@@ -532,7 +505,6 @@ const Connect = () => {
   const [showShare, setShowShare] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const userId = useAuthStore((s) => s.user?.user_id);
@@ -540,7 +512,6 @@ const Connect = () => {
   const addRecommendation = useConnectionStore((s) => s.addRecommendation);
   const recommendationsId = useConnectionStore((s) => s.recommendationsId);
   const { currentPitchUser, clearCurrentPitchUser } = usePitchStore();
-
 
   const {
     isProfileComplete,
@@ -554,16 +525,11 @@ const Connect = () => {
     initializeAppState,
   } = useAppState();
 
-
   const [showLimitModal, setShowLimitModal] = useState(false);
-
-
 
   useEffect(() => {
     initializeAppState();
   }, [initializeAppState]);
-
-
 
   useEffect(() => {
     if (!user || typeof user !== "object") {
@@ -577,8 +543,6 @@ const Connect = () => {
     setProfileComplete(isComplete);
   }, [user, setProfileComplete]);
 
-
-
   useEffect(() => {
     const fetchAndStore = async () => {
       const existingIds = new Set(recommendations.map((rec) => rec.user_id));
@@ -590,7 +554,6 @@ const Connect = () => {
         } catch (err) {
           const axiosError = err as AxiosError<any>;
           const status = axiosError.response?.status;
-
 
           if (status !== 404) {
             console.warn(
@@ -605,24 +568,18 @@ const Connect = () => {
     fetchAndStore();
   }, [recommendationsId]);
 
-
   const handleSwipeComplete = useCallback(
     async (user_id: string, direction: string) => {
       clearCurrentPitchUser();
-
-
 
       await addSwipedProfileId(user_id);
 
       const newSwipeCount = await incrementSwipeCount();
 
-
-
       if (newSwipeCount >= 5 && !isProfileComplete && !hasShownProfilePrompt) {
         setShowLimitModal(true);
         setProfilePromptShown(true);
       }
-
 
       if (direction === "right") {
         setUserrightSwipeCount((prev) => prev + 1);
@@ -641,7 +598,6 @@ const Connect = () => {
     ]
   );
 
-
   useEffect(() => {
     if (!user || typeof user !== "object") {
       setProfileComplete(false);
@@ -652,10 +608,7 @@ const Connect = () => {
     );
     const isComplete = !hasIncompleteFields;
 
-
     setProfileComplete(isComplete);
-
-
 
     if (!isComplete && !hasShownProfilePrompt) {
       setShowLimitModal(true);
@@ -663,14 +616,11 @@ const Connect = () => {
     }
   }, [user, setProfileComplete, hasShownProfilePrompt, setProfilePromptShown]);
 
-
-
   const handleToggleDetails = useCallback((profile) => {
     const profileId = profile.user_id;
     setExpandedProfileId((prev) => (prev === profileId ? null : profileId));
     if (profileId) setHasFlipped(true);
   }, []);
-
 
   const renderItem = useCallback(
     ({ item }: { item: UserProfile }) => {
@@ -684,6 +634,7 @@ const Connect = () => {
           persistentSwipeCount={persistentSwipeCount}
           setError={setError}
           isProfileCompleted={isProfileComplete}
+          isPromptVisible={showLimitModal}
         />
       );
     },
@@ -696,18 +647,16 @@ const Connect = () => {
     ]
   );
 
-
   const visibleProfileData = useMemo(() => {
     if (currentPitchUser) return [currentPitchUser];
     if (!recommendations?.length) return [];
     const filtered = expandedProfileId
       ? recommendations.filter((item) => item.user_id === expandedProfileId)
       : recommendations
-        .filter((item) => !swipedProfileIds.includes(item.user_id))
-        .slice(0, 1);
+          .filter((item) => !swipedProfileIds.includes(item.user_id))
+          .slice(0, 1);
     return filtered;
   }, [currentPitchUser, recommendations, expandedProfileId, swipedProfileIds]);
-
 
   return (
     <View style={styles.container}>
@@ -720,10 +669,8 @@ const Connect = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              You have no profiles left to connect with!
-            </Text>
+          <View style={{ flex: 1, height: "100%", marginTop: 12 }}>
+            <ConnectCard />
           </View>
         }
       />
@@ -739,5 +686,4 @@ const Connect = () => {
   );
 };
 
-
-export default Connect; 
+export default Connect;

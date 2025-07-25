@@ -47,21 +47,28 @@ export default function TagDropdown({
     onChange(selected.filter((tag) => tag !== tagToRemove));
   };
 
-  const filteredOptions = options.filter(
-    (option) =>
-      option.toLowerCase().includes(input.toLowerCase()) &&
-      !selected.includes(option)
-  );
-
   const onLayoutInput = (e: LayoutChangeEvent) => {
     const { x, y, width, height } = e.nativeEvent.layout;
     setInputLayout({ x, y, width, height });
   };
 
+  const filteredOptions = options
+    .filter(
+      (option) =>
+        option.toLowerCase().includes(input.toLowerCase()) &&
+        !selected.includes(option)
+    )
+    .slice(0, 3); // ⬅️ only top 3 matches
+
   const showAddCustomOption =
     input.length > 0 &&
     !options.some((option) => option.toLowerCase() === input.toLowerCase()) &&
     !selected.includes(input);
+
+  const dropdownData = [
+    ...(showAddCustomOption ? [`__ADD__${input}`] : []),
+    ...filteredOptions,
+  ];
 
   return (
     <View>
@@ -75,7 +82,7 @@ export default function TagDropdown({
                 : mode === "Light"
                 ? "#fff"
                 : "transparent",
-            borderWidth: mode && 2,
+            borderWidth: mode ? 2 : 0,
             borderColor:
               mode === "Dark" || mode === "Light"
                 ? colourPalette.inputBorder
@@ -115,38 +122,40 @@ export default function TagDropdown({
           />
         </View>
       </View>
-      {input.length > 0 &&
-        (filteredOptions.length > 0 || showAddCustomOption) && (
-          <View
-            style={[
-              styles.dropdown,
-              {
-                top: inputLayout.y + inputLayout.height + 4,
-                left: inputLayout.x,
-                width: inputLayout.width,
-                position: "absolute",
-                zIndex: 999,
-              },
-            ]}
-          >
-            <FlatList
-              data={
-                showAddCustomOption
-                  ? [...filteredOptions, input]
-                  : filteredOptions
-              }
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
+
+      {input.length > 0 && dropdownData.length > 0 && (
+        <View
+          style={[
+            styles.dropdown,
+            {
+              top: inputLayout.y + inputLayout.height + 4,
+              left: inputLayout.x,
+              width: inputLayout.width,
+              position: "absolute",
+              zIndex: 999,
+            },
+          ]}
+        >
+          <FlatList
+            data={dropdownData}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => {
+              const isAddItem = item.startsWith("__ADD__");
+              const tagLabel = isAddItem ? item.replace("__ADD__", "") : item;
+
+              return (
                 <TouchableOpacity
-                  onPress={() => handleAddTag(item)}
+                  onPress={() => handleAddTag(tagLabel)}
                   style={styles.dropdownItem}
                 >
-                  <Text>{item === input ? `Add "${item}"` : item}</Text>
+                  <Text>{isAddItem ? `Add "${tagLabel}"` : tagLabel}</Text>
                 </TouchableOpacity>
-              )}
-            />
-          </View>
-        )}
+              );
+            }}
+            keyboardShouldPersistTaps="handled"
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -198,7 +207,7 @@ const styles = StyleSheet.create({
   dropdown: {
     backgroundColor: "#fff",
     borderRadius: 8,
-    maxHeight: 120,
+    maxHeight: 180,
     borderWidth: 1,
     borderColor: "#ccc",
     elevation: 5,

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  Pressable,
 } from "react-native";
 import {
   Ionicons,
@@ -69,7 +70,7 @@ const CustomCard = memo(
     const iconColor = getTextColor(backgroundColor || iconBgColor);
 
     return (
-      <View style={styles.card}>
+      <Pressable style={styles.card} onPress={onProfilePress}>
         <ImageBackground
           source={avatar}
           style={styles.imageSection}
@@ -79,7 +80,7 @@ const CustomCard = memo(
             <TouchableOpacity style={styles.roundIcon} onPress={onBagPress}>
               <SimpleLineIcons name="bag" size={13} color="#000" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.roundIcon} onPress={onProfilePress}>
+            <TouchableOpacity style={styles.roundIcon}>
               <Image
                 source={require("../../../assets/icons/pitch2.png")}
                 style={{ width: 15, height: 24 }}
@@ -121,7 +122,7 @@ const CustomCard = memo(
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </Pressable>
     );
   }
 );

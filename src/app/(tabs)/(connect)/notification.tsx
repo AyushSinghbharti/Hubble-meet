@@ -1,5 +1,5 @@
-// screens/NotificationsScreen.js
-import React from "react";
+// screens/NotificationsScreen.tsx
+import React, { useState } from "react";
 import {
   View,
   FlatList,
@@ -7,38 +7,49 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
+  Platform,
 } from "react-native";
-import NotificationCard from "../../../components/NotificationCard";
-// import NavHeader from "../../../components/NavHeader";
-import { Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
-const DATA = [
-  {
-    id: "1",
-    name: "Kiran Patel",
-    status: "Accepted your request",
-    date: "25/01/2025",
-    image: require("../../../../assets/images/p1.jpg"), // Replace with your own image
-  },
-  {
-    id: "2",
-    name: "Sara Ahmed",
-    status: "Sent you a message",
-    date: "24/01/2025",
-    image: require("../../../../assets/images/p1.jpg"),
-  },
-];
+import NotificationCard from "../../../components/NotificationCard";
+import { useAuthStore } from "@/src/store/auth";
+import { useNotificationStore } from "@/src/store/notificationStore";
+import { useNotificationHistory } from "@/src/hooks/useNotification";
+import ChatCardSkeleton from "@/src/components/skeletons/chatCard";
+
+const PAGE_SIZE = 10;
 
 const NotificationsScreen = () => {
+  const router = useRouter();
+  const userId = useAuthStore((state) => state.userId);
+  const user = useAuthStore((state) => state.user);
+  const { history } = useNotificationStore();
+
+  const [page, setPage] = useState(1);
+
+  const { data, isLoading, isFetching, refetch, isRefetching } =
+    useNotificationHistory({
+      userId: userId || "",
+      page,
+      size: PAGE_SIZE,
+    });
+
+  const handleLoadMore = () => {
+    if (!isFetching && data?.notifications?.length >= PAGE_SIZE) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  const handleRefresh = () => {
+    setPage(1);
+    refetch();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-
       <View style={styles.backButton}>
-        <TouchableOpacity
-          onPress={() => useRouter().back()}
-        >
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>Notification</Text>
@@ -46,17 +57,31 @@ const NotificationsScreen = () => {
       </View>
 
       <FlatList
-        data={DATA}
+        data={history}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <NotificationCard
-            name={item.name}
-            status={item.status}
-            date={item.date}
-            image={item.image}
+            name={item.title}
+            status={item.message}
+            date={new Date(item.createdAt).toLocaleDateString()}
+            image={item?.image || user?.profile_picture_url}
           />
         )}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
+        refreshing={isRefetching}
+        onRefresh={handleRefresh}
+        ListFooterComponent={
+          isFetching && !isRefetching ? <ChatCardSkeleton /> : null
+        }
+        ListEmptyComponent={
+          !isLoading && !isFetching ? (
+            <Text style={{ textAlign: "center", marginTop: 40 }}>
+              No notifications found.
+            </Text>
+          ) : null
+        }
       />
     </SafeAreaView>
   );
@@ -74,9 +99,6 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     justifyContent: "space-between",
-  },
-  backButtonPlaceholder: {
-    width: 32,
   },
   title: {
     color: "#000",

@@ -26,8 +26,6 @@ import Button from "../../../components/Button";
 import { useAuthStore } from "@/src/store/auth";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import { useUpdateUserProfile } from "@/src/hooks/useProfile";
-import { useVbcStore } from "@/src/store/vbc";
-import { uploadToCloudinary } from "@/src/api/cloudinary";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useRouter } from "expo-router";
 import {
@@ -39,7 +37,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SettingsScreen() {
   const profileData: UserProfile | null = useAuthStore((state) => state.user);
-  const vbcStore = useVbcStore((state) => state.vbcId);
   const { mutate: updateUserProfile, isPending: pendingUpdateUserProfile } =
     useUpdateUserProfile();
 
@@ -169,8 +166,6 @@ export default function SettingsScreen() {
       profilePictureUrl: image || undefined,
       dateOfBirth: dob?.toISOString().split("T")[0] || undefined,
     };
-
-    console.log("vbcStore", vbcStore);
 
     updateUserProfile(
       { userId: profileData.user_id, data: formData },
