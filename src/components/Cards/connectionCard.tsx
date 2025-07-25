@@ -115,7 +115,7 @@ const ConnectionCard = memo(
               style={[styles.iconButton, { backgroundColor: iconBgColor }]}
               onPress={onAddPress}
             >
-              <Image style={{ height: 20, width: 20 }} source={require('../../../assets/icons/block.png')} />
+              <Image style={{ height: 20, width: 20 }} source={require('../../../assets/icons/block2.png')} />
             </TouchableOpacity>
           </View>
         </View>

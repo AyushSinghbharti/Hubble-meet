@@ -57,7 +57,6 @@ const VbcCard = ({
   const { mutate: sendConnection } = useSendConnection();
   const [error, setError] = useState<string | null>();
 
-
   const handleChatPress = async (user: UserProfile) => {
     await resolveChatAndNavigate({ currentUser, targetUser: user });
   };
@@ -77,12 +76,12 @@ const VbcCard = ({
   };
 
   const handleBagPress = async (user: UserProfile) => {
-    console.log(user, "bag pressss")
+    console.log(user, "bag pressss");
     const response = await addCloseCircle({
       user_id: userId,
-      closed_user_id: user.user_id
-    })
-    console.log(response, "response of the adding to the bag")
+      closed_user_id: user.user_id,
+    });
+    console.log(response, "response of the adding to the bag");
     setSelectedUser(user);
     setAddModal(true);
   };
@@ -149,7 +148,7 @@ const VbcCard = ({
                   onCardPress={() => handleProfilePress(item)}
                   onAddPress={() => handleBlockPress(item)}
                   onConnectPress={handleSendRequestPress}
-                  onPitchPress={() => { }}
+                  onPitchPress={() => {}}
                 />
               ) : (
                 <CustomCard
@@ -173,12 +172,9 @@ const VbcCard = ({
 
       <BlockUserModal
         visible={blockModal}
-        userName={selectedUser?.full_name}
+        blockedUserId={selectedUser?.user_id || ""}
+        userName={selectedUser?.full_name || ""}
         onClose={() => setBlockModal(false)}
-        onSubmit={(reason) => {
-          console.log("Blocked with reason:", reason);
-          setBlockModal(false);
-        }}
       />
 
       {selectedUser && (

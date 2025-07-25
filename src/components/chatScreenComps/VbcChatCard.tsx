@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   Share,
+  Pressable,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { FONT } from "@/assets/constants/fonts";
@@ -78,13 +79,15 @@ const VbcChatCard: React.FC<Props> = ({
 }) => {
   // ---- resolve fields ----
   const name =
-    vbc.vCardDisplayName || vbc.full_name || (vbc as any).display_name || "Unknown";
+    vbc.vCardDisplayName ||
+    vbc.full_name ||
+    (vbc as any).display_name ||
+    "Unknown";
   const title =
     vbc.vCardJobTitle || vbc.jobTitle || (vbc as any).job_title || "";
   const company =
     vbc.vCardCompanyName || vbc.companyName || (vbc as any).company_name || "";
-  const location =
-    vbc.vCardLocation || vbc.location || (vbc as any).city || "";
+  const location = vbc.vCardLocation || vbc.location || (vbc as any).city || "";
   const avatar = vbc.avatarUrl || vbc.profile_picture_url || null;
   const bgColor = backgroundColor || vbc.color || "#FFE699";
 
@@ -98,6 +101,11 @@ const VbcChatCard: React.FC<Props> = ({
   const AVATAR = compact ? 72 : 96;
   const ACTION = compact ? 30 : 36;
   const ICON = ACTION * 0.6;
+
+  const handleProfilePress = (user: any) => {
+    setCurrentPitchUser(user);
+    router.push("/connect");
+  };
 
   const s = useMemo(
     () =>
@@ -175,8 +183,11 @@ const VbcChatCard: React.FC<Props> = ({
   );
 
   return (
-    <View style={[s.card, style]}>
-      <Image source={avatar ? { uri: avatar } : FALLBACK_AVATAR} style={s.avatar} />
+    <Pressable style={[s.card, style]}>
+      <Image
+        source={avatar ? { uri: avatar } : FALLBACK_AVATAR}
+        style={s.avatar}
+      />
 
       <View style={s.body}>
         <View style={s.header}>
@@ -184,9 +195,21 @@ const VbcChatCard: React.FC<Props> = ({
             <Text style={s.name} numberOfLines={2}>
               {name}
             </Text>
-            {!!title && <Text style={s.title} numberOfLines={1}>{title}</Text>}
-            {!!company && <Text style={s.company} numberOfLines={1}>{company}</Text>}
-            {!!location && <Text style={s.location} numberOfLines={1}>{location}</Text>}
+            {!!title && (
+              <Text style={s.title} numberOfLines={1}>
+                {title}
+              </Text>
+            )}
+            {!!company && (
+              <Text style={s.company} numberOfLines={1}>
+                {company}
+              </Text>
+            )}
+            {!!location && (
+              <Text style={s.location} numberOfLines={1}>
+                {location}
+              </Text>
+            )}
           </View>
 
           <TouchableOpacity style={s.actionBtn} onPress={onVideoPress}>
@@ -232,7 +255,7 @@ const VbcChatCard: React.FC<Props> = ({
           </View>
         )}
       </View>
-    </View>
+    </Pressable>
   );
 };
 

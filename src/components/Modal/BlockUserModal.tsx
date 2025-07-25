@@ -10,7 +10,7 @@ import {
 import { useAuthStore } from "@/src/store/auth";
 import AlertModal from "@/src/components/Alerts/AlertModal";
 import { FONT } from "@/assets/constants/fonts";
-
+import { useBlockUser } from "@/src/hooks/useConnection"; // ✅ your custom hook
 
 interface BlockUserModalProps {
   visible: boolean;
@@ -34,81 +34,49 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
   const userId = useAuthStore((state) => state.userId);
   const token = useAuthStore((state) => state.token);
 
-  // Auto-close success modal after 1.5 seconds
+  const { mutateAsync: blockUserMutation } = useBlockUser();
+
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
     if (blockedModalVisible) {
       timer = setTimeout(() => {
         setBlockedModalVisible(false);
-        if (onBlockSuccess) {
-          onBlockSuccess(); // Trigger profile removal after modal closes
-        }
-      }, 1500); // 1.5 seconds
+        if (onBlockSuccess) onBlockSuccess();
+      }, 1500);
     }
     return () => {
       if (timer) clearTimeout(timer);
     };
   }, [blockedModalVisible, onBlockSuccess]);
 
-  const handleBlockUser = async (): Promise<boolean> => {
+  const handleConfirmBlock = async () => {
+    console.log(userId, blockedUserId);
+    onClose(); // Close the modal immediately
     if (!userId || !blockedUserId) {
       setErrorMessage("Missing user data. Cannot block.");
       setErrorModalVisible(true);
-      return false;
+      return;
     }
 
     try {
-      const response = await fetch(
-        "https://d2aks9kyhua4na.cloudfront.net/api/connection/block",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            blocked_user_id: blockedUserId,
-          }),
-        }
-      );
+      await blockUserMutation({
+        user_id: userId,
+        blocked_user_id: blockedUserId,
+      });
 
-      if (!response.ok) {
-        const responseText = await response.text();
-        let errMessage = `HTTP Error: ${response.status} - ${response.statusText}`;
-        try {
-          const errorData = JSON.parse(responseText);
-          errMessage = errorData.message || responseText || "An unknown error occurred.";
-        } catch {
-          errMessage = responseText || "Failed to block user.";
-        }
-        setErrorMessage(errMessage);
-        setErrorModalVisible(true);
-        return false;
-      }
-
-      // Log success for debugging
-      console.log("User blocked successfully:", { userId, blockedUserId });
-      return true;
-    } catch (error) {
+      console.log("User blocked via mutation:", { userId, blockedUserId });
+      setBlockedModalVisible(true);
+    } catch (error: any) {
       console.error("Error blocking user:", error);
-      setErrorMessage(error.message || "Failed to block user. Please try again.");
+      setErrorMessage(
+        error?.message || "Failed to block user. Please try again."
+      );
       setErrorModalVisible(true);
-      return false;
-    }
-  };
-
-  const handleConfirmBlock = async () => {
-    onClose(); // Close confirmation modal
-    const success = await handleBlockUser();
-    if (success) {
-      setBlockedModalVisible(true); // Show success modal
     }
   };
 
   return (
     <>
-      {/* Main Confirmation Modal */}
       <Modal visible={visible} transparent animationType="fade">
         <Pressable style={styles.overlay} onPress={onClose}>
           <View style={styles.modalBox}>
@@ -119,7 +87,8 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
             </Text>
             <Text style={styles.warning}>
               Note: You can undo this action in{" "}
-              <Text style={styles.boldText}>"Blocked Users"</Text> within Settings.
+              <Text style={styles.boldText}>"Blocked Users"</Text> within
+              Settings.
             </Text>
             <View style={styles.buttonRow}>
               <TouchableOpacity
@@ -143,21 +112,23 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
         </Pressable>
       </Modal>
 
-      {/* Success Alert Modal */}
+      {/* ✅ Success Modal */}
       <AlertModal
         visible={blockedModalVisible}
         onClose={() => setBlockedModalVisible(false)}
         label="Connection Blocked"
         imageSource={require("../../../assets/icons/tick1.png")}
         positionBottom
+        viewButton={false}
+        onButtonPress={() => setBlockedModalVisible(false)}
       />
 
-      {/* Error Alert Modal */}
+      {/* ❌ Error Modal */}
       <AlertModal
         visible={errorModalVisible}
         onClose={() => setErrorModalVisible(false)}
-        label="Error Blocking User"
-        message={errorMessage}
+        // label="Error Blocking User"
+        label={errorMessage}
         imageSource={require("../../../assets/icons/cross.png")}
         buttonText="OK"
         viewButton
@@ -169,6 +140,8 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
 };
 
 export default BlockUserModal;
+
+// styles unchanged...
 
 const styles = StyleSheet.create({
   overlay: {

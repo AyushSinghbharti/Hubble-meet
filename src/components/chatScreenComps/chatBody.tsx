@@ -325,7 +325,12 @@ const ChatBubble = ({
               <Text style={styles.messageText}>{item.content}</Text>
             )}
           </View>
-          <View style={[styles.timeRow, {alignSelf: me ? "flex-end" : "flex-start"}]}>
+          <View
+            style={[
+              styles.timeRow,
+              { alignSelf: me ? "flex-end" : "flex-start" },
+            ]}
+          >
             <Text style={styles.timeText}>{formatTime(item.createdAt)}</Text>
           </View>
         </View>
@@ -586,7 +591,7 @@ const styles = StyleSheet.create({
   timeRow: {
     flexDirection: "row",
     alignItems: "flex-end",
-    marginTop: 4
+    marginTop: 4,
   },
   timeText: { fontSize: 10, color: "#4D4D4D" },
 });

@@ -67,7 +67,7 @@ const NotificationsScreen = () => {
             image={item?.image || user?.profile_picture_url}
           />
         )}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.3}
         refreshing={isRefetching}

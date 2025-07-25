@@ -28,11 +28,6 @@ const SearchBar: React.FC<CustomSearchBarProps> = ({
           placeholderTextColor="#898989"
         />
       </View>
-
-
-      {/* <TouchableOpacity style={styles.filterButton} onPress={onFilterPress}>
-        <Ionicons name="options-outline" size={32} color="#000" />
-      </TouchableOpacity> */}
     </View>
   );
 };

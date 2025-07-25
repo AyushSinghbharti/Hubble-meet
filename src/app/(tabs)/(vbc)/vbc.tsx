@@ -68,14 +68,18 @@ export default function VBCScreen() {
       <View style={[{ flex: 1 }]}>
         {selectedTab === "VBC" && (
           <VBCCard
-            profiles={connectionVbcs.filter((item) => {
-              const q = searchQuery.toLowerCase();
-              return (
-                item.full_name?.toLowerCase().includes(q) ||
-                item.city?.toLowerCase().includes(q) ||
-                item.job_title?.toLowerCase().includes(q)
-              );
-            })}
+            profiles={connectionVbcs
+              .filter(
+                (item) => item.connection_status?.toLowerCase() !== "blocked"
+              )
+              .filter((item) => {
+                const q = searchQuery.toLowerCase();
+                return (
+                  item.full_name?.toLowerCase().includes(q) ||
+                  item.city?.toLowerCase().includes(q) ||
+                  item.job_title?.toLowerCase().includes(q)
+                );
+              })}
           />
         )}
         {selectedTab === "Hubble Circle" && <HubbleCard />}

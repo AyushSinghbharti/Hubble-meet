@@ -8,16 +8,15 @@ import {
   StyleSheet,
   Image,
   Animated,
-  KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Switch,
 } from "react-native";
 import { Entypo, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import ProfileCard from "../../components/profileSetupComps/profileCard";
-import InitialScreen from "../../components/profileSetupComps/initialScreen";
 import FinalSetupPage from "../../components/profileSetupComps/finalScreen";
 import TagDropdown from "../../components/TagDropdown";
 import colourPalette from "../../theme/darkPaletter";
@@ -28,15 +27,15 @@ import { useAuthStore } from "@/src/store/auth";
 import { useCreateUserProfile } from "@/src/hooks/useProfile";
 import ErrorAlert from "@/src/components/errorAlert";
 import { uploadToCloudinary } from "@/src/api/cloudinary";
-import { uploadToS3 } from "@/src/api/aws";
+import { uploadFileToS3, uploadToS3 } from "@/src/api/aws";
 import { FONT } from "@/assets/constants/fonts";
 import {
   industriesChipData,
   cityWithCountryChipData,
-  cityWithoutCountryChipData,
   rolesLookingForChipData,
   topCompaniesForChipData,
 } from "@/src/dummyData/chipOptions";
+import { logout } from "@/src/hooks/useAuth";
 
 const ChipInput = ({
   label = "",
@@ -48,8 +47,8 @@ const ChipInput = ({
   options = [""],
 }) => {
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <View
+      // behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={[
         styles.chipContainer,
         { paddingHorizontal: isSubHeading ? 5 : 0 },
@@ -66,7 +65,7 @@ const ChipInput = ({
         placeholder={placeholder}
         mode={"Transparent"}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -92,6 +91,7 @@ export default function ProfileSetup() {
   const [worklist, setWorklist] = useState([]);
   const [spaces, setSpaces] = useState([]);
   const [connectPeople, setConnectPeople] = useState([]);
+  const [shareVBC, setShareVBC] = useState(true);
   const [image, setImage] = useState<string | null>(null);
   const [radarCities, setRadarCities] = useState([]);
   const [rolesLookingFor, setRolesLookingFor] = useState([]);
@@ -142,39 +142,38 @@ export default function ProfileSetup() {
   });
 
   const pickImage = async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [4, 4],
-      quality: 1,
-    });
+    try {
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images", "livePhotos"],
+        allowsEditing: true,
+        aspect: [4, 4],
+        quality: 1,
+      });
 
-    if (!res.canceled) {
-      try {
+      if (!res.canceled && res.assets?.[0]?.uri) {
         setUploadImage(true);
         setImage(null);
         let imageUrl = "";
 
         try {
-          // Try uploading to S3
-          const s3Response = await uploadToS3(res.assets[0].uri);
+          const s3Response = await uploadFileToS3(res.assets?.[0]);
 
           if (s3Response.success && s3Response.url) {
             imageUrl = s3Response.url;
           } else {
-            throw new Error("S3 upload failed, fallback to Cloudinary");
+            throw new Error("S3 upload failed");
           }
-        } catch (s3Err) {
-          console.warn("S3 upload failed, trying Cloudinary...");
-          imageUrl = await uploadToCloudinary(res.assets[0].uri);
+        } catch (err) {
+          console.log("Upload Error:", err);
+          setError("Error uploading image. Please try again.");
+        } finally {
+          setImage(imageUrl);
+          setUploadImage(false);
         }
-        setImage(imageUrl);
-      } catch (err) {
-        console.log("Upload Error:", err);
-        setError("Error uploading image. Please try again.");
-      } finally {
-        setUploadImage(false);
       }
+    } catch (err) {
+      console.error("Image Picker Error:", err);
+      setError("Failed to open image picker.");
     }
   };
 
@@ -197,9 +196,11 @@ export default function ProfileSetup() {
     useCreateUserProfile();
 
   const submit = async () => {
-    if (!user || !userId) {
+    console.log(user, userId);
+    if (!userId) {
       setError("Error while fetching data from server, please login directly");
       setFinalScreen(!finalScreen);
+      await logout();
       return;
     }
     if (!name || !dob || !gender || !bio || !email || !phoneNumber) {
@@ -223,6 +224,7 @@ export default function ProfileSetup() {
       citiesOnRadar: radarCities,
       connectionPreferences: rolesLookingFor,
       profilePictureUrl: image ?? undefined,
+      allowVbcSharing: shareVBC,
     };
 
     const profileRes = await createProfile(profileData);
@@ -387,7 +389,7 @@ export default function ProfileSetup() {
           onChangeText={setJobTitle}
         />
 
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
+        <View style={{ flex: 1 }} behavior="height">
           <ChipInput
             options={industriesChipData}
             label={"What industry/sector are you in?\n"}
@@ -398,7 +400,7 @@ export default function ProfileSetup() {
             items={spaces}
             setItems={setSpaces}
           />
-        </KeyboardAvoidingView>
+        </View>
       </>
     ),
 
@@ -466,6 +468,23 @@ export default function ProfileSetup() {
             <Ionicons name="add" size={40} color="#A2BF71" />
           )}
         </TouchableOpacity>
+
+        <View>
+          <Text style={[styles.label, { marginBottom: 0 }]}>Your VBC</Text>
+          <View style={[styles.switchRow, { width: "100%" }]}>
+            <Text style={[styles.subLabel, { width: "80%" }]}>
+              Allow Matched Users to Share Your VBCs to their Connections in the
+              App
+            </Text>
+            <Switch
+              trackColor={{ false: "#3F3F46", true: "#6366F1" }} // muted gray → indigo
+              thumbColor={shareVBC ? "#E5E7EB" : "#9CA3AF"} // light thumb when on, soft gray when off
+              ios_backgroundColor="#3F3F46" // for iOS fallback
+              onValueChange={setShareVBC}
+              value={shareVBC}
+            />
+          </View>
+        </View>
 
         {/* simple card preview */}
         <ProfileCard
@@ -738,6 +757,12 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 12,
     backgroundColor: colourPalette.inputBackground,
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 20,
   },
 
   /* fab */
