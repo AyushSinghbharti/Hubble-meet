@@ -10,7 +10,7 @@ export interface SendConnectionRequestBody {
 
 export interface RejectConnectionRequestBody {
   user_id: string;
-  receiver_id: string;
+  sender_id: string;
 }
 
 export interface RemoveRequestBody {

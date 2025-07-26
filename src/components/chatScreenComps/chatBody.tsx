@@ -123,7 +123,9 @@ const ChatBubble = ({
     if (status === "granted") {
       try {
         await Contacts.addContactAsync({
+          [Contacts.Fields.Name]: contact.name,
           [Contacts.Fields.FirstName]: contact.name,
+          [Contacts.Fields.ContactType]: Contacts.ContactTypes.Person,
           [Contacts.Fields.PhoneNumbers]: [
             { label: "mobile", number: contact.phone },
           ],
@@ -162,31 +164,19 @@ const ChatBubble = ({
         <View style={styles.contactsContainer}>
           {contacts.map((contact: any, index: number) => (
             <View key={index} style={styles.contactCard}>
-              <Text style={styles.contactName}>{contact.name}</Text>
-              <Text style={styles.contactPhone}>{contact.phone}</Text>
-              <View style={styles.contactActions}>
-                {contact.phone && (
-                  <>
-                    <Pressable
-                      onPress={() => Linking.openURL(`tel:${contact.phone}`)}
-                    >
-                      <Text style={styles.contactActionText}>Call</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => Linking.openURL(`sms:${contact.phone}`)}
-                    >
-                      <Text style={styles.contactActionText}>Message</Text>
-                    </Pressable>
-
-                    <Pressable
-                      style={styles.saveButton}
-                      onPress={() => saveContact(contact)}
-                    >
-                      <Text style={styles.saveButtonText}>Save</Text>
-                    </Pressable>
-                  </>
-                )}
+              {/* Name + Number */}
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactName}>{contact.name}</Text>
+                <Text style={styles.contactPhone}>{contact.phone}</Text>
               </View>
+
+              {/* WhatsApp‑style “Add Contact” */}
+              <Pressable
+                style={styles.addContactButton}
+                onPress={() => saveContact(contact)}
+              >
+                <Text style={styles.addContactText}>Add to contacts</Text>
+              </Pressable>
             </View>
           ))}
         </View>
@@ -580,8 +570,6 @@ const styles = StyleSheet.create({
   },
 
   replyContainer: {
-    // flexDirection: "row",
-    // alignItems: "flex-start", // fixes text wrap alignment
     backgroundColor: "#e2e2e2",
     borderLeftWidth: 3,
     borderLeftColor: "#007AFF",
@@ -606,20 +594,44 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
 
-  contactsContainer: { gap: 6, maxWidth: 240 },
+  contactsContainer: { gap: 8 },
   contactCard: {
-    minWidth: "80%",
-    backgroundColor: "#fff",
+    justifyContent: "space-between",
+    padding: 12,
     borderRadius: 8,
-    padding: 8,
     borderWidth: 1,
     borderColor: "#e0e0e0",
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  contactName: { fontWeight: "600", fontSize: 14 },
-  contactPhone: { color: "#555", marginBottom: 4 },
-  contactActions: { flexDirection: "row", gap: 12 },
-  contactActionText: { color: "#007AFF", fontSize: 12 },
+  contactInfo: {
+    flexShrink: 1,
+    paddingRight: 8,
+  },
+  contactName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+  },
+  contactPhone: {
+    fontSize: 14,
+    color: "#555",
+    marginTop: 2,
+  },
+
+  addContactButton: {
+    backgroundColor: "#25D366", // WhatsApp green
+    paddingVertical: 6,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  addContactText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
 
   replyText: {
     fontSize: 12,
@@ -654,11 +666,10 @@ const styles = StyleSheet.create({
   },
 
   messageText: {
-    maxWidth: "100%",
-    minWidth: "25%",
     fontSize: 14,
     color: "#000",
     fontFamily: "Inter",
+    flexShrink: 1, 
   },
 
   saveButton: {

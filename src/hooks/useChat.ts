@@ -80,7 +80,7 @@ export const useUserChats = (userId: string): UseQueryResult<Chat[], Error> => {
     queryKey: ['chats', userId],
     queryFn: () => getUserChats(userId) as Promise<Chat[]>,
     enabled: !!userId,
-    refetchInterval: 1000,
+    refetchInterval: 10,
   });
 
   useEffect(() => {
@@ -258,13 +258,13 @@ import { clearChat, deleteChat } from '../api/chat'; // ✅ ensure import
 
 /* ---------- Clear Chat ---------- */
 export const useClearChat = () => {
-  const setMessages = useChatStore((state) => state.setMessages);
+  const clearChatStore = useChatStore((state) => state.clearChat);
 
   return useMutation({
     mutationFn: ({ chatId, userId }: { chatId: string; userId: string }) =>
       clearChat(chatId, userId),
     onSuccess: () => {
-      setMessages([]);
+      clearChatStore();
     },
     onError: (err) => {
       console.error("Clear chat error:", err);
@@ -274,8 +274,7 @@ export const useClearChat = () => {
 
 /* ---------- Delete Chat ---------- */
 export const useDeleteChat = () => {
-  const removeChat = useChatStore((state) => state.clearChat); // you should have this in store
-
+  const removeChat = useChatStore((state) => state.clearChat);
   return useMutation({
     mutationFn: ({ chatId, userId }: { chatId: string; userId: string }) =>
       deleteChat(chatId, userId),

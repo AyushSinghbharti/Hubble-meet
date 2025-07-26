@@ -34,7 +34,7 @@ export default function ChatScreen() {
   const lastViewedMap = useChatStore((state) => state.lastViewedMap);
   const updatedChats = useChatStore((state) => state.chat);
   const currentChat = useChatStore((state) => state.currentChat);
-  const clearCurrentChat = useChatStore((state) => state.currentChat);
+  const clearCurrentChat = useChatStore((state) => state.clearCurrentChat);
   const setMessages = useChatStore((state) => state.setMessages);
   const messages = useChatStore((state) => state.messages);
   const deleteChatMutation = useDeleteChat();

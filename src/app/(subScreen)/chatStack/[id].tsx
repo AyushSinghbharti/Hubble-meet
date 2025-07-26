@@ -152,9 +152,7 @@ export default function ChatDetailsScreen() {
         isGroup: Array.isArray(currentChat?.isGroup)
           ? currentChat?.isGroup[0]
           : currentChat?.isGroup || false,
-        participants: Array.isArray(currentChat?.participants)
-          ? currentChat?.participants[0]
-          : currentChat?.participants || [],
+        participants: [],
       },
       messageType: "TEXT",
       parentMessageId: selectedMessage?.id || undefined,
@@ -173,6 +171,7 @@ export default function ChatDetailsScreen() {
       },
     });
     setMessage("");
+    setSelectedMessage(undefined);
   };
 
   const handleSendMedia = () => {
@@ -204,7 +203,7 @@ export default function ChatDetailsScreen() {
           id: currentChat.id,
           name: currentChat.name || "",
           isGroup: currentChat.isGroup,
-          participants: currentChat.participants || [],
+          participants: [],
         },
         sender: {
           id: user.user_id,
@@ -227,6 +226,8 @@ export default function ChatDetailsScreen() {
         },
       });
 
+      setMessage("");
+      setSelectedMessage(undefined);
       return;
     } else if (mediaType === "vcard") {
       messageType = "VCARD";
@@ -276,6 +277,8 @@ export default function ChatDetailsScreen() {
       },
     });
 
+    setMessage("");
+    setSelectedMessage(undefined);
     setViewAttachment(false);
     setCaption("");
     setMedia([]);
