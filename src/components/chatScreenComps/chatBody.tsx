@@ -28,7 +28,7 @@ import { useWindowDimensions } from "react-native";
 import { useGetOtherUserPitch } from "@/src/hooks/usePitch";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { useChatStore } from "@/src/store/chatStore";
-import MediaViewer from "@/src/app/(subScreen)/chatStack/[id]/mediaViewer";
+import MediaViewer from "@/src/components/chatScreenComps/mediaViewer";
 import * as Contacts from "expo-contacts";
 
 interface ChatMsg {
