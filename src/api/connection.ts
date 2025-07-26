@@ -107,3 +107,8 @@ export const getCloseCircle = async (data: any): Promise<any> => {
   const response = await api.post(`/api/connection/close-circle`, data);
   return response.data;
 }; 
+
+export const postFeedback = async (data: any): Promise<any> => {
+    const response = await api.post(`/api/user/profiles/support`, data);
+    return response.data;
+};

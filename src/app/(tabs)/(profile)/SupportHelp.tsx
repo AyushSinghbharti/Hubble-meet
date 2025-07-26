@@ -13,6 +13,8 @@ import NavHeader from "../../../components/NavHeader";
 import SupportModal from "../../../components/Modal/SupportModal";
 import Button from "../../../components/Button";
 import { FONT } from "../../../../assets/constants/fonts";
+import { postFeedback } from "@/src/api/connection";
+import { getUserIdFromStorage } from "@/src/store/localStorage";
 
 export default function SettingsScreen() {
   const [supportModalType, setSupportModalType] = useState<
@@ -37,9 +39,21 @@ export default function SettingsScreen() {
     setToggles({ ...toggles, [key]: !toggles[key] });
   };
 
-  const handleSendFeedback = (message: string) => {
+  const handleSendFeedback = async(message: string) => {
+    const userId = await getUserIdFromStorage();
     console.log(`${supportModalType}: ${message}`);
-    // Here, send message to backend or analytics service
+    const data={
+      message,
+      type:supportModalType,
+      userId: userId, // User ID from the logged in user
+    }
+    console.log(data);
+    try {
+      await postFeedback(data);
+      console.log("Feedback sent successfully");
+    } catch (error) {
+      console.error("Error sending feedback:", error);
+    }
   };
 
   return (

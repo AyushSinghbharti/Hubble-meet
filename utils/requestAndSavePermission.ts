@@ -13,8 +13,12 @@ const requestAndSavePermission = async (type: PermissionType): Promise<void> => 
             if (type === "contacts") {
                 permission = PERMISSIONS.ANDROID.READ_CONTACTS;
             } else if (type === "photos") {
-                // Use READ_MEDIA_IMAGES for API 33+ if needed
-                permission = PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+                // Use READ_MEDIA_IMAGES for API 33+ (Android 13+) and READ_EXTERNAL_STORAGE for older versions
+                if (Number(Platform.Version) >= 33) {
+                    permission = PERMISSIONS.ANDROID.READ_MEDIA_IMAGES;
+                } else {
+                    permission = PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+                }
             }
         } else if (Platform.OS === "ios") {
             if (type === "contacts") {
@@ -29,7 +33,7 @@ const requestAndSavePermission = async (type: PermissionType): Promise<void> => 
             return;
         }
 
-        const result = await request(permission);
+        const result = await request(permission as any);
         const granted = result === RESULTS.GRANTED ? "granted" : "denied";
 
         await AsyncStorage.setItem(`${type}Permission`, granted);
