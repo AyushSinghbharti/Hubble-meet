@@ -10,6 +10,7 @@ import {
   Pressable,
   Linking,
   FlatList,
+  Alert,
 } from "react-native";
 import MessageAction from "./messageAction";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -28,6 +29,7 @@ import { useGetOtherUserPitch } from "@/src/hooks/usePitch";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { useChatStore } from "@/src/store/chatStore";
 import MediaViewer from "@/src/app/(subScreen)/chatStack/[id]/mediaViewer";
+import * as Contacts from "expo-contacts";
 
 interface ChatMsg {
   id: string;
@@ -88,7 +90,15 @@ const ChatBubble = ({
   setSelectedMessageId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMessage: React.Dispatch<React.SetStateAction<ChatMessage | null>>;
   allMessages: ChatMessage[];
-  onMediaPress: (mediaItems: Array<{ id: string; url: string; fileName?: string; type?: string }>, initialIndex: number) => void;
+  onMediaPress: (
+    mediaItems: Array<{
+      id: string;
+      url: string;
+      fileName?: string;
+      type?: string;
+    }>,
+    initialIndex: number
+  ) => void;
 }) => {
   const me = item.sender?.id === useAuthStore.getState().userId;
   const swipeableRef = useRef<SwipeableRef | null>(null);
@@ -107,6 +117,28 @@ const ChatBubble = ({
       vbcColor: vbcData?.color, // <<< new field if you want it explicit
     };
   }, [userData, vbcData]);
+
+  const saveContact = async (contact: { name: string; phone: string }) => {
+    const { status } = await Contacts.requestPermissionsAsync();
+    if (status === "granted") {
+      try {
+        await Contacts.addContactAsync({
+          [Contacts.Fields.FirstName]: contact.name,
+          [Contacts.Fields.PhoneNumbers]: [
+            { label: "mobile", number: contact.phone },
+          ],
+        });
+        Alert.alert("Success", `${contact.name} saved to contacts.`);
+      } catch (err) {
+        Alert.alert("Error", "Could not save contact.");
+      }
+    } else {
+      Alert.alert(
+        "Permission denied",
+        "Cannot save without contacts permission."
+      );
+    }
+  };
 
   const handleSwipeOpen = () => {
     if (
@@ -144,6 +176,13 @@ const ChatBubble = ({
                       onPress={() => Linking.openURL(`sms:${contact.phone}`)}
                     >
                       <Text style={styles.contactActionText}>Message</Text>
+                    </Pressable>
+
+                    <Pressable
+                      style={styles.saveButton}
+                      onPress={() => saveContact(contact)}
+                    >
+                      <Text style={styles.saveButtonText}>Save</Text>
                     </Pressable>
                   </>
                 )}
@@ -252,7 +291,9 @@ const ChatBubble = ({
               })()}
 
             {/* MESSAGE BODY */}
-            {item.messageType === "IMAGE" && item.media && item.media.length > 0 ? (
+            {item.messageType === "IMAGE" &&
+            item.media &&
+            item.media.length > 0 ? (
               <View
                 style={{
                   flexDirection: "row",
@@ -290,7 +331,9 @@ const ChatBubble = ({
                 viewChatButton
                 viewBlockButton
               />
-            ) : item.messageType === "DOCUMENT" && item.media && item.media.length > 0 ? (
+            ) : item.messageType === "DOCUMENT" &&
+              item.media &&
+              item.media.length > 0 ? (
               <View style={{ gap: 6, maxWidth: 220 }}>
                 {item.media.map((mediaItem, index) => (
                   <Pressable
@@ -359,9 +402,11 @@ export default function ChatBody({
     null
   );
   const [mediaViewerVisible, setMediaViewerVisible] = useState(false);
-  const [mediaItems, setMediaItems] = useState<Array<{ id: string; url: string; fileName?: string; type?: string }>>([]);
+  const [mediaItems, setMediaItems] = useState<
+    Array<{ id: string; url: string; fileName?: string; type?: string }>
+  >([]);
   const [mediaInitialIndex, setMediaInitialIndex] = useState(0);
-  
+
   const userId = useAuthStore((state) => state.userId);
   const currentChat = useChatStore((state) => state.currentChat);
 
@@ -373,9 +418,7 @@ export default function ChatBody({
     delivered: true,
   }));
 
-  const onAction = (
-    action: string
-  ) => {
+  const onAction = (action: string) => {
     if (action === "reply") {
       onReply?.(selectedMessage);
     } else if (action === "star") {
@@ -388,7 +431,15 @@ export default function ChatBody({
     setSelectedMessageId(null);
   };
 
-  const handleMediaPress = (mediaItems: Array<{ id: string; url: string; fileName?: string; type?: string }>, initialIndex: number) => {
+  const handleMediaPress = (
+    mediaItems: Array<{
+      id: string;
+      url: string;
+      fileName?: string;
+      type?: string;
+    }>,
+    initialIndex: number
+  ) => {
     setMediaItems(mediaItems);
     setMediaInitialIndex(initialIndex);
     setMediaViewerVisible(true);
@@ -608,6 +659,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#000",
     fontFamily: "Inter",
+  },
+
+  saveButton: {
+    marginLeft: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    backgroundColor: "#007AFF",
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
   },
 
   timeRow: {

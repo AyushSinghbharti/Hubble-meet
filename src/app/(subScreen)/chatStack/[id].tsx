@@ -143,10 +143,18 @@ export default function ChatDetailsScreen() {
         email: user.email,
       },
       chat: {
-        id: Array.isArray(currentChat?.id) ? currentChat?.id[0] : currentChat?.id || '',
-        name: Array.isArray(currentChat?.name) ? currentChat?.name[0] : currentChat?.name || '',
-        isGroup: Array.isArray(currentChat?.isGroup) ? currentChat?.isGroup[0] : currentChat?.isGroup || false,
-        participants: Array.isArray(currentChat?.participants) ? currentChat?.participants[0] : currentChat?.participants || [],
+        id: Array.isArray(currentChat?.id)
+          ? currentChat?.id[0]
+          : currentChat?.id || "",
+        name: Array.isArray(currentChat?.name)
+          ? currentChat?.name[0]
+          : currentChat?.name || "",
+        isGroup: Array.isArray(currentChat?.isGroup)
+          ? currentChat?.isGroup[0]
+          : currentChat?.isGroup || false,
+        participants: Array.isArray(currentChat?.participants)
+          ? currentChat?.participants[0]
+          : currentChat?.participants || [],
       },
       messageType: "TEXT",
       parentMessageId: selectedMessage?.id || undefined,
@@ -196,6 +204,7 @@ export default function ChatDetailsScreen() {
           id: currentChat.id,
           name: currentChat.name || "",
           isGroup: currentChat.isGroup,
+          participants: currentChat.participants || [],
         },
         sender: {
           id: user.user_id,
@@ -242,8 +251,8 @@ export default function ChatDetailsScreen() {
     const payload = {
       content: caption || "",
       chat: {
-        id: currentChat?.id || '',
-        name: currentChat?.name || '',
+        id: currentChat?.id || "",
+        name: currentChat?.name || "",
         isGroup: currentChat?.isGroup || false,
         participants: currentChat?.participants || [],
       },

@@ -17,6 +17,7 @@ import { Chat } from "@/src/interfaces/chatInterface";
 import { VbcCard } from "@/src/interfaces/vbcInterface";
 import ProfileCard from "@/src/components/profileSetupComps/profileCard";
 import { getStableColor } from "@/src/utility/getStableColor";
+import { useChatStore } from "@/src/store/chatStore";
 
 type Props = {
   visible: boolean;
@@ -40,6 +41,7 @@ export default function ShareVBCScreen({
     userId: user?.user_id || "",
   });
   const { mutate: sendMessage, isLoading: sending } = useSendMessage();
+  const currentChat = useChatStore((state) => state.currentChat);
 
   const handleShare = (vbc: VbcCard) => {
     if (!user || !chatId) return;
@@ -52,7 +54,7 @@ export default function ShareVBCScreen({
           username: user.full_name,
           email: user.email,
         },
-        chat: { id: chatId, name: "", isGroup: false },
+        chat: { id: chatId, name: "", isGroup: false, participants:  currentChat.participants || [], },
         vCardData: {
           userId: vbc.user_id,
           displayName: vbc.full_name,
@@ -99,7 +101,9 @@ export default function ShareVBCScreen({
             </View>
           ) : (
             <FlatList
-              data={vbcCards.filter((vbc) => vbc.connection_status === "CONNECTED")}
+              data={vbcCards.filter(
+                (vbc) => vbc.connection_status === "CONNECTED"
+              )}
               keyExtractor={(i) => i.id}
               contentContainerStyle={{ paddingBottom: 32 }}
               renderItem={({ item }) => (
@@ -111,7 +115,9 @@ export default function ShareVBCScreen({
                   <ProfileCard
                     avatar={item.profile_picture_url}
                     name={item.full_name}
-                    backgroundColor={item.color || getStableColor(item.user_id || "")}
+                    backgroundColor={
+                      item.color || getStableColor(item.user_id || "")
+                    }
                     title={item.job_title}
                     location={item.cities_on_radar[0]}
                     viewShareButton={false}
