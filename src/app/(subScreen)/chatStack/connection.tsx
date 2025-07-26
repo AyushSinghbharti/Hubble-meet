@@ -1,4 +1,4 @@
-  import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,11 +11,29 @@ import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import VbcCard from "../../../components/VbcCard";
 import { useRouter } from "expo-router";
 import { Pressable, TextInput } from "react-native-gesture-handler";
+import { useConnectionStore } from "@/src/store/connectionStore";
 
 export default function Connections() {
   const [viewSeach, setViewSearch] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [viewPopUp, setPopUp] = useState(false);
+  const connections = useConnectionStore((state) => state.connections);
+  const users = connections
+    .filter((connection) => connection.connection_status !== "BLOCKED")
+    .filter((user) => {
+      if (!searchText.trim()) return true;
+      const query = searchText.toLowerCase();
+
+      const name = user.full_name?.toLowerCase() || "";
+      const location = user.city?.toLowerCase() || "";
+      const position = user.job_title?.toLowerCase() || "";
+
+      return (
+        name.includes(query) ||
+        location.includes(query) ||
+        position.includes(query)
+      );
+    });
 
   //Renders
   const PopUpMenu = () => {
@@ -110,7 +128,7 @@ export default function Connections() {
 
       {/* Scrollable Content */}
       <View style={styles.scrollArea}>
-        <VbcCard spacing={20} />
+        <VbcCard profiles={users} spacing={20} />
       </View>
 
       {/* PopupMenu */}
