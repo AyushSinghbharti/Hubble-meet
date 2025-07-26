@@ -27,6 +27,7 @@ import { useWindowDimensions } from "react-native";
 import { useGetOtherUserPitch } from "@/src/hooks/usePitch";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { useChatStore } from "@/src/store/chatStore";
+import MediaViewer from "@/src/app/(subScreen)/chatStack/[id]/mediaViewer";
 
 interface ChatMsg {
   id: string;
@@ -77,6 +78,7 @@ const ChatBubble = ({
   setSelectedMessageId,
   setSelectedMessage,
   allMessages,
+  onMediaPress,
 }: {
   item: ChatMessage;
   isSelected: boolean;
@@ -86,6 +88,7 @@ const ChatBubble = ({
   setSelectedMessageId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMessage: React.Dispatch<React.SetStateAction<ChatMessage | null>>;
   allMessages: ChatMessage[];
+  onMediaPress: (mediaItems: Array<{ id: string; url: string; fileName?: string; type?: string }>, initialIndex: number) => void;
 }) => {
   const me = item.sender?.id === useAuthStore.getState().userId;
   const swipeableRef = useRef<SwipeableRef | null>(null);
@@ -110,7 +113,7 @@ const ChatBubble = ({
       currentlyOpenSwipeable.current &&
       currentlyOpenSwipeable.current !== swipeableRef.current
     ) {
-      currentlyOpenSwipeable.current.close?.();
+      currentlyOpenSwipeable.current?.close?.();
     }
 
     currentlyOpenSwipeable.current = swipeableRef.current;
@@ -182,11 +185,6 @@ const ChatBubble = ({
     >
       <Pressable
         ref={bubbleRef}
-        // style={[
-        //   styles.msgRow,
-        //   me ? styles.msgRight : styles.msgLeft,
-        //   isSelected && styles.onMenu,
-        // ]}
         style={[styles.row, me && styles.rowEnd, isSelected && styles.onMenu]}
         onPress={() => {
           bubbleRef.current?.measureInWindow((x, y, width, height) => {
@@ -254,7 +252,7 @@ const ChatBubble = ({
               })()}
 
             {/* MESSAGE BODY */}
-            {item.messageType === "IMAGE" && item.media?.length > 0 ? (
+            {item.messageType === "IMAGE" && item.media && item.media.length > 0 ? (
               <View
                 style={{
                   flexDirection: "row",
@@ -265,10 +263,10 @@ const ChatBubble = ({
                 }}
               >
                 <View>
-                  {item.media.map((mediaItem) => (
+                  {item.media.map((mediaItem, index) => (
                     <Pressable
                       key={mediaItem.id}
-                      onPress={() => Linking.openURL(mediaItem.url)}
+                      onPress={() => onMediaPress(item.media || [], index)}
                     >
                       <Image
                         source={{ uri: mediaItem.url }}
@@ -292,12 +290,12 @@ const ChatBubble = ({
                 viewChatButton
                 viewBlockButton
               />
-            ) : item.messageType === "DOCUMENT" && item.media?.length > 0 ? (
+            ) : item.messageType === "DOCUMENT" && item.media && item.media.length > 0 ? (
               <View style={{ gap: 6, maxWidth: 220 }}>
-                {item.media.map((mediaItem) => (
+                {item.media.map((mediaItem, index) => (
                   <Pressable
                     key={mediaItem.id}
-                    onPress={() => Linking.openURL(mediaItem.url)}
+                    onPress={() => onMediaPress(item.media || [], index)}
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
@@ -360,6 +358,10 @@ export default function ChatBody({
   const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(
     null
   );
+  const [mediaViewerVisible, setMediaViewerVisible] = useState(false);
+  const [mediaItems, setMediaItems] = useState<Array<{ id: string; url: string; fileName?: string; type?: string }>>([]);
+  const [mediaInitialIndex, setMediaInitialIndex] = useState(0);
+  
   const userId = useAuthStore((state) => state.userId);
   const currentChat = useChatStore((state) => state.currentChat);
 
@@ -372,7 +374,7 @@ export default function ChatBody({
   }));
 
   const onAction = (
-    action: "reply" | "star" | "deleteforme" | "deleteforeveryone"
+    action: string
   ) => {
     if (action === "reply") {
       onReply?.(selectedMessage);
@@ -384,6 +386,16 @@ export default function ChatBody({
       onDelete?.(selectedMessage?.id || "", "everyone");
     }
     setSelectedMessageId(null);
+  };
+
+  const handleMediaPress = (mediaItems: Array<{ id: string; url: string; fileName?: string; type?: string }>, initialIndex: number) => {
+    setMediaItems(mediaItems);
+    setMediaInitialIndex(initialIndex);
+    setMediaViewerVisible(true);
+  };
+
+  const handleCloseMediaViewer = () => {
+    setMediaViewerVisible(false);
   };
 
   const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
@@ -438,6 +450,7 @@ export default function ChatBody({
                 setSelectedMessageId={setSelectedMessageId}
                 setSelectedMessage={setSelectedMessage}
                 allMessages={messages}
+                onMediaPress={handleMediaPress}
               />
             </View>
           )}
@@ -446,6 +459,14 @@ export default function ChatBody({
           // ListFooterComponent={isFetching && <ActivityIndicator />}
           contentContainerStyle={{ paddingBottom: 10 }}
           keyboardShouldPersistTaps="handled"
+        />
+
+        {/* Media Viewer Modal */}
+        <MediaViewer
+          visible={mediaViewerVisible}
+          mediaItems={mediaItems}
+          initialIndex={mediaInitialIndex}
+          onClose={handleCloseMediaViewer}
         />
       </View>
     </GestureHandlerRootView>

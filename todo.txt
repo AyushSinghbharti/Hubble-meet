@@ -74,3 +74,95 @@ PitchScreen bugs
 18. DELETE ENDPOINTS ARE NOT WORKING
 19. Pitch should also contain feilds, like, pitch type: business/individual etc...
 20. Test react to pitch and report pitch
+
+==========================================
+CRITICAL SECURITY BUGS (HIGH PRIORITY)
+==========================================
+
+21. SECURITY: Hardcoded AWS credentials in src/api/aws.ts - Move to environment variables
+22. SECURITY: Hardcoded CRUD API endpoint with exposed API key in src/app/_layout.tsx - Move to environment variables
+23. SECURITY: AWS access key and secret key exposed in source code - IMMEDIATE FIX REQUIRED
+
+==========================================
+CRITICAL BUGS (HIGH PRIORITY)
+==========================================
+
+24. TypeScript config issue: Duplicate file entries and incorrect .tsxx extension in tsconfig.json
+25. Memory leaks in useEffect hooks across multiple files (useConnection.ts, useProfile.ts, useChat.ts)
+26. Missing dependencies in useEffect dependency arrays causing stale closures
+27. Inconsistent error handling and excessive console logging throughout app
+28. DELETE ENDPOINTS ARE NOT WORKING (already listed but needs immediate attention)
+
+==========================================
+PERFORMANCE ISSUES (MEDIUM PRIORITY)
+==========================================
+
+29. Excessive API polling: Multiple queries polling every 1 second causing unnecessary network requests
+30. Inefficient re-renders: Duplicate useEffect logic and unnecessary component re-renders
+31. Missing React optimization hooks (useMemo, useCallback) in chat components
+32. Large bundle size: Heavy libraries (aws-sdk, moment.js, lodash) included in bundle
+33. Inefficient data fetching: Fetching all recommendations at once without pagination
+34. Missing virtual scrolling for large lists in chat and connections
+35. Unoptimized image loading without proper caching
+36. Inefficient font loading: Loading unused font variants
+37. Missing proper caching strategy for React Query
+38. No bundle analysis or code splitting implemented
+
+==========================================
+PERFORMANCE OPTIMIZATIONS (MEDIUM PRIORITY)
+==========================================
+
+39. Replace moment.js with date-fns or native Date for smaller bundle size
+40. Use lodash-es for tree-shaking instead of full lodash
+41. Implement code splitting for AWS SDK and other heavy libraries
+42. Add virtual scrolling for large lists using react-native-virtualized-list
+43. Optimize image loading with expo-image and proper caching
+44. Implement proper React Query caching strategy with staleTime and cacheTime
+45. Add bundle analysis with "expo export --dump-assetmap"
+46. Implement lazy loading for non-critical features
+47. Preload only critical fonts and remove unused variants
+48. Add performance monitoring with @react-native-firebase/perf
+49. Implement WebSocket for real-time updates instead of polling
+50. Add proper error boundaries for better error handling
+51. Implement pagination for recommendations and large data sets
+52. Add React.memo for expensive components
+53. Optimize useEffect cleanup functions to prevent memory leaks
+54. Implement proper loading states and skeleton screens
+
+==========================================
+CODE QUALITY IMPROVEMENTS (LOW PRIORITY)
+==========================================
+
+55. Clean up console.log statements and implement proper logging system
+56. Add proper TypeScript types for all components
+57. Implement consistent error handling patterns
+58. Add unit tests for critical components
+59. Implement proper loading and error states
+60. Add accessibility features (screen reader support)
+61. Implement proper form validation
+62. Add proper documentation for complex functions
+63. Implement proper state management patterns
+64. Add proper loading indicators for async operations
+
+==========================================
+EXPECTED PERFORMANCE GAINS
+==========================================
+
+- Bundle Size: 20-30% reduction with tree-shaking and code splitting
+- Network Requests: 60-70% reduction with optimized polling
+- Memory Usage: 15-20% reduction with proper cleanup
+- App Launch Time: 10-15% improvement with optimized font loading
+- UI Responsiveness: 25-30% improvement with memoization
+
+==========================================
+IMMEDIATE ACTION ITEMS (DO FIRST)
+==========================================
+
+1. Fix security issues (items 21-23) - CRITICAL
+2. Fix TypeScript config (item 24) - CRITICAL
+3. Fix memory leaks in useEffect (item 25-26) - HIGH
+4. Optimize API polling intervals (item 29) - HIGH
+5. Add missing dependencies to useEffect (item 26) - HIGH
+6. Implement proper error handling (item 27) - MEDIUM
+7. Add React optimization hooks (item 31) - MEDIUM
+8. Optimize bundle size (item 32) - MEDIUM

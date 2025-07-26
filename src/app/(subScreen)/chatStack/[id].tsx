@@ -143,13 +143,13 @@ export default function ChatDetailsScreen() {
         email: user.email,
       },
       chat: {
-        id: currentChat?.id,
-        name: currentChat?.name || "",
-        isGroup: currentChat?.isGroup,
-        participants: [],
+        id: Array.isArray(currentChat?.id) ? currentChat?.id[0] : currentChat?.id || '',
+        name: Array.isArray(currentChat?.name) ? currentChat?.name[0] : currentChat?.name || '',
+        isGroup: Array.isArray(currentChat?.isGroup) ? currentChat?.isGroup[0] : currentChat?.isGroup || false,
+        participants: Array.isArray(currentChat?.participants) ? currentChat?.participants[0] : currentChat?.participants || [],
       },
       messageType: "TEXT",
-      parentMessageId: selectedMessage?.id,
+      parentMessageId: selectedMessage?.id || undefined,
     };
 
     console.log(
@@ -164,7 +164,7 @@ export default function ChatDetailsScreen() {
         setError("Failed to send message");
       },
     });
-    setMessage(null);
+    setMessage("");
   };
 
   const handleSendMedia = () => {
@@ -209,7 +209,7 @@ export default function ChatDetailsScreen() {
         onSuccess: () => {
           console.log("Contacts shared successfully");
           setMedia([]);
-          setMediaType(null);
+          setMediaType("");
           setViewAttachment(false);
         },
         onError: (err) => {
@@ -242,9 +242,10 @@ export default function ChatDetailsScreen() {
     const payload = {
       content: caption || "",
       chat: {
-        id: currentChat.id,
-        name: currentChat.name || "",
-        isGroup: currentChat.isGroup,
+        id: currentChat?.id || '',
+        name: currentChat?.name || '',
+        isGroup: currentChat?.isGroup || false,
+        participants: currentChat?.participants || [],
       },
       sender: {
         id: user.user_id,
@@ -252,7 +253,7 @@ export default function ChatDetailsScreen() {
         email: user.email,
       },
       messageType,
-      files,
+      files: files as any, // fallback cast if not File[]
     };
 
     sendMediaMessage(payload, {
@@ -355,16 +356,12 @@ export default function ChatDetailsScreen() {
     setViewAttachment(false);
   };
 
-  const handleReply = (message: ChatMessage | null) => {
-    if (message) {
-      setSelectedMessage(message);
-    } else {
-      setSelectedMessage(null);
-    }
+  const handleReply = (message?: ChatMessage) => {
+    setSelectedMessage(message);
   };
 
   const onCancelReply = () => {
-    setSelectedMessage(null);
+    setSelectedMessage(undefined);
   };
 
   const handleStarMessage = (message: ChatMessage | null) => {
