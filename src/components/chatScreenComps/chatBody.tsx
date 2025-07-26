@@ -9,6 +9,7 @@ import {
   Image,
   Pressable,
   Linking,
+  FlatList,
 } from "react-native";
 import MessageAction from "./messageAction";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -25,6 +26,7 @@ import VbcChatCard from "./VbcChatCard";
 import { useWindowDimensions } from "react-native";
 import { useGetOtherUserPitch } from "@/src/hooks/usePitch";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
+import { useChatStore } from "@/src/store/chatStore";
 
 interface ChatMsg {
   id: string;
@@ -359,6 +361,7 @@ export default function ChatBody({
     null
   );
   const userId = useAuthStore((state) => state.userId);
+  const currentChat = useChatStore((state) => state.currentChat);
 
   const transformedMessages: ChatMsg[] = messages.map((msg) => ({
     id: msg.id,
@@ -385,6 +388,7 @@ export default function ChatBody({
 
   const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -417,22 +421,14 @@ export default function ChatBody({
           }
           leftOffset={messageProps.x > 90 ? 265 : 25}
         />
-        <ScrollView
-          style={styles.container}
-          ref={scrollViewRef}
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
-          keyboardShouldPersistTaps="handled"
-        >
-          {messages.length > 0 && (
-            <View style={styles.dateChip}>
-              <Text style={styles.dateChipText}>
-                {dateLabel(transformedMessages[0].timestamp)}
-              </Text>
-            </View>
-          )}
 
-          {messages.map((item) => (
-            <View key={item.id} style={styles.listContent}>
+        <FlatList
+          ref={flatListRef}
+          inverted
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.listContent}>
               <ChatBubble
                 item={item}
                 isSelected={selectedMessageId === item.id}
@@ -444,8 +440,13 @@ export default function ChatBody({
                 allMessages={messages}
               />
             </View>
-          ))}
-        </ScrollView>
+          )}
+          // onEndReached={loadMoreMessages}
+          onEndReachedThreshold={0.1} // Close to top
+          // ListFooterComponent={isFetching && <ActivityIndicator />}
+          contentContainerStyle={{ paddingBottom: 10 }}
+          keyboardShouldPersistTaps="handled"
+        />
       </View>
     </GestureHandlerRootView>
   );

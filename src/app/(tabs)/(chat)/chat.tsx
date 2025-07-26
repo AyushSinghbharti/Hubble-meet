@@ -225,7 +225,7 @@ export default function ChatScreen() {
         initialNumToRender={10}
         windowSize={1}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingTop: 10 }}
+        contentContainerStyle={{ paddingTop: 10, paddingBottom: 100 }}
         renderItem={({ item }) => <RenderCard item={item} />}
       />
 
