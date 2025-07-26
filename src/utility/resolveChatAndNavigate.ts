@@ -101,6 +101,7 @@ export const resolveChatAndNavigate = async ({
           id: resolvedChat.id,
           name: resolvedChat.name || "",
           isGroup: resolvedChat.isGroup,
+          participants: resolvedChat.participants || [],
         },
 
         //Passing VBC data

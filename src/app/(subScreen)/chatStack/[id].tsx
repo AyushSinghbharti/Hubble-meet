@@ -67,6 +67,7 @@ export default function ChatDetailsScreen() {
   const updatedMessages = useChatStore((state) => state.messages);
   const starredMessages = useChatStore((state) => state.starredMessages);
   const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
+  const clearMessages = useChatStore((state) => state.clearMessages);
 
   //Mutations
   const { mutate: sendMessage } = useSendMessage();
@@ -77,6 +78,11 @@ export default function ChatDetailsScreen() {
   const { mutate: star } = useStarMessage();
   const { mutate: unstar } = useUnstarMessage();
   const { mutate: clearChatMutation } = useClearChat();
+
+  // Clear on chat id change BEFORE useChatMessages runs
+  useEffect(() => {
+    clearMessages(); // 🔥 Important
+  }, [id]);
 
   useEffect(() => {
     setMessages(updatedMessages);
@@ -92,7 +98,7 @@ export default function ChatDetailsScreen() {
 
   //Fetching all messages
   useChatById(id);
-  useChatMessages(id);
+  useChatMessages(id, { userId: userId, page: 1, limit: 50 });
 
   const onPressSendMessage = (content: string) => {
     if (!content) return;
@@ -137,15 +143,25 @@ export default function ChatDetailsScreen() {
         email: user.email,
       },
       chat: {
-        id: currentChat?.id,
-        name: currentChat?.name || "",
-        isGroup: currentChat?.isGroup,
+        id: Array.isArray(currentChat?.id)
+          ? currentChat?.id[0]
+          : currentChat?.id || "",
+        name: Array.isArray(currentChat?.name)
+          ? currentChat?.name[0]
+          : currentChat?.name || "",
+        isGroup: Array.isArray(currentChat?.isGroup)
+          ? currentChat?.isGroup[0]
+          : currentChat?.isGroup || false,
+        participants: [],
       },
       messageType: "TEXT",
-      parentMessageId: selectedMessage?.id,
+      parentMessageId: selectedMessage?.id || undefined,
     };
 
-    console.log("send message payload", JSON.stringify(sendMessagePayload, null, 4));
+    console.log(
+      "send message payload",
+      JSON.stringify(sendMessagePayload, null, 4)
+    );
 
     sendMessage(sendMessagePayload, {
       onSuccess: (res) => {},
@@ -154,7 +170,8 @@ export default function ChatDetailsScreen() {
         setError("Failed to send message");
       },
     });
-    setMessage(null);
+    setMessage("");
+    setSelectedMessage(undefined);
   };
 
   const handleSendMedia = () => {
@@ -186,6 +203,7 @@ export default function ChatDetailsScreen() {
           id: currentChat.id,
           name: currentChat.name || "",
           isGroup: currentChat.isGroup,
+          participants: [],
         },
         sender: {
           id: user.user_id,
@@ -199,7 +217,7 @@ export default function ChatDetailsScreen() {
         onSuccess: () => {
           console.log("Contacts shared successfully");
           setMedia([]);
-          setMediaType(null);
+          setMediaType("");
           setViewAttachment(false);
         },
         onError: (err) => {
@@ -208,6 +226,8 @@ export default function ChatDetailsScreen() {
         },
       });
 
+      setMessage("");
+      setSelectedMessage(undefined);
       return;
     } else if (mediaType === "vcard") {
       messageType = "VCARD";
@@ -232,9 +252,10 @@ export default function ChatDetailsScreen() {
     const payload = {
       content: caption || "",
       chat: {
-        id: currentChat.id,
-        name: currentChat.name || "",
-        isGroup: currentChat.isGroup,
+        id: currentChat?.id || "",
+        name: currentChat?.name || "",
+        isGroup: currentChat?.isGroup || false,
+        participants: currentChat?.participants || [],
       },
       sender: {
         id: user.user_id,
@@ -242,7 +263,7 @@ export default function ChatDetailsScreen() {
         email: user.email,
       },
       messageType,
-      files,
+      files: files as any, // fallback cast if not File[]
     };
 
     sendMediaMessage(payload, {
@@ -256,6 +277,8 @@ export default function ChatDetailsScreen() {
       },
     });
 
+    setMessage("");
+    setSelectedMessage(undefined);
     setViewAttachment(false);
     setCaption("");
     setMedia([]);
@@ -345,16 +368,12 @@ export default function ChatDetailsScreen() {
     setViewAttachment(false);
   };
 
-  const handleReply = (message: ChatMessage | null) => {
-    if (message) {
-      setSelectedMessage(message);
-    } else {
-      setSelectedMessage(null);
-    }
+  const handleReply = (message?: ChatMessage) => {
+    setSelectedMessage(message);
   };
 
   const onCancelReply = () => {
-    setSelectedMessage(null);
+    setSelectedMessage(undefined);
   };
 
   const handleStarMessage = (message: ChatMessage | null) => {

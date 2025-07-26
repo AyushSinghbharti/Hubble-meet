@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Chat, ChatMessage } from '../interfaces/chatInterface';
+import { saveLastViewedMapToStorage } from "@/src/store/localStorage";
 
 interface ChatStore {
   currentChat: Chat | null;
@@ -14,6 +15,7 @@ interface ChatStore {
   setMessages: (msgs: ChatMessage[]) => void;
   addMessage: (msg: ChatMessage) => void;
   deleteMessage: (msgId: string) => void;
+  clearMessages: () => void;
 
   isChatOpen: boolean;
   setIsChatOpen: (val: boolean) => void;
@@ -28,6 +30,8 @@ interface ChatStore {
   // ✅ NEW: Last viewed time per chat
   lastViewedMap: { [chatId: string]: string };
   setLastViewed: (chatId: string, timestamp: string) => void;
+  setAllLastViewed: (map: Record<string, string>) => void;
+
 
   // ⭐ Starred messages
   starredMessages: ChatMessage[];
@@ -47,11 +51,13 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   messages: [],
   setMessages: (msgs) => set({ messages: msgs }),
-  addMessage: (msg) => set((state) => ({ messages: [...state.messages, msg] })),
+  // addMessage: (msg) => set((state) => ({ messages: [...state.messages, msg] })),
+  addMessage: (msg) => set((state) => ({ messages: [msg, ...state.messages] })),
   deleteMessage: (msgId) =>
     set((state) => ({
       messages: state.messages.filter((msg) => msg.id !== msgId),
     })),
+  clearMessages: () => set({ messages: [] }),
 
   isChatOpen: false,
   setIsChatOpen: (val) => set({ isChatOpen: val }),
@@ -64,13 +70,18 @@ export const useChatStore = create<ChatStore>((set) => ({
   setIntendedUserId: (id) => set({ intendedUserId: id }),
 
   lastViewedMap: {},
-  setLastViewed: (chatId, timestamp) =>
-    set((state) => ({
-      lastViewedMap: {
+  setLastViewed: (chatId, timestamp) => {
+    set((state) => {
+      const updatedMap = {
         ...state.lastViewedMap,
         [chatId]: timestamp,
-      },
-    })),
+      };
+      saveLastViewedMapToStorage(updatedMap);
+      return { lastViewedMap: updatedMap };
+    });
+  },
+  setAllLastViewed: (map: Record<string, string>) => set({ lastViewedMap: map }),
+
 
   starredMessages: [],
   setStarredMessages: (messages) => set({ starredMessages: messages }),

@@ -16,6 +16,7 @@ import {
     DeleteMessageResponse,
     SendMediaRequest,
     DeleteMessageRequest,
+    GetAllChatMessageRequestPayload,
 } from '../interfaces/chatInterface';
 
 const CHAT_BASE = '/api/chat';
@@ -116,9 +117,10 @@ export const sendMedia = async (
  * Retrieves all messages in a chat
  */
 export const getChatMessages = (
-    chatId: string
+    chatId: string,
+    data: GetAllChatMessageRequestPayload
 ): Promise<GetChatMessagesResponse> =>
-    apiClient.get<GetChatMessagesResponse>(`${CHAT_BASE}/msg/${chatId}`).then(res => res.data);
+    apiClient.post<GetChatMessagesResponse>(`${CHAT_BASE}/msg/${chatId}`, data).then(res => res.data);
 
 /**
  * Deletes a specific message by its ID

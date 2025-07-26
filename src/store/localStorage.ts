@@ -17,6 +17,7 @@ const keys = {
   connections: "@connections",
   connectionVbcs: "@connectionsvbcs",
   setting: "@setting",
+  lastViewedMap: "@lastViewedMap",
 };
 
 // ---------- Token ----------
@@ -149,6 +150,21 @@ export const getConnectionVbcsFromStorage = async (): Promise<ConnectionUser[] |
 export const removeConnectionVbcsFromStorage = async () => {
   await AsyncStorage.removeItem(keys.connections);
 };
+
+// ---------- Last Viewed Map (Unread Tracking) ----------
+export const saveLastViewedMapToStorage = async (map: Record<string, string>) => {
+  await AsyncStorage.setItem(keys.lastViewedMap, JSON.stringify(map));
+};
+
+export const getLastViewedMapFromStorage = async (): Promise<Record<string, string>> => {
+  const json = await AsyncStorage.getItem(keys.lastViewedMap);
+  return json ? JSON.parse(json) : {};
+};
+
+export const removeLastViewedMapFromStorage = async () => {
+  await AsyncStorage.removeItem(keys.lastViewedMap);
+};
+
 
 
 // ---------- Clear All ----------

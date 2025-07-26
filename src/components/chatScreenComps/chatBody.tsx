@@ -9,6 +9,8 @@ import {
   Image,
   Pressable,
   Linking,
+  FlatList,
+  Alert,
 } from "react-native";
 import MessageAction from "./messageAction";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -25,6 +27,9 @@ import VbcChatCard from "./VbcChatCard";
 import { useWindowDimensions } from "react-native";
 import { useGetOtherUserPitch } from "@/src/hooks/usePitch";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
+import { useChatStore } from "@/src/store/chatStore";
+import MediaViewer from "@/src/app/(subScreen)/chatStack/[id]/mediaViewer";
+import * as Contacts from "expo-contacts";
 
 interface ChatMsg {
   id: string;
@@ -75,6 +80,7 @@ const ChatBubble = ({
   setSelectedMessageId,
   setSelectedMessage,
   allMessages,
+  onMediaPress,
 }: {
   item: ChatMessage;
   isSelected: boolean;
@@ -84,6 +90,15 @@ const ChatBubble = ({
   setSelectedMessageId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMessage: React.Dispatch<React.SetStateAction<ChatMessage | null>>;
   allMessages: ChatMessage[];
+  onMediaPress: (
+    mediaItems: Array<{
+      id: string;
+      url: string;
+      fileName?: string;
+      type?: string;
+    }>,
+    initialIndex: number
+  ) => void;
 }) => {
   const me = item.sender?.id === useAuthStore.getState().userId;
   const swipeableRef = useRef<SwipeableRef | null>(null);
@@ -103,12 +118,36 @@ const ChatBubble = ({
     };
   }, [userData, vbcData]);
 
+  const saveContact = async (contact: { name: string; phone: string }) => {
+    const { status } = await Contacts.requestPermissionsAsync();
+    if (status === "granted") {
+      try {
+        await Contacts.addContactAsync({
+          [Contacts.Fields.Name]: contact.name,
+          [Contacts.Fields.FirstName]: contact.name,
+          [Contacts.Fields.ContactType]: Contacts.ContactTypes.Person,
+          [Contacts.Fields.PhoneNumbers]: [
+            { label: "mobile", number: contact.phone },
+          ],
+        });
+        Alert.alert("Success", `${contact.name} saved to contacts.`);
+      } catch (err) {
+        Alert.alert("Error", "Could not save contact.");
+      }
+    } else {
+      Alert.alert(
+        "Permission denied",
+        "Cannot save without contacts permission."
+      );
+    }
+  };
+
   const handleSwipeOpen = () => {
     if (
       currentlyOpenSwipeable.current &&
       currentlyOpenSwipeable.current !== swipeableRef.current
     ) {
-      currentlyOpenSwipeable.current.close?.();
+      currentlyOpenSwipeable.current?.close?.();
     }
 
     currentlyOpenSwipeable.current = swipeableRef.current;
@@ -125,24 +164,19 @@ const ChatBubble = ({
         <View style={styles.contactsContainer}>
           {contacts.map((contact: any, index: number) => (
             <View key={index} style={styles.contactCard}>
-              <Text style={styles.contactName}>{contact.name}</Text>
-              <Text style={styles.contactPhone}>{contact.phone}</Text>
-              <View style={styles.contactActions}>
-                {contact.phone && (
-                  <>
-                    <Pressable
-                      onPress={() => Linking.openURL(`tel:${contact.phone}`)}
-                    >
-                      <Text style={styles.contactActionText}>Call</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => Linking.openURL(`sms:${contact.phone}`)}
-                    >
-                      <Text style={styles.contactActionText}>Message</Text>
-                    </Pressable>
-                  </>
-                )}
+              {/* Name + Number */}
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactName}>{contact.name}</Text>
+                <Text style={styles.contactPhone}>{contact.phone}</Text>
               </View>
+
+              {/* WhatsApp‑style “Add Contact” */}
+              <Pressable
+                style={styles.addContactButton}
+                onPress={() => saveContact(contact)}
+              >
+                <Text style={styles.addContactText}>Add to contacts</Text>
+              </Pressable>
             </View>
           ))}
         </View>
@@ -180,11 +214,6 @@ const ChatBubble = ({
     >
       <Pressable
         ref={bubbleRef}
-        // style={[
-        //   styles.msgRow,
-        //   me ? styles.msgRight : styles.msgLeft,
-        //   isSelected && styles.onMenu,
-        // ]}
         style={[styles.row, me && styles.rowEnd, isSelected && styles.onMenu]}
         onPress={() => {
           bubbleRef.current?.measureInWindow((x, y, width, height) => {
@@ -252,7 +281,9 @@ const ChatBubble = ({
               })()}
 
             {/* MESSAGE BODY */}
-            {item.messageType === "IMAGE" && item.media?.length > 0 ? (
+            {item.messageType === "IMAGE" &&
+            item.media &&
+            item.media.length > 0 ? (
               <View
                 style={{
                   flexDirection: "row",
@@ -263,10 +294,10 @@ const ChatBubble = ({
                 }}
               >
                 <View>
-                  {item.media.map((mediaItem) => (
+                  {item.media.map((mediaItem, index) => (
                     <Pressable
                       key={mediaItem.id}
-                      onPress={() => Linking.openURL(mediaItem.url)}
+                      onPress={() => onMediaPress(item.media || [], index)}
                     >
                       <Image
                         source={{ uri: mediaItem.url }}
@@ -290,12 +321,14 @@ const ChatBubble = ({
                 viewChatButton
                 viewBlockButton
               />
-            ) : item.messageType === "DOCUMENT" && item.media?.length > 0 ? (
+            ) : item.messageType === "DOCUMENT" &&
+              item.media &&
+              item.media.length > 0 ? (
               <View style={{ gap: 6, maxWidth: 220 }}>
-                {item.media.map((mediaItem) => (
+                {item.media.map((mediaItem, index) => (
                   <Pressable
                     key={mediaItem.id}
-                    onPress={() => Linking.openURL(mediaItem.url)}
+                    onPress={() => onMediaPress(item.media || [], index)}
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
@@ -358,7 +391,14 @@ export default function ChatBody({
   const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(
     null
   );
+  const [mediaViewerVisible, setMediaViewerVisible] = useState(false);
+  const [mediaItems, setMediaItems] = useState<
+    Array<{ id: string; url: string; fileName?: string; type?: string }>
+  >([]);
+  const [mediaInitialIndex, setMediaInitialIndex] = useState(0);
+
   const userId = useAuthStore((state) => state.userId);
+  const currentChat = useChatStore((state) => state.currentChat);
 
   const transformedMessages: ChatMsg[] = messages.map((msg) => ({
     id: msg.id,
@@ -368,9 +408,7 @@ export default function ChatBody({
     delivered: true,
   }));
 
-  const onAction = (
-    action: "reply" | "star" | "deleteforme" | "deleteforeveryone"
-  ) => {
+  const onAction = (action: string) => {
     if (action === "reply") {
       onReply?.(selectedMessage);
     } else if (action === "star") {
@@ -383,8 +421,27 @@ export default function ChatBody({
     setSelectedMessageId(null);
   };
 
+  const handleMediaPress = (
+    mediaItems: Array<{
+      id: string;
+      url: string;
+      fileName?: string;
+      type?: string;
+    }>,
+    initialIndex: number
+  ) => {
+    setMediaItems(mediaItems);
+    setMediaInitialIndex(initialIndex);
+    setMediaViewerVisible(true);
+  };
+
+  const handleCloseMediaViewer = () => {
+    setMediaViewerVisible(false);
+  };
+
   const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -417,22 +474,14 @@ export default function ChatBody({
           }
           leftOffset={messageProps.x > 90 ? 265 : 25}
         />
-        <ScrollView
-          style={styles.container}
-          ref={scrollViewRef}
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
-          keyboardShouldPersistTaps="handled"
-        >
-          {messages.length > 0 && (
-            <View style={styles.dateChip}>
-              <Text style={styles.dateChipText}>
-                {dateLabel(transformedMessages[0].timestamp)}
-              </Text>
-            </View>
-          )}
 
-          {messages.map((item) => (
-            <View key={item.id} style={styles.listContent}>
+        <FlatList
+          ref={flatListRef}
+          inverted
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.listContent}>
               <ChatBubble
                 item={item}
                 isSelected={selectedMessageId === item.id}
@@ -442,10 +491,24 @@ export default function ChatBody({
                 setSelectedMessageId={setSelectedMessageId}
                 setSelectedMessage={setSelectedMessage}
                 allMessages={messages}
+                onMediaPress={handleMediaPress}
               />
             </View>
-          ))}
-        </ScrollView>
+          )}
+          // onEndReached={loadMoreMessages}
+          onEndReachedThreshold={0.1} // Close to top
+          // ListFooterComponent={isFetching && <ActivityIndicator />}
+          contentContainerStyle={{ paddingBottom: 10 }}
+          keyboardShouldPersistTaps="handled"
+        />
+
+        {/* Media Viewer Modal */}
+        <MediaViewer
+          visible={mediaViewerVisible}
+          mediaItems={mediaItems}
+          initialIndex={mediaInitialIndex}
+          onClose={handleCloseMediaViewer}
+        />
       </View>
     </GestureHandlerRootView>
   );
@@ -507,8 +570,6 @@ const styles = StyleSheet.create({
   },
 
   replyContainer: {
-    // flexDirection: "row",
-    // alignItems: "flex-start", // fixes text wrap alignment
     backgroundColor: "#e2e2e2",
     borderLeftWidth: 3,
     borderLeftColor: "#007AFF",
@@ -533,20 +594,44 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
 
-  contactsContainer: { gap: 6, maxWidth: 240 },
+  contactsContainer: { gap: 8 },
   contactCard: {
-    minWidth: "80%",
-    backgroundColor: "#fff",
+    justifyContent: "space-between",
+    padding: 12,
     borderRadius: 8,
-    padding: 8,
     borderWidth: 1,
     borderColor: "#e0e0e0",
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  contactName: { fontWeight: "600", fontSize: 14 },
-  contactPhone: { color: "#555", marginBottom: 4 },
-  contactActions: { flexDirection: "row", gap: 12 },
-  contactActionText: { color: "#007AFF", fontSize: 12 },
+  contactInfo: {
+    flexShrink: 1,
+    paddingRight: 8,
+  },
+  contactName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+  },
+  contactPhone: {
+    fontSize: 14,
+    color: "#555",
+    marginTop: 2,
+  },
+
+  addContactButton: {
+    backgroundColor: "#25D366", // WhatsApp green
+    paddingVertical: 6,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  addContactText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
 
   replyText: {
     fontSize: 12,
@@ -581,11 +666,23 @@ const styles = StyleSheet.create({
   },
 
   messageText: {
-    maxWidth: "100%",
-    minWidth: "25%",
     fontSize: 14,
     color: "#000",
     fontFamily: "Inter",
+    flexShrink: 1, 
+  },
+
+  saveButton: {
+    marginLeft: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    backgroundColor: "#007AFF",
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
   },
 
   timeRow: {

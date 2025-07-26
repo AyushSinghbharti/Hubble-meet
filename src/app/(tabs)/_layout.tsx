@@ -11,6 +11,7 @@ import {
 import { Tabs, useRouter } from "expo-router";
 import TabBarBackground from "../../components/TabBarBackground";
 import {
+  getLastViewedMapFromStorage,
   getUserIdFromStorage,
   getVBCIdFromStorage,
 } from "@/src/store/localStorage";
@@ -29,6 +30,7 @@ import {
 } from "@/src/hooks/useConnection";
 import { logout } from "@/src/hooks/useAuth";
 import { useGetUserPitch } from "@/src/hooks/usePitch";
+import { useChatStore } from "@/src/store/chatStore";
 
 const baseUrl = "../../../assets/icons";
 
@@ -70,7 +72,9 @@ export default function StackLayout() {
   const userId = useAuthStore((s) => s.userId);
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
-  const addRecommendationsIdBulk = useConnectionStore((s) => s.addRecommendationsIdBulk);
+  const addRecommendationsIdBulk = useConnectionStore(
+    (s) => s.addRecommendationsIdBulk
+  );
 
   const [loading, setLoading] = useState(true);
 
@@ -87,7 +91,18 @@ export default function StackLayout() {
   //   addRecommendationsIdBulk(dummyUserId);
   // }, []);
 
-  // ✅ Control logic in useEffect, not around hooks
+  //Control login in useEffects
+  useEffect(() => {
+
+    // 🧠 Restore saved lastViewedMap
+    const restoreLastViewed = async () => {
+      const stored = await getLastViewedMapFromStorage();
+      useChatStore.getState().setAllLastViewed(stored);
+    };
+
+    restoreLastViewed();
+  }, []);
+
   useEffect(() => {
     if (isLoading) return;
 

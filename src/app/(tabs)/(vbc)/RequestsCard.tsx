@@ -94,7 +94,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     rejectConnection(
       {
         user_id: userId || "",
-        receiver_id: profile.user_id,
+        sender_id: profile.user_id,
       },
       {
         onSuccess: () => {

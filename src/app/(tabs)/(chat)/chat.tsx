@@ -34,7 +34,7 @@ export default function ChatScreen() {
   const lastViewedMap = useChatStore((state) => state.lastViewedMap);
   const updatedChats = useChatStore((state) => state.chat);
   const currentChat = useChatStore((state) => state.currentChat);
-  const clearCurrentChat = useChatStore((state) => state.currentChat);
+  const clearCurrentChat = useChatStore((state) => state.clearCurrentChat);
   const setMessages = useChatStore((state) => state.setMessages);
   const messages = useChatStore((state) => state.messages);
   const deleteChatMutation = useDeleteChat();
@@ -225,7 +225,7 @@ export default function ChatScreen() {
         initialNumToRender={10}
         windowSize={1}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingTop: 10 }}
+        contentContainerStyle={{ paddingTop: 10, paddingBottom: 100 }}
         renderItem={({ item }) => <RenderCard item={item} />}
       />
 

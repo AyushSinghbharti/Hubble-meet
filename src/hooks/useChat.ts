@@ -24,6 +24,7 @@ import {
   Chat,
   ChatMessage,
   SendMediaRequest,
+  GetAllChatMessageRequestPayload,
 } from '../interfaces/chatInterface';
 import {
   saveChatToStorage
@@ -79,7 +80,7 @@ export const useUserChats = (userId: string): UseQueryResult<Chat[], Error> => {
     queryKey: ['chats', userId],
     queryFn: () => getUserChats(userId) as Promise<Chat[]>,
     enabled: !!userId,
-    refetchInterval: 1000,
+    refetchInterval: 10,
   });
 
   useEffect(() => {
@@ -89,6 +90,30 @@ export const useUserChats = (userId: string): UseQueryResult<Chat[], Error> => {
     }
     if (queryResult.error) {
       console.error("Error fetching user chats:", queryResult.error);
+    }
+  }, [queryResult.data, queryResult.error]);
+
+  return queryResult;
+};
+
+/* ---------- Get all chat messages ---------- */
+export const useChatMessages = (chatId: string, data: GetAllChatMessageRequestPayload): UseQueryResult<Chat, Error> => {
+  const setMessages = useChatStore((state) => state.setMessages);
+  const setCurrentChat = useChatStore((state) => state.setCurrentChat);
+
+  const queryResult = useQuery<ChatMessage[], Error, Chat, [string, string]>({
+    queryKey: ['messages', chatId],
+    queryFn: () => getChatMessages(chatId, data),
+    enabled: !!chatId,
+    refetchInterval: 10,
+  });
+
+  useEffect(() => {
+    if (queryResult.data) {
+      setMessages(queryResult.data); //The interface is not updated for this
+    }
+    if (queryResult.error) {
+      console.error("Error fetching chat messages:", queryResult.error);
     }
   }, [queryResult.data, queryResult.error]);
 
@@ -156,32 +181,6 @@ export const useSendMediaMessage = () => {
   });
 };
 
-/* ---------- Get chat messages ---------- */
-export const useChatMessages = (chatId: string): UseQueryResult<Chat, Error> => {
-  const setMessages = useChatStore((state) => state.setMessages);
-  const setCurrentChat = useChatStore((state) => state.setCurrentChat);
-
-  const queryResult = useQuery<ChatMessage[], Error, Chat, [string, string]>({
-    queryKey: ['messages', chatId],
-    queryFn: () => getChatMessages(chatId),
-    enabled: !!chatId,
-    refetchInterval: 10,
-  });
-
-  useEffect(() => {
-    if (queryResult.data) {
-      // setMessages(queryResult.data.messages);
-      setMessages(queryResult.data); //The interface is not updated for this
-      // setCurrentChat(queryResult?.data[0]?.chat); //The interface is not updated for this
-    }
-    if (queryResult.error) {
-      console.error("Error fetching chat messages:", queryResult.error);
-    }
-  }, [queryResult.data, queryResult.error]);
-
-  return queryResult;
-};
-
 /* ---------- Delete a message ---------- */
 export const useDeleteMessageForMe = () => {
   const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
@@ -192,7 +191,7 @@ export const useDeleteMessageForMe = () => {
       deleteMessageFromStore(variable.messageId);
     },
   });
-};``
+}; ``
 
 export const useDeleteMessageForEveryone = () => {
   const deleteMessageFromStore = useChatStore((state) => state.deleteMessage);
@@ -259,13 +258,13 @@ import { clearChat, deleteChat } from '../api/chat'; // ✅ ensure import
 
 /* ---------- Clear Chat ---------- */
 export const useClearChat = () => {
-  const setMessages = useChatStore((state) => state.setMessages);
+  const clearChatStore = useChatStore((state) => state.clearChat);
 
   return useMutation({
     mutationFn: ({ chatId, userId }: { chatId: string; userId: string }) =>
       clearChat(chatId, userId),
     onSuccess: () => {
-      setMessages([]);
+      clearChatStore();
     },
     onError: (err) => {
       console.error("Clear chat error:", err);
@@ -275,8 +274,7 @@ export const useClearChat = () => {
 
 /* ---------- Delete Chat ---------- */
 export const useDeleteChat = () => {
-  const removeChat = useChatStore((state) => state.clearChat); // you should have this in store
-
+  const removeChat = useChatStore((state) => state.clearChat);
   return useMutation({
     mutationFn: ({ chatId, userId }: { chatId: string; userId: string }) =>
       deleteChat(chatId, userId),

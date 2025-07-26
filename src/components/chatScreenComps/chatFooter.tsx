@@ -31,7 +31,6 @@ const ChatFooter = ({
   onCancelReply = () => {},
   onSendMessage = () => {},
 }: ChatFooterProps) => {
-  console.log("selectedMessage",selectedMessage);
   return (
     <View style={styles.container} onLayout={onLayout}>
       {/* Reply Bar */}
