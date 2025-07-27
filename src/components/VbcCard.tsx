@@ -28,6 +28,7 @@ import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
 import { getStableColor } from "../utility/getStableColor";
 import { addCloseCircle } from "../api/connection";
+import { usePitchStore } from "../store/pitchStore";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
@@ -67,6 +68,11 @@ const VbcCard = ({
     Share.share({ message: `Hey see my VBC card here ${user.full_name}` });
   };
 
+  useEffect(() => {
+    console.log(JSON.stringify(users, null, 2));
+
+  }, [users]);
+
   const handleBlockPress = (user: UserProfile) => {
     setBlockModal(true);
     setSelectedUser(user);
@@ -105,6 +111,12 @@ const VbcCard = ({
         },
       }
     );
+  };
+
+  const handlePitchPress = (user: UserProfile) => {
+    const { setCurrentPitchUser } = usePitchStore.getState();
+    setCurrentPitchUser(user);
+    router.push("/pitch");
   };
 
   return (
@@ -150,7 +162,7 @@ const VbcCard = ({
                   onCardPress={() => handleProfilePress(item)}
                   onAddPress={() => handleBlockPress(item)}
                   onConnectPress={handleSendRequestPress}
-                  onPitchPress={() => {}}
+
                 />
               ) : (
                 <CustomCard
@@ -165,6 +177,9 @@ const VbcCard = ({
                   onAddPress={() => handleBlockPress(item)}
                   onBagPress={() => handleBagPress(item)}
                   onProfilePress={() => handleProfilePress(item)}
+                  handlePress={() => handlePitchPress(item)}
+
+
                 />
               )}
             </View>

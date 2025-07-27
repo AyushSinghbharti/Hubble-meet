@@ -33,10 +33,22 @@ export default function PitchScreen() {
   const [flipped, setFlipped] = useState(false);
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const pitch = usePitchStore((state) => state.pitch);
+
   const recommendations = useConnectionStore((s) => s.recommendations);
   const recommendationsId = useConnectionStore((s) => s.recommendationsId);
   const [currentIndex, setCurrentIndex] = useState(0);
   const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
+
+  useEffect(() => {
+    console.log("🎬 Valid Pitches:");
+    validPitches.forEach((item, index) => {
+      console.log(`--- Pitch ${index + 1} ---`);
+      console.log("Pitch ID:", item.pitch.id);
+      console.log("User Name:", item.profile.full_name);
+      console.log("Video URL:", item.pitch.videoUri);
+      console.log("Tagline:", item.pitch.user.tagline);
+    });
+  }, [validPitches]);
 
   const handleProfilePress = (user: any) => {
     setCurrentPitchUser(user);
@@ -179,7 +191,7 @@ export default function PitchScreen() {
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={() => {
               return (
-                <View style={{flex: 1, justifyContent: "center"}}>
+                <View style={{ flex: 1, justifyContent: "center" }}>
                   <PitchScreenLoader />
                 </View>
               );
