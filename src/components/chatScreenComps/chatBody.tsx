@@ -474,6 +474,14 @@ export default function ChatBody({
           leftOffset={messageProps.x > 90 ? 265 : 25}
         />
 
+        {/* Media Viewer Modal */}
+        <MediaViewer
+          visible={mediaViewerVisible}
+          mediaItems={mediaItems}
+          initialIndex={mediaInitialIndex}
+          onClose={handleCloseMediaViewer}
+        />
+
         <FlatList
           ref={flatListRef}
           inverted
@@ -499,14 +507,6 @@ export default function ChatBody({
           // ListFooterComponent={isFetching && <ActivityIndicator />}
           contentContainerStyle={{ paddingBottom: 10 }}
           keyboardShouldPersistTaps="handled"
-        />
-
-        {/* Media Viewer Modal */}
-        <MediaViewer
-          visible={mediaViewerVisible}
-          mediaItems={mediaItems}
-          initialIndex={mediaInitialIndex}
-          onClose={handleCloseMediaViewer}
         />
       </View>
     </GestureHandlerRootView>
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#000",
     fontFamily: "Inter",
-    flexShrink: 1, 
+    flexShrink: 1,
   },
 
   saveButton: {
