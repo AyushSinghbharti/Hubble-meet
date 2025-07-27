@@ -20,7 +20,6 @@ import Swipeable, {
 import { ChatMessage } from "@/src/interfaces/chatInterface";
 import { useAuthStore } from "@/src/store/auth";
 import { FONT } from "@/assets/constants/fonts";
-import { VbcCard as VbcInterface } from "@/src/interfaces/vbcInterface";
 import { useGetOtherVbcCard, useGetVbcCard } from "@/src/hooks/useVbc";
 import VbcCard from "../VbcCard";
 import VbcChatCard from "./VbcChatCard";

@@ -42,12 +42,13 @@ export default function ShareVBCScreen({
   });
   const { mutate: sendMessage, isLoading: sending } = useSendMessage();
   const currentChat = useChatStore((state) => state.currentChat);
+  console.log(JSON.stringify(vbcCards, null, 4))
 
   const handleShare = (vbc: VbcCard) => {
     if (!user || !chatId) return;
     sendMessage(
       {
-        content: "This is VBC",
+        content: `Shared VBC of ${vbc.full_name || vbc.display_name}`,
         messageType: "VCARD",
         sender: {
           id: user.user_id,
@@ -57,10 +58,10 @@ export default function ShareVBCScreen({
         chat: { id: chatId, name: "", isGroup: false, participants:  currentChat.participants || [], },
         vCardData: {
           userId: vbc.user_id,
-          displayName: vbc.full_name,
+          displayName: vbc.full_name || vbc.display_name,
           jobTitle: vbc.job_title || "",
-          // companyName: vbc.company_name[0] || "",
-          // location: vbc.city || "",
+          companyName: vbc.company_name,
+          location: vbc.city || vbc.location,
           allowSharing: true,
         },
       },

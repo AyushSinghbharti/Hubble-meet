@@ -18,6 +18,7 @@ interface ChatHeaderProps {
   setShowMenu: any;
 }
 
+
 const ChatHeader: React.FC<ChatHeaderProps> = ({
   profileInfo,
   showMenu,
@@ -55,7 +56,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{profileInfo.full_name}</Text>
             <Text style={styles.subTitle}>
-              Works at {profileInfo.current_company} {/* Mark for error */}
+              Works at {profileInfo?.current_company[0] || "not specific"} {/* Mark for error */}
             </Text>
           </View>
         </TouchableOpacity>
