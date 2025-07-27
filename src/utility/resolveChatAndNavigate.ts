@@ -101,7 +101,7 @@ export const resolveChatAndNavigate = async ({
           id: resolvedChat.id,
           name: resolvedChat.name || "",
           isGroup: resolvedChat.isGroup,
-          participants: resolvedChat.participants || [],
+          participants: [],
         },
 
         //Passing VBC data
@@ -111,9 +111,11 @@ export const resolveChatAndNavigate = async ({
           jobTitle: vbcData?.Title || undefined,
           companyName: vbcData?.CompanyName || undefined,
           location: vbcData?.Location || undefined,
-          allowSharing: vbcData?.AllowSharing || undefined,
+          allowSharing: vbcData?.AllowSharing || false,
         },
       };
+
+      console.log(JSON.stringify(payload, null, 4));
 
       try {
         await sendMessage(payload);

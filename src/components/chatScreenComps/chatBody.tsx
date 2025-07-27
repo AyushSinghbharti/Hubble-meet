@@ -20,7 +20,6 @@ import Swipeable, {
 import { ChatMessage } from "@/src/interfaces/chatInterface";
 import { useAuthStore } from "@/src/store/auth";
 import { FONT } from "@/assets/constants/fonts";
-import { VbcCard as VbcInterface } from "@/src/interfaces/vbcInterface";
 import { useGetOtherVbcCard, useGetVbcCard } from "@/src/hooks/useVbc";
 import VbcCard from "../VbcCard";
 import VbcChatCard from "./VbcChatCard";
@@ -475,6 +474,14 @@ export default function ChatBody({
           leftOffset={messageProps.x > 90 ? 265 : 25}
         />
 
+        {/* Media Viewer Modal */}
+        <MediaViewer
+          visible={mediaViewerVisible}
+          mediaItems={mediaItems}
+          initialIndex={mediaInitialIndex}
+          onClose={handleCloseMediaViewer}
+        />
+
         <FlatList
           ref={flatListRef}
           inverted
@@ -500,14 +507,6 @@ export default function ChatBody({
           // ListFooterComponent={isFetching && <ActivityIndicator />}
           contentContainerStyle={{ paddingBottom: 10 }}
           keyboardShouldPersistTaps="handled"
-        />
-
-        {/* Media Viewer Modal */}
-        <MediaViewer
-          visible={mediaViewerVisible}
-          mediaItems={mediaItems}
-          initialIndex={mediaInitialIndex}
-          onClose={handleCloseMediaViewer}
         />
       </View>
     </GestureHandlerRootView>
@@ -669,7 +668,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#000",
     fontFamily: "Inter",
-    flexShrink: 1, 
+    flexShrink: 1,
   },
 
   saveButton: {

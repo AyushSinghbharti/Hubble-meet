@@ -37,6 +37,7 @@ import { useAuthStore } from "@/src/store/auth";
 import { useClearChat } from "@/src/hooks/useChat";
 import { uploadFileToS3 } from "@/src/api/aws";
 import ShareVBCScreen from "./[id]/vbcShare";
+import ViewVbcModal from "@/src/components/chatScreenComps/chatVBCShow";
 
 export default function ChatDetailsScreen() {
   const router = useRouter();
@@ -55,7 +56,7 @@ export default function ChatDetailsScreen() {
   const [mediaType, setMediaType] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [vbcModal, setVbcModal] = useState(false);
-  const [vbcData, setVbcData] = useState();
+  const [viewVbcModal, setViewVbcModal] = useState(false);
 
   const [error, setError] = useState("");
 
@@ -396,10 +397,11 @@ export default function ChatDetailsScreen() {
         params: { item: JSON.stringify(profile) },
       });
     } else if (option === "View VBC") {
-      router.push({
-        pathname: `chatStack/${id}/viewVBC`,
-        params: { item: JSON.stringify(profile) }, //Look out for error in future maybe!!!
-      });
+      // router.push({
+      //   pathname: `chatStack/${id}/viewVBC`,
+      //   params: { item: JSON.stringify(profile) },
+      // });
+      setViewVbcModal(true);
     } else if (option === "Starred messages") {
       router.push({
         pathname: `chatStack/${id}/starredMessage`,
@@ -438,6 +440,12 @@ export default function ChatDetailsScreen() {
           topOffset={70}
           rightOffset={15}
         />
+        <ViewVbcModal
+          visible={viewVbcModal}
+          profile={profile}
+          onClose={() => setViewVbcModal(false)}
+        />
+
         {vbcModal && (
           <ShareVBCScreen
             visible

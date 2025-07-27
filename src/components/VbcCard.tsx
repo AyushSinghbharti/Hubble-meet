@@ -51,7 +51,9 @@ const VbcCard = ({
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [connectionDetailModal, setConnectionDetailModal] = useState(false);
   const connections = useConnectionStore((state) => state.connections);
-  const users: UserProfileDataInterface = profiles ? profiles : connections;
+  const users: UserProfileDataInterface = profiles
+    ? profiles
+    : connections.filter((connection) => connection.connection_status !== "BLOCKED");
   const currentUser = useAuthStore((state) => state.user);
   const userId = useAuthStore((s) => s.userId);
   const { mutate: sendConnection } = useSendConnection();
