@@ -1,16 +1,13 @@
-// components/ChatBody.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  Platform,
-  ScrollView,
   Image,
   Pressable,
-  Linking,
-  FlatList,
   Alert,
+  FlatList,
+  Linking,
   ActivityIndicator,
 } from "react-native";
 import MessageAction from "./messageAction";
@@ -18,48 +15,66 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Swipeable, {
   SwipeableRef,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
+import * as Contacts from "expo-contacts";
+
 import { ChatMessage } from "@/src/interfaces/chatInterface";
 import { useAuthStore } from "@/src/store/auth";
 import { FONT } from "@/assets/constants/fonts";
-import { useGetOtherVbcCard, useGetVbcCard } from "@/src/hooks/useVbc";
-import VbcCard from "../VbcCard";
+import { useGetOtherVbcCard } from "@/src/hooks/useVbc";
 import VbcChatCard from "./VbcChatCard";
-import { useWindowDimensions } from "react-native";
-import { useGetOtherUserPitch } from "@/src/hooks/usePitch";
-import { useOtherUserProfile } from "@/src/hooks/useProfile";
-import { useChatStore } from "@/src/store/chatStore";
 import MediaViewer from "@/src/components/chatScreenComps/mediaViewer";
-import * as Contacts from "expo-contacts";
+import { useOtherUserProfile } from "@/src/hooks/useProfile";
 
-interface ChatMsg {
-  id: string;
-  text: string;
-  timestamp: Date;
-  isMe: boolean;
-  delivered?: boolean;
-}
+// Helper function to format time
+const formatTime = (timestamp: string | Date): string => {
+  const date = typeof timestamp === "string" ? new Date(timestamp) : timestamp;
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
 
-function dateLabel(date: Date) {
-  const today = new Date();
-  const tomorrow = new Date();
-  tomorrow.setDate(today.getDate() + 1);
+// Regex to detect URLs in the text
+const urlRegex = /(https?:\/\/[^\s]+)/g;
 
-  const strip = (d: Date) =>
-    new Date(d.getFullYear(), d.getMonth(), d.getDate()).valueOf();
-  if (strip(date) === strip(today)) return "Today";
-  if (strip(date) === strip(tomorrow)) return "Tomorrow";
-  return date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
+// Helper: renders text with tappable links for URLs
+const renderTextWithLinks = (text: string) => {
+  if (!text) return null;
 
-const formatTime = (d: string | Date) =>
-  new Date(d).toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const parts = text.split(urlRegex);
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (urlRegex.test(part)) {
+          return (
+            <Text
+              key={index}
+              style={{ color: "#1B95E0", textDecorationLine: "underline" }}
+              onPress={async () => {
+                try {
+                  const supported = await Linking.canOpenURL(part);
+                  if (supported) {
+                    await Linking.openURL(part);
+                  } else {
+                    Alert.alert("Invalid URL", "Cannot open this link.");
+                  }
+                } catch (error) {
+                  Alert.alert("Error", "Failed to open the link.");
+                }
+              }}
+            >
+              {part}
+            </Text>
+          );
+        } else {
+          return (
+            <Text key={index} style={styles.messageText}>
+              {part}
+            </Text>
+          );
+        }
+      })}
+    </>
+  );
+};
 
 interface ChatBodyProps {
   messages: ChatMessage[];
@@ -85,6 +100,7 @@ const ChatBubble = ({
   setSelectedMessage,
   allMessages,
   onMediaPress,
+  onStar,
 }: {
   item: ChatMessage;
   isSelected: boolean;
@@ -103,6 +119,7 @@ const ChatBubble = ({
     }>,
     initialIndex: number
   ) => void;
+  onStar: (messageId: string) => void;
 }) => {
   const me = item.sender?.id === useAuthStore.getState().userId;
   const swipeableRef = useRef<SwipeableRef | null>(null);
@@ -112,13 +129,12 @@ const ChatBubble = ({
   const { data: vbcData } = useGetOtherVbcCard(item.vCardUserId || "");
   const { data: userData } = useOtherUserProfile(item.vCardUserId || "");
 
-  // 👉 merge color from vbcData into userData and expose a new field
   const mergedUserData = useMemo(() => {
     if (!userData) return undefined;
     return {
       ...userData,
-      color: vbcData?.color, // overwrite/ensure color
-      vbcColor: vbcData?.color, // <<< new field if you want it explicit
+      color: vbcData?.color,
+      vbcColor: vbcData?.color,
     };
   }, [userData, vbcData]);
 
@@ -135,7 +151,7 @@ const ChatBubble = ({
           ],
         });
         Alert.alert("Success", `${contact.name} saved to contacts.`);
-      } catch (err) {
+      } catch {
         Alert.alert("Error", "Could not save contact.");
       }
     } else {
@@ -168,13 +184,10 @@ const ChatBubble = ({
         <View style={styles.contactsContainer}>
           {contacts.map((contact: any, index: number) => (
             <View key={index} style={styles.contactCard}>
-              {/* Name + Number */}
               <View style={styles.contactInfo}>
                 <Text style={styles.contactName}>{contact.name}</Text>
                 <Text style={styles.contactPhone}>{contact.phone}</Text>
               </View>
-
-              {/* WhatsApp‑style “Add Contact” */}
               <Pressable
                 style={styles.addContactButton}
                 onPress={() => saveContact(contact)}
@@ -238,7 +251,6 @@ const ChatBubble = ({
           ]}
         >
           <View style={styles.bubbleContent}>
-            {/* REPLY PREVIEW SECTION */}
             {item.parentMessageId &&
               (() => {
                 const parent = allMessages.find(
@@ -275,7 +287,7 @@ const ChatBubble = ({
                         </View>
                       ) : (
                         <Text style={styles.replyText} numberOfLines={1}>
-                          {parent.content || "[message]"}
+                          {renderTextWithLinks(parent.content || "[message]")}
                         </Text>
                       )}
                     </View>
@@ -283,7 +295,7 @@ const ChatBubble = ({
                 );
               })()}
 
-            {/* MESSAGE BODY */}
+            {/* Message body with star */}
             {item.messageType === "IMAGE" &&
             item.media &&
             item.media.length > 0 ? (
@@ -314,16 +326,18 @@ const ChatBubble = ({
             ) : item.messageType === "CONTACTS" ? (
               renderContacts()
             ) : item.messageType === "VCARD" ? (
-              <VbcChatCard
-                vbc={{ ...mergedUserData }}
-                onVideoPress={() => {}}
-                onChatPress={() => {}}
-                onBlockPress={() => {}}
-                onSharePress={() => {}}
-                viewShareButton
-                viewChatButton
-                viewBlockButton
-              />
+              <View style={{ right: 45 }}>
+                <VbcChatCard
+                  vbc={{ ...mergedUserData }}
+                  onVideoPress={() => {}}
+                  onChatPress={() => {}}
+                  onBlockPress={() => {}}
+                  onSharePress={() => {}}
+                  viewShareButton
+                  viewChatButton
+                  viewBlockButton
+                />
+              </View>
             ) : item.messageType === "DOCUMENT" &&
               item.media &&
               item.media.length > 0 ? (
@@ -354,13 +368,34 @@ const ChatBubble = ({
                   </Pressable>
                 ))}
                 {item.content && (
-                  <Text style={styles.messageText}>{item.content}</Text>
+                  <Text style={styles.messageText}>
+                    {renderTextWithLinks(item.content)}
+                  </Text>
                 )}
               </View>
             ) : (
-              <Text style={styles.messageText}>{item.content}</Text>
+              // TEXT messages (with URL detection & star)
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                {renderTextWithLinks(item.content || "")}
+                <Pressable
+                  onPress={() => onStar(item.id)}
+                  style={{ marginLeft: 8, padding: 4 }}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Text style={{ fontSize: 18 }}>
+                    {item.starred ? "⭐" : " "}
+                  </Text>
+                </Pressable>
+              </View>
             )}
           </View>
+
           <View
             style={[
               styles.timeRow,
@@ -376,7 +411,7 @@ const ChatBubble = ({
 };
 
 export default function ChatBody({
-  messages,
+  messages: initialMessages,
   onReply,
   onDelete = () => {},
   onStar = () => {},
@@ -384,6 +419,8 @@ export default function ChatBody({
   hasMore = false,
   loadingMore = false,
 }: ChatBodyProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+
   const [messageProps, setMessageprops] = useState<PosState>({
     x: 0,
     y: 0,
@@ -403,13 +440,40 @@ export default function ChatBody({
   >([]);
   const [mediaInitialIndex, setMediaInitialIndex] = useState(0);
 
+  const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
+  const flatListRef = useRef<FlatList>(null);
+  const endReachedLock = useRef(false);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  const isMenuVisible = selectedMessageId !== null;
+
+  // Position offsets for overlay menu
+  // Calculate offsets
+  const MENU_WIDTH = 220; // whatever your MessageAction width roughly is
+  const leftOffset = messageProps.isMe
+    ? Math.max(messageProps.x + messageProps.w - MENU_WIDTH, 10)
+    : Math.max(messageProps.x, 10);
+
+  const topOffset = Math.max(messageProps.y - 35, 10); // small offset above bubble
   const userId = useAuthStore((state) => state.userId);
 
   const onAction = (action: string) => {
     if (action === "reply") {
       onReply?.(selectedMessage);
     } else if (action === "star") {
-      onStar?.(selectedMessage?.id || "");
+      if (selectedMessage?.id) {
+        setMessages((prevMsgs) =>
+          prevMsgs.map((msg) =>
+            msg.id === selectedMessage.id
+              ? { ...msg, starred: !msg.starred }
+              : msg
+          )
+        );
+        onStar?.(selectedMessage.id);
+      }
     } else if (action === "deleteforme") {
       onDelete?.(selectedMessage?.id || "", "me");
     } else if (action === "deleteforeveryone") {
@@ -436,25 +500,9 @@ export default function ChatBody({
     setMediaViewerVisible(false);
   };
 
-  const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
-  const flatListRef = useRef<FlatList>(null);
-  const endReachedLock = useRef(false); // to avoid multiple triggers quickly
-
-  const isMenuVisible = selectedMessageId !== null;
-
-  // Calculate offsets
-  const MENU_WIDTH = 220; // whatever your MessageAction width roughly is
-  const leftOffset = messageProps.isMe
-    ? Math.max(messageProps.x + messageProps.w - MENU_WIDTH, 10)
-    : Math.max(messageProps.x, 10);
-
-  const topOffset = Math.max(messageProps.y - 35, 10); // small offset above bubble
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
-        {/* Overlay menu */}
-
         <MessageAction
           onAction={onAction}
           isVisible={isMenuVisible}
@@ -466,9 +514,20 @@ export default function ChatBody({
               : messageProps.y - 50
           }
           leftOffset={messageProps.x > 90 ? 265 : 25}
+          isStarred={selectedMessage?.starred ?? false}
+          onToggleStar={() => {
+            if (!selectedMessage) return;
+            setMessages((prevMsgs) =>
+              prevMsgs.map((msg) =>
+                msg.id === selectedMessage.id
+                  ? { ...msg, starred: !msg.starred }
+                  : msg
+              )
+            );
+            onStar?.(selectedMessage.id);
+          }}
         />
 
-        {/* Media Viewer Modal */}
         <MediaViewer
           visible={mediaViewerVisible}
           mediaItems={mediaItems}
@@ -493,6 +552,14 @@ export default function ChatBody({
                 setSelectedMessage={setSelectedMessage}
                 allMessages={messages}
                 onMediaPress={handleMediaPress}
+                onStar={(msgId) => {
+                  setMessages((prevMsgs) =>
+                    prevMsgs.map((msg) =>
+                      msg.id === msgId ? { ...msg, starred: !msg.starred } : msg
+                    )
+                  );
+                  onStar?.(msgId);
+                }}
               />
             </View>
           )}
@@ -523,29 +590,8 @@ export default function ChatBody({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
 
-  dateChip: {
-    alignSelf: "center",
-    marginVertical: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    backgroundColor: "#fff",
-    borderRadius: 3,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-      },
-      android: { elevation: 2 },
-    }),
-  },
-  dateChipText: { fontSize: 10, fontFamily: "Inter", color: "#8E8E8E" },
-
-  /* List content spacing */
   listContent: { paddingBottom: 9 },
 
-  /* Message rows */
   row: { flexDirection: "row", paddingHorizontal: 8 },
   rowEnd: { justifyContent: "flex-end" },
   onMenu: {
@@ -553,7 +599,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
     paddingVertical: 2,
   },
-  /* Bubbles */
+
   bubbleWrapper: {
     borderRadius: 16,
     padding: 10,
@@ -583,7 +629,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
     gap: 8,
-    maxWidth: "100%", // prevents overflow and allows wrapping
+    maxWidth: "100%",
     flexShrink: 1,
   },
 
@@ -625,7 +671,7 @@ const styles = StyleSheet.create({
   },
 
   addContactButton: {
-    backgroundColor: "#25D366", // WhatsApp green
+    backgroundColor: "#25D366",
     paddingVertical: 6,
     marginTop: 8,
     paddingHorizontal: 12,
@@ -661,34 +707,11 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
 
-  bubble: {
-    gap: 10,
-    minHeight: 50,
-    paddingLeft: 20,
-    padding: 10,
-    borderRadius: 40,
-    alignItems: "center",
-    flexDirection: "row",
-  },
-
   messageText: {
     fontSize: 14,
     color: "#000",
     fontFamily: "Inter",
     flexShrink: 1,
-  },
-
-  saveButton: {
-    marginLeft: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    backgroundColor: "#007AFF",
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
   },
 
   timeRow: {
@@ -697,4 +720,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   timeText: { fontSize: 10, color: "#4D4D4D" },
+
+  vcardWrapper: {
+    maxWidth: 250,
+  },
 });

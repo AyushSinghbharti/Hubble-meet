@@ -30,6 +30,7 @@ interface CardProps extends User {
   onAddPress: () => void;
   onBagPress: () => void;
   onProfilePress: () => void;
+  handlePress: () => void;
 }
 
 const cardColors = ["#FDF0A6", "#FBC8C9", "#C9FBC8", "#F6F6F6", "#E0EAF3"];
@@ -63,6 +64,7 @@ const CustomCard = memo(
     onAddPress,
     onBagPress,
     onProfilePress,
+    handlePress
   }: CardProps) => {
     const bgColor = cardColors[Math.floor(Math.random() * cardColors.length)];
     const iconBgColor = iconColorMap[backgroundColor || bgColor];
@@ -80,7 +82,7 @@ const CustomCard = memo(
             <TouchableOpacity style={styles.roundIcon} onPress={onBagPress}>
               <SimpleLineIcons name="bag" size={13} color="#000" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.roundIcon}>
+            <TouchableOpacity style={styles.roundIcon} onPress={handlePress}>
               <Image
                 source={require("../../../assets/icons/pitch2.png")}
                 style={{ width: 15, height: 24 }}

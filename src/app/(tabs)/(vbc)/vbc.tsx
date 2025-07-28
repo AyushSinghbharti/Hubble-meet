@@ -68,6 +68,7 @@ export default function VBCScreen() {
       <View style={[{ flex: 1 }]}>
         {selectedTab === "VBC" && (
           <VBCCard
+
             profiles={connectionVbcs
               .filter(
                 (item) => item.connection_status?.toLowerCase() !== "blocked"
