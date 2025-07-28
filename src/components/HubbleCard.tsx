@@ -42,45 +42,6 @@ const ProfileOrbit = ({}: {}) => {
 
   const currentUser = useAuthStore((state) => state.user);
 
-  // Filter connections based on close circle score
-  // useEffect(() => {
-  //   const fetchCloseCircleData = async () => {
-  //     if (!currentUser?.user_id) {
-  //       setLoading(false);
-  //       return;
-  //     }
-
-  //     try {
-  //       setLoading(true);
-
-  //       // Call the API to get close circle data
-  //       const closeCircleData = await getCloseCircle({
-  //         userId: currentUser.user_id
-  //       });
-
-  //       // Filter connections based on score > 0.5
-  //       const highScoreUsers = closeCircleData
-  //         .filter((item: { user_id: string; score: number }) => item.score > 0.5)
-  //         .map((item: { user_id: string; score: number }) => item.user_id);
-
-  //       // Filter the connections to only include users with high scores
-  //       const filtered = connections.filter((connection) =>
-  //         highScoreUsers.includes(connection.user_id)
-  //       );
-
-  //       setFilteredConnections(filtered);
-  //     } catch (error) {
-  //       console.error("Error fetching close circle data:", error);
-  //       // Fallback to all connections if API fails
-  //       setFilteredConnections(connections);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchCloseCircleData();
-  // }, [connections, currentUser]);
-
   useEffect(() => {
     let isCancelled = false;
 

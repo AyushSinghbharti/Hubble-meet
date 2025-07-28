@@ -76,37 +76,38 @@ export const getAllConnectionVbcs = async (
 
 //Get all requests
 export const getConnectionRequests = async (userId: string): Promise<ConnectionRequest[]> => {
-    const response = await api.post(`/api/connection/requests/`, userId  );
+    const response = await api.post(`/api/connection/requests/`, userId);
     return response.data;
 };
 
 //Get recommended profiles
 export const getRecommendedProfiles = async (
-  userId: string
+    userId: string
 ): Promise<Recommendations> => {
-  const response = await api.get(`/api/user/profiles/${userId}/recommendations`);
-  return response.data;
+    const response = await api.get(`/api/user/profiles/${userId}/recommendations`);
+    return response.data;
 };
 
 //Search User profiles
 export const searchUserProfile = async (data: SearchInterface): Promise<SearchUserResponse> => {
-  const response = await api.post(`/api/user/profiles/search/users`, data);
-  return response.data;
+    const response = await api.post(`/api/user/profiles/search/users`, data);
+    // const response = await api.post(`/api/connection/search/users`, data);
+    return response.data;
 };
 
 //Search VBC profiles
 export const searchUserVbc = async (data: SearchInterface): Promise<SearchVBCResponse> => {
-  const response = await api.post(`/api/user/profiles/search/users`, data);
-  return response.data;
+    const response = await api.post(`/api/user/profiles/search/users`, data);
+    return response.data;
 };
 export const addCloseCircle = async (data: any): Promise<any> => {
-  const response = await api.post(`/api/connection/close`, data);
-  return response.data;
+    const response = await api.post(`/api/connection/close`, data);
+    return response.data;
 };
 export const getCloseCircle = async (data: any): Promise<any> => {
-  const response = await api.post(`/api/connection/close-circle`, data);
-  return response.data;
-}; 
+    const response = await api.post(`/api/connection/close-circle`, data);
+    return response.data;
+};
 
 export const postFeedback = async (data: any): Promise<any> => {
     const response = await api.post(`/api/user/profiles/support`, data);

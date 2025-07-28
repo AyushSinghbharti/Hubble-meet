@@ -84,9 +84,13 @@ export default function CreatePitch() {
       allowsEditing: true,
       aspect: [3, 4],
       quality: 0.5,
+      videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality
+
     });
 
     if (!result.canceled && result.assets && result.assets[0]) {
+      const videoUri = result.assets[0].uri;
+      console.log("Video URI:", videoUri);
       setMedia(result.assets[0].uri);
       setMediaType(result.assets[0].mimeType);
       if (

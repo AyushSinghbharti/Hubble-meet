@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Pressable,
   Alert,
+  FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -34,6 +35,7 @@ import {
 } from "@/src/dummyData/chipOptions";
 import { uploadFileToS3 } from "@/src/api/aws";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
 export default function SettingsScreen() {
   const profileData: UserProfile | null = useAuthStore((state) => state.user);
@@ -51,17 +53,16 @@ export default function SettingsScreen() {
   const [uploadingImage, setUploadImage] = useState(false);
   const [swipedIds, setSwipedIds] = useState([]);
   const [swipeCount, setSwipeCount] = useState(0);
-  const [companies, setCompanies] = useState(
-    profileData?.current_company || []
-  );
+  const [companies, setCompanies] = useState(profileData?.current_company || []);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [industries, setIndustries] = useState(
-    profileData?.current_industry || []
-  );
+  const [industries, setIndustries] = useState(profileData?.current_industry || []);
   const [dob, setDob] = useState<Date | null>(
     profileData?.date_of_birth ? new Date(profileData.date_of_birth) : null
   );
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // For autocomplete suggestions
+  const [suggestions, setSuggestions] = useState([]);
 
   useEffect(() => {
     if (error && scrollViewRef.current) {
@@ -69,6 +70,7 @@ export default function SettingsScreen() {
     }
   }, [error]);
 
+  // Phone country flag and dial code info
   const [selectedFlag, setSelectedFlag] = useState({
     flag: "https://flagcdn.com/w40/in.png",
     dial_code: profileData?.phone?.slice(0, 3) || "+91",
@@ -79,6 +81,7 @@ export default function SettingsScreen() {
   const flagBoxRef = useRef(null);
   const router = useRouter();
 
+  // Date Picker Handlers
   const showDatePicker = () => setDatePickerVisibility(true);
   const hideDatePicker = () => setDatePickerVisibility(false);
   const handleConfirm = (date) => {
@@ -86,9 +89,10 @@ export default function SettingsScreen() {
     hideDatePicker();
   };
 
+  // Image picker and upload
   const pickImage = async () => {
     const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 4],
       quality: 1,
@@ -97,7 +101,7 @@ export default function SettingsScreen() {
       try {
         setUploadImage(true);
         try {
-          const s3Response = await uploadFileToS3(res.assets?.[0]);
+          const s3Response = await uploadFileToS3(res.assets[0]);
           const url = s3Response.url;
           setImage(url);
         } catch {
@@ -121,28 +125,76 @@ export default function SettingsScreen() {
       });
     }
   };
+
   const isProfileComplete = () => {
     return name && bio && email && companies?.length && jobTitle && location && dob;
   };
+
+  // Swipe data loading from AsyncStorage
   useEffect(() => {
     const loadSwipeData = async () => {
       try {
-        const storedIds = await AsyncStorage.getItem('swipedIds');
-        const storedCount = await AsyncStorage.getItem('swipeCount');
+        const storedIds = await AsyncStorage.getItem("swipedIds");
+        const storedCount = await AsyncStorage.getItem("swipeCount");
         if (storedIds) setSwipedIds(JSON.parse(storedIds));
         if (storedCount) setSwipeCount(parseInt(storedCount));
       } catch (err) {
-        console.log('Failed to load swipe data:', err);
+        console.log("Failed to load swipe data:", err);
       }
     };
     loadSwipeData();
   }, []);
 
-  // ✅ Save swipe data when changed
+  // Save swipe data to AsyncStorage when changed
   useEffect(() => {
-    AsyncStorage.setItem('swipedIds', JSON.stringify(swipedIds));
-    AsyncStorage.setItem('swipeCount', swipeCount.toString());
+    AsyncStorage.setItem("swipedIds", JSON.stringify(swipedIds));
+    AsyncStorage.setItem("swipeCount", swipeCount.toString());
   }, [swipedIds, swipeCount]);
+
+  // City autocomplete search function
+  const performSearch = async (query) => {
+    if (!query || query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get("https://nominatim.openstreetmap.org/search", {
+        params: {
+          q: query,
+          format: "json",
+          addressdetails: 1,
+          limit: 5,
+        },
+        headers: {
+          "Accept-Language": "en",
+          "User-Agent": "MyReactNativeApp/1.0 (myemail@example.com)", // Customize as needed
+        },
+      });
+
+      const results = response.data.map((item) => ({
+        label: item.display_name,
+        value: item.display_name,
+        lat: item.lat,
+        lon: item.lon,
+        city:
+          item.address.city ||
+          item.address.town ||
+          item.address.village ||
+          item.address.county ||
+          "",
+      }));
+
+      setSuggestions(results);
+    } catch (error) {
+      console.error("Failed to fetch location suggestions:", error);
+      Alert.alert(
+        "Error",
+        "Could not load location suggestions. Please try again later."
+      );
+      setSuggestions([]);
+    }
+  };
 
   const handleSave = () => {
     if (!profileData?.user_id) {
@@ -151,7 +203,7 @@ export default function SettingsScreen() {
     }
 
     if (!name || !bio || !email) {
-      setError("Please fill all required feilds");
+      setError("Please fill all required fields");
       return;
     }
 
@@ -171,10 +223,7 @@ export default function SettingsScreen() {
       { userId: profileData.user_id, data: formData },
       {
         onSuccess: (res) => {
-          console.log(
-            "Profile updated successfully",
-            JSON.stringify(res, null, 2)
-          );
+          console.log("Profile updated successfully", JSON.stringify(res, null, 2));
           Alert.alert("Profile updated successfully");
         },
         onError: (err) => {
@@ -192,10 +241,7 @@ export default function SettingsScreen() {
       contentContainerStyle={{ paddingBottom: 100 }}
       keyboardShouldPersistTaps="handled"
     >
-      <NavHeader
-        title="Profile"
-        onBackPress={() => router.replace("/profile")}
-      />
+      <NavHeader title="Profile" onBackPress={() => router.replace("/profile")} />
 
       <View style={[styles.profileContainer]}>
         {uploadingImage ? (
@@ -273,9 +319,7 @@ export default function SettingsScreen() {
                 source={{ uri: selectedFlag.flag }}
                 style={{ width: 24, height: 18, marginRight: 6 }}
               />
-              <Text style={[styles.input, { flex: 0 }]}>
-                {selectedFlag.dial_code}
-              </Text>
+              <Text style={[styles.input, { flex: 0 }]}>{selectedFlag.dial_code}</Text>
             </>
           )}
         </Pressable>
@@ -292,15 +336,42 @@ export default function SettingsScreen() {
       <Text style={styles.otpText}>Verify with OTP</Text>
 
       <FormLabel label="Email" />
-      <Input
-        placeholder="r.g.rhodes@aol.com"
-        value={email}
-        onChangeText={setEmail}
-      />
+      <Input placeholder="r.g.rhodes@aol.com" value={email} onChangeText={setEmail} />
       <Text style={styles.otpText}>Verify with OTP</Text>
 
       <FormLabel label="Country/City" />
-      <Input placeholder="Jaipur" value={location} onChangeText={setLocation} />
+      <View style={[styles.autocompleteContainer]}>
+        <TextInput
+          style={[styles.input, { height: 50, paddingLeft: 10 }]}
+          value={location}
+          onChangeText={(text) => {
+            setLocation(text);
+            performSearch(text);
+          }}
+          placeholder="City..."
+          placeholderTextColor={"#000"}
+          autoCorrect={false}
+        />
+        {suggestions.length > 0 && (
+          <FlatList
+            data={suggestions}
+            keyExtractor={(item, index) => index.toString()}
+            style={styles.suggestionList}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.suggestionItem}
+                onPress={() => {
+                  setLocation(item.city || item.label);
+                  setSuggestions([]);
+                }}
+              >
+                <Text style={styles.suggestionText}>{item.label}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+      </View>
 
       <FormLabel label="Your Bio" />
       <Input
@@ -323,11 +394,7 @@ export default function SettingsScreen() {
       />
 
       <FormLabel label="Job Title" />
-      <Input
-        placeholder="General Manager"
-        value={jobTitle}
-        onChangeText={setJobTitle}
-      />
+      <Input placeholder="General Manager" value={jobTitle} onChangeText={setJobTitle} />
 
       <FormLabel label="Industries" />
       <TagDropdown
@@ -338,11 +405,7 @@ export default function SettingsScreen() {
         mode="Light"
       />
 
-      <Button
-        label="Save settings"
-        onPress={handleSave}
-        enableRedirect={false}
-      />
+      <Button label="Save settings" onPress={handleSave} enableRedirect={false} />
 
       <SelectCountryModal
         visible={modalVisible}
@@ -377,11 +440,10 @@ const Input = ({
       style={[
         styles.input,
         multiline && styles.textArea,
-        // Platform specific adjustments for line height
-        Platform.OS === "ios" && { lineHeight: 20 }, // Adjust for iOS if needed
+        Platform.OS === "ios" && { lineHeight: 20 },
         Platform.OS === "android" && {
           textAlignVertical: multiline ? "top" : "center",
-        }, // Ensure vertical alignment
+        },
       ]}
       placeholder={placeholder}
       placeholderTextColor="#aaa"
@@ -391,7 +453,6 @@ const Input = ({
       value={value}
       onChangeText={onChangeText}
       editable={editable}
-      // 'none' prevents interaction with the TextInput when editable is false
       pointerEvents={editable ? "auto" : "none"}
     />
     {icon && <Ionicons name={icon} size={20} color="gray" />}
@@ -430,26 +491,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#cfd4dc",
     borderRadius: 8,
-    // Unified padding for better consistency
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 12 : 10, // Slight adjustment for iOS vs Android
+    paddingVertical: Platform.OS === "ios" ? 12 : 10,
     backgroundColor: "#F8FBFF",
     flexDirection: "row",
     alignItems: "center",
-    minHeight: 48, // Set a minimum height for single-line inputs
+    minHeight: 48,
   },
   input: {
     flex: 1,
     fontSize: 16,
     fontFamily: "InterMedium",
-    // Remove padding here as it's handled by inputContainer
-    padding: 0, // Important: remove default TextInput padding
+    padding: 0,
+    backgroundColor: "#F8FBFF",
+    borderRadius: 10,
+
   },
   textArea: {
-    minHeight: 80, // Minimum height for multiline inputs
-    height: "auto", // Allow height to adjust based on content
-    textAlignVertical: "top", // Ensures text starts from the top on Android
-    paddingVertical: Platform.OS === "ios" ? 12 : 10, // Maintain vertical padding for multiline
+    minHeight: 80,
+    height: "auto",
+    textAlignVertical: "top",
+    paddingVertical: Platform.OS === "ios" ? 12 : 10,
   },
   phoneContainer: {
     flexDirection: "row",
@@ -489,5 +551,30 @@ const styles = StyleSheet.create({
     color: "#000",
     fontFamily: "InterBold",
     fontSize: 16,
+  },
+  // Autocomplete specific styles
+  autocompleteContainer: {
+    position: "relative",
+    zIndex: 1000,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  suggestionList: {
+    backgroundColor: "#F8FBFF",
+    borderRadius: 8,
+    borderColor: "#cfd4dc",
+    borderWidth: 1,
+    maxHeight: 150,
+    marginTop: 4,
+  },
+  suggestionItem: {
+    padding: 12,
+    borderBottomColor: "#d1d1d1",
+    borderBottomWidth: 1,
+  },
+  suggestionText: {
+    fontSize: 16,
+    color: "#000",
+    fontFamily: "InterMedium",
   },
 });

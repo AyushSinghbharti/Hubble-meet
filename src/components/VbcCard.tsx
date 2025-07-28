@@ -28,6 +28,7 @@ import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
 import { getStableColor } from "../utility/getStableColor";
 import { addCloseCircle } from "../api/connection";
+import { usePitchStore } from "../store/pitchStore";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
@@ -58,6 +59,7 @@ const VbcCard = ({
   const userId = useAuthStore((s) => s.userId);
   const { mutate: sendConnection } = useSendConnection();
   const [error, setError] = useState<string | null>();
+  const [loadingPitch, setLoadingPitch] = useState(false);
 
   const handleChatPress = async (user: UserProfile) => {
     await resolveChatAndNavigate({ currentUser, targetUser: user });
@@ -66,6 +68,11 @@ const VbcCard = ({
   const handleSharePress = (user: UserProfile) => {
     Share.share({ message: `Hey see my VBC card here ${user.full_name}` });
   };
+
+  useEffect(() => {
+    console.log("Users Data", JSON.stringify(users, null, 2));
+
+  }, [users]);
 
   const handleBlockPress = (user: UserProfile) => {
     setBlockModal(true);
@@ -106,6 +113,15 @@ const VbcCard = ({
       }
     );
   };
+
+  const setFocusUserId = usePitchStore((state) => state.setFocusUserId);
+
+  const handlePitchPress = (user) => {
+    setFocusUserId(user.user_id);   // Set focused user in store
+    router.push("/pitch");          // Navigate WITHOUT params
+  };
+
+
 
   return (
     <>
@@ -150,7 +166,7 @@ const VbcCard = ({
                   onCardPress={() => handleProfilePress(item)}
                   onAddPress={() => handleBlockPress(item)}
                   onConnectPress={handleSendRequestPress}
-                  onPitchPress={() => {}}
+
                 />
               ) : (
                 <CustomCard
@@ -165,6 +181,9 @@ const VbcCard = ({
                   onAddPress={() => handleBlockPress(item)}
                   onBagPress={() => handleBagPress(item)}
                   onProfilePress={() => handleProfilePress(item)}
+                  handlePress={() => handlePitchPress(item)}
+
+
                 />
               )}
             </View>

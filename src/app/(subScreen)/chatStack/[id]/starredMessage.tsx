@@ -27,7 +27,7 @@ export default function StarredMessage() {
   const [toggledStars, setToggledStars] = useState<{ [id: string]: boolean }>({});
 
   const messages = starredMessages
-    .filter((msg) => msg.chat?.id === chatId)
+    .filter((msg) => msg.chat?.id === chatId && msg.id) // Ensure id exists
     .map((msg) => ({
       id: msg.id,
       sender: msg.sender?.username || "Unknown",
@@ -53,18 +53,25 @@ export default function StarredMessage() {
     return (
       <View style={styles.messageBlock}>
         <View style={styles.headerRow}>
-          <Text style={styles.senderName}>{item.isMe ? "You" : item.sender}</Text>
+          <Text style={styles.senderName}>
+            {item.isMe ? "You" : item.sender}
+          </Text>
           <Text style={styles.dateText}>{item.date}</Text>
         </View>
 
         <TouchableOpacity onPress={handleStarToggle} activeOpacity={0.8}>
-          <View style={[styles.bubble, item.isMe ? styles.myBubble : styles.theirBubble]}>
+          <View
+            style={[
+              styles.bubble,
+              item.isMe ? styles.myBubble : styles.theirBubble,
+            ]}
+          >
             <View style={styles.meta}>
               <Text style={styles.messageText}>{item.text}</Text>
               <View style={styles.metaRight}>
                 <Text style={styles.timeText}>{item.time}</Text>
                 <Image
-                  source={isToggled ? StarFilledIcon : StarOutlineIcon}
+                  source={isToggled ? StarOutlineIcon : StarFilledIcon}
                   style={styles.starIcon}
                   resizeMode="contain"
                 />

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// components/messageAction.tsx
+import React from "react";
 import {
   View,
   TouchableOpacity,
@@ -7,45 +8,58 @@ import {
   Text,
 } from "react-native";
 
+interface MessageActionProps {
+  isVisible?: boolean;
+  topOffset?: number;
+  leftOffset?: number;
+  isStarred: boolean;
+  onAction: (action: string) => void;
+}
+
 const MessageAction = ({
   isVisible = false,
   topOffset = 150,
   leftOffset = 10,
-  onAction = (action: string) => { },
-}) => {
-  const [viewDelete, setViewDelete] = useState(false);
-  const [isStarred, setIsStarred] = useState(false); // ⭐ New state
+  isStarred,
+  onAction,
+}: MessageActionProps) => {
+  const [viewDelete, setViewDelete] = React.useState(false);
 
   if (!isVisible) return null;
 
-  const DeleteOptionModal = () => {
-    return (
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        onPress={() => setViewDelete(!viewDelete)}
-      >
-        <View style={styles.deleteModal}>
-          <TouchableOpacity
-            style={styles.deleteOption}
-            hitSlop={15}
-            onPress={() => onAction("deleteforeveryone")}
-          >
-            <Text style={styles.optionText}>Delete For everyone</Text>
-          </TouchableOpacity>
+  const DeleteOptionModal = () => (
+    <TouchableOpacity
+      style={styles.modalOverlay}
+      onPress={() => setViewDelete(false)}
+      activeOpacity={1}
+    >
+      <View style={styles.deleteModal}>
+        <TouchableOpacity
+          style={styles.deleteOption}
+          hitSlop={15}
+          onPress={() => {
+            onAction("deleteforeveryone");
+            setViewDelete(false);
+          }}
+        >
+          <Text style={styles.optionText}>Delete For everyone</Text>
+        </TouchableOpacity>
 
-          <View style={styles.divider} />
+        <View style={styles.divider} />
 
-          <TouchableOpacity
-            style={styles.deleteOption}
-            hitSlop={15}
-            onPress={() => onAction("deleteforme")}
-          >
-            <Text style={styles.optionText}>Delete For me</Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+        <TouchableOpacity
+          style={styles.deleteOption}
+          hitSlop={15}
+          onPress={() => {
+            onAction("deleteforme");
+            setViewDelete(false);
+          }}
+        >
+          <Text style={styles.optionText}>Delete For me</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
 
   if (viewDelete) return <DeleteOptionModal />;
 
@@ -58,12 +72,7 @@ const MessageAction = ({
         />
       </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => {
-          setIsStarred(!isStarred); // ⭐ Toggle star state
-          onAction("star");
-        }}
-      >
+      <TouchableOpacity onPress={() => onAction("star")}>
         <Image
           source={
             isStarred
