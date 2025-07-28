@@ -17,6 +17,7 @@ import { UserProfile } from "@/src/interfaces/profileInterface";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useConnectionStore } from "@/src/store/connectionStore";
 import debounce from "lodash.debounce";
+import { useAuthStore } from "@/src/store/auth";
 
 const SearchScreen = () => {
   const { query } = useLocalSearchParams<{ query?: string }>();
@@ -25,10 +26,12 @@ const SearchScreen = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const connections = useConnectionStore((s) => s.connections);
+  const userId = useAuthStore((s) => s.userId);
   const router = useRouter();
 
   // Search users based on input
   const { data: searchResults, isLoading: searching } = useSearchUser({
+    // userId: userId,
     searchText,
     currentPage: 1,
     PageSize: 100,

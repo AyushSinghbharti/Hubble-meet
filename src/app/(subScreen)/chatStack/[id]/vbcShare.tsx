@@ -1,4 +1,3 @@
-// screens/chatStack/[id]/vbcShare.tsx
 import React from "react";
 import {
   View,
