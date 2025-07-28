@@ -53,12 +53,19 @@ export default function StarredMessage() {
     return (
       <View style={styles.messageBlock}>
         <View style={styles.headerRow}>
-          <Text style={styles.senderName}>{item.isMe ? "You" : item.sender}</Text>
+          <Text style={styles.senderName}>
+            {item.isMe ? "You" : item.sender}
+          </Text>
           <Text style={styles.dateText}>{item.date}</Text>
         </View>
 
         <TouchableOpacity onPress={handleStarToggle} activeOpacity={0.8}>
-          <View style={[styles.bubble, item.isMe ? styles.myBubble : styles.theirBubble]}>
+          <View
+            style={[
+              styles.bubble,
+              item.isMe ? styles.myBubble : styles.theirBubble,
+            ]}
+          >
             <View style={styles.meta}>
               <Text style={styles.messageText}>{item.text}</Text>
               <View style={styles.metaRight}>
@@ -99,7 +106,7 @@ export default function StarredMessage() {
 
       <FlatList
         data={messages}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, idx) => `${item.id} + ${idx}`}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16 }}
       />
