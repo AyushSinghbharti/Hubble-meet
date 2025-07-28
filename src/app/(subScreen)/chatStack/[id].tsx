@@ -37,6 +37,8 @@ import { useAuthStore } from "@/src/store/auth";
 import { useClearChat } from "@/src/hooks/useChat";
 import ShareVBCScreen from "./[id]/vbcShare";
 import ViewVbcModal from "@/src/components/chatScreenComps/chatVBCShow";
+import ChatBodyLoader from "@/src/components/ChatBodyLoader";
+
 
 export default function ChatDetailsScreen() {
   const router = useRouter();
@@ -98,7 +100,22 @@ export default function ChatDetailsScreen() {
 
   //Fetching all messages
   useChatById(id);
-  useChatMessages(id, { userId: userId, page: 1, limit: 50 });
+
+  const LIMIT = 20;
+  const [page, setPage] = useState(1);
+
+  const hasMore = useChatStore((s) => s.hasMore);
+  const { isFetching, isLoading } = useChatMessages(id, {
+    userId,
+    page,
+    limit: LIMIT,
+  });
+  const loadingMore = isFetching && page > 1;
+
+  const loadMore = () => {
+    if (!hasMore || loadingMore) return;
+    setPage((p) => p + 1);
+  };
 
   const onPressSendMessage = (content: string) => {
     if (!content) return;
@@ -508,7 +525,9 @@ export default function ChatDetailsScreen() {
             showMenu={showMenu}
             setShowMenu={setShowMenu}
           />
-          {messages.length > 0 ? (
+          {isLoading ? (
+            <ChatBodyLoader />
+          ) : messages.length > 0 ? (
             <ChatBody
               messages={messages}
               onReply={handleReply}
@@ -517,6 +536,10 @@ export default function ChatDetailsScreen() {
               onDelete={(messageId, deleteType) =>
                 onPressDeleteMessage({ messageId, deleteType })
               }
+              //New
+              onLoadMore={loadMore}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
             />
           ) : (
             <View

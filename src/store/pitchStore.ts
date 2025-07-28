@@ -1,7 +1,7 @@
 // store/pitchStore.ts
-import { create } from 'zustand';
-import { Pitch } from '../interfaces/pitchInterface';
-import { UserProfile } from '../interfaces/profileInterface';
+import { create } from "zustand";
+import { Pitch } from "../interfaces/pitchInterface";
+import { UserProfile } from "../interfaces/profileInterface";
 
 interface PitchState {
   pitch: Pitch | null;
@@ -15,6 +15,11 @@ interface PitchState {
   currentPitchUser: UserProfile | null;
   setCurrentPitchUser: (user: UserProfile) => void;
   clearCurrentPitchUser: () => void;
+
+  // Add this for focus user id used in PitchScreen
+  focusUserId: string | null;
+  setFocusUserId: (id: string | null) => void;
+  clearFocusUserId: () => void;
 }
 
 export const usePitchStore = create<PitchState>((set) => ({
@@ -29,4 +34,8 @@ export const usePitchStore = create<PitchState>((set) => ({
   currentPitchUser: null,
   setCurrentPitchUser: (user) => set({ currentPitchUser: user }),
   clearCurrentPitchUser: () => set({ currentPitchUser: null }),
+
+  focusUserId: null,               // initialize focusUserId as null
+  setFocusUserId: (id) => set({ focusUserId: id }),  // setter
+  clearFocusUserId: () => set({ focusUserId: null }), // clearer
 }));

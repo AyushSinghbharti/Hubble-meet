@@ -27,7 +27,7 @@ export default function StarredMessage() {
   const [toggledStars, setToggledStars] = useState<{ [id: string]: boolean }>({});
 
   const messages = starredMessages
-    .filter((msg) => msg.chat?.id === chatId)
+    .filter((msg) => msg.chat?.id === chatId && msg.id) // Ensure id exists
     .map((msg) => ({
       id: msg.id,
       sender: msg.sender?.username || "Unknown",
@@ -71,7 +71,7 @@ export default function StarredMessage() {
               <View style={styles.metaRight}>
                 <Text style={styles.timeText}>{item.time}</Text>
                 <Image
-                  source={isToggled ? StarFilledIcon : StarOutlineIcon}
+                  source={isToggled ? StarOutlineIcon : StarFilledIcon}
                   style={styles.starIcon}
                   resizeMode="contain"
                 />
@@ -106,7 +106,7 @@ export default function StarredMessage() {
 
       <FlatList
         data={messages}
-        keyExtractor={(item, idx) => `${item.id} + ${idx}`}
+        keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16 }}
       />

@@ -28,6 +28,7 @@ import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
 import { getStableColor } from "../utility/getStableColor";
 import { addCloseCircle } from "../api/connection";
+import { usePitchStore } from "../store/pitchStore";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
@@ -113,13 +114,12 @@ const VbcCard = ({
     );
   };
 
-  const handlePitchPress = (user) => {
-    router.push({
-      pathname: "/pitch",
-      params: { focusUserId: user.user_id },
-    });
-  };
+  const setFocusUserId = usePitchStore((state) => state.setFocusUserId);
 
+  const handlePitchPress = (user) => {
+    setFocusUserId(user.user_id);   // Set focused user in store
+    router.push("/pitch");          // Navigate WITHOUT params
+  };
 
 
 

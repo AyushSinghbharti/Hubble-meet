@@ -3,68 +3,90 @@ import {
   View,
   Text,
   StyleSheet,
-  Platform,
-  ScrollView,
   Image,
   Pressable,
-  Linking,
-  FlatList,
   Alert,
+  FlatList,
+  ActivityIndicator,
+  Linking,
 } from "react-native";
 import MessageAction from "./messageAction";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Swipeable, { SwipeableRef } from "react-native-gesture-handler/ReanimatedSwipeable";
+import * as Contacts from "expo-contacts";
+
 import { ChatMessage } from "@/src/interfaces/chatInterface";
 import { useAuthStore } from "@/src/store/auth";
 import { FONT } from "@/assets/constants/fonts";
-import { useGetOtherVbcCard, useGetVbcCard } from "@/src/hooks/useVbc";
-import VbcCard from "../VbcCard";
+import { useGetOtherVbcCard } from "@/src/hooks/useVbc";
 import VbcChatCard from "./VbcChatCard";
-import { useWindowDimensions } from "react-native";
-import { useGetOtherUserPitch } from "@/src/hooks/usePitch";
-import { useOtherUserProfile } from "@/src/hooks/useProfile";
-import { useChatStore } from "@/src/store/chatStore";
 import MediaViewer from "@/src/components/chatScreenComps/mediaViewer";
-import * as Contacts from "expo-contacts";
-import axios from "axios"; // <-- Make sure you have axios installed
+import { useOtherUserProfile } from "@/src/hooks/useProfile";
 
-// -------- CONSTANT for your API BASE -------------
-const API_BASE = "https://d2ak9slyuha4rna.cloudfront.net";
+// Helper function to format time
+const formatTime = (timestamp: string | Date): string => {
+  const date = typeof timestamp === "string" ? new Date(timestamp) : timestamp;
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
 
-// --------- Helper: Regex to detect URLs ---------------
-const urlRegex = /((https?:\/\/)?([\w\-]+\.)+\w{2,}(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?)/gi;
+// Regex to detect URLs in the text
+const urlRegex = /(https?:\/\/[^\s]+)/g;
 
-function parseMessageContent(text: string) {
-  if (!text) return [text];
-  const parts: (string | { url: string })[] = [];
-  let lastIndex = 0;
-  text.replace(urlRegex, (match, p1, offset) => {
-    if (offset > lastIndex) parts.push(text.substring(lastIndex, offset));
-    const url = match.startsWith("http") ? match : `https://${match}`;
-    parts.push({ url });
-    lastIndex = offset + match.length;
-    return match;
-  });
-  if (lastIndex < text.length) parts.push(text.substring(lastIndex));
-  return parts;
-}
+// Helper: renders text with tappable links for URLs
+const renderTextWithLinks = (text: string) => {
+  if (!text) return null;
 
-const formatTime = (d: string | Date) =>
-  new Date(d).toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const parts = text.split(urlRegex);
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (urlRegex.test(part)) {
+          return (
+            <Text
+              key={index}
+              style={{ color: "#1B95E0", textDecorationLine: "underline" }}
+              onPress={async () => {
+                try {
+                  const supported = await Linking.canOpenURL(part);
+                  if (supported) {
+                    await Linking.openURL(part);
+                  } else {
+                    Alert.alert("Invalid URL", "Cannot open this link.");
+                  }
+                } catch (error) {
+                  Alert.alert("Error", "Failed to open the link.");
+                }
+              }}
+            >
+              {part}
+            </Text>
+          );
+        } else {
+          return (
+            <Text key={index} style={styles.messageText}>
+              {part}
+            </Text>
+          );
+        }
+      })}
+    </>
+  );
+};
 
 interface ChatBodyProps {
   messages: ChatMessage[];
   onReply?: (message: ChatMessage | null) => void;
   onDelete?: (messageId: string, deleteType: "me" | "everyone") => void;
-  // removed onStar/onUnstar for now—they'll be handled below
-  starredMessages?: string[]; // Array of starred message IDs
+  onStar?: (messageId: string) => void;
+  onCancelReply?: () => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  loadingMore?: boolean;
 }
 
-//----- Your bubble component ------
 type PosState = { x: number; y: number; w: number; h: number; isMe: boolean };
+
 const ChatBubble = ({
   item,
   isSelected,
@@ -75,9 +97,7 @@ const ChatBubble = ({
   setSelectedMessage,
   allMessages,
   onMediaPress,
-  starredMessages,
   onStar,
-  onUnstar,
 }: {
   item: ChatMessage;
   isSelected: boolean;
@@ -88,16 +108,17 @@ const ChatBubble = ({
   setSelectedMessage: React.Dispatch<React.SetStateAction<ChatMessage | null>>;
   allMessages: ChatMessage[];
   onMediaPress: (
-    mediaItems: Array<{ id: string; url: string; fileName?: string; type?: string }>,
+    mediaItems: Array<{
+      id: string;
+      url: string;
+      fileName?: string;
+      type?: string;
+    }>,
     initialIndex: number
   ) => void;
-  starredMessages?: string[];
-  onStar?: (id: string) => void;
-  onUnstar?: (id: string) => void;
+  onStar: (messageId: string) => void;
 }) => {
   const me = item.sender?.id === useAuthStore.getState().userId;
-
-
   const swipeableRef = useRef<SwipeableRef | null>(null);
   const bubbleRef = useRef<View>(null);
   const isVcard = item.messageType === "VCARD";
@@ -114,7 +135,6 @@ const ChatBubble = ({
     };
   }, [userData, vbcData]);
 
-  // -------- Contacts stuff -----------
   const saveContact = async (contact: { name: string; phone: string }) => {
     const { status } = await Contacts.requestPermissionsAsync();
     if (status === "granted") {
@@ -123,12 +143,10 @@ const ChatBubble = ({
           [Contacts.Fields.Name]: contact.name,
           [Contacts.Fields.FirstName]: contact.name,
           [Contacts.Fields.ContactType]: Contacts.ContactTypes.Person,
-          [Contacts.Fields.PhoneNumbers]: [
-            { label: "mobile", number: contact.phone },
-          ],
+          [Contacts.Fields.PhoneNumbers]: [{ label: "mobile", number: contact.phone }],
         });
         Alert.alert("Success", `${contact.name} saved to contacts.`);
-      } catch (err) {
+      } catch {
         Alert.alert("Error", "Could not save contact.");
       }
     } else {
@@ -143,6 +161,7 @@ const ChatBubble = ({
     ) {
       currentlyOpenSwipeable.current?.close?.();
     }
+
     currentlyOpenSwipeable.current = swipeableRef.current;
     onReply?.(item);
     setTimeout(() => {
@@ -177,12 +196,16 @@ const ChatBubble = ({
   };
 
   const renderRightActions = () => (
-    <View style={{ justifyContent: "center", alignItems: "center", paddingHorizontal: 16 }}>
+    <View
+      style={{
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 16,
+      }}
+    >
       <Text style={{ color: "#007AFF", fontWeight: "bold", fontSize: 24 }}>↩</Text>
     </View>
   );
-  // Check if starred
-  const isStarred = starredMessages?.includes(item.id);
 
   return (
     <Swipeable
@@ -209,24 +232,19 @@ const ChatBubble = ({
       >
         <View
           style={[
-            isVcard ? styles.vcardWrapper : [
-              styles.bubbleWrapper,
-              me ? styles.bubbleMe : styles.bubbleThem,
-            ],
+            isVcard
+              ? styles.vcardWrapper
+              : [styles.bubbleWrapper, me ? styles.bubbleMe : styles.bubbleThem],
           ]}
         >
           <View style={styles.bubbleContent}>
-            {/* ... reply/parentMessage rendering ... */}
             {item.parentMessageId &&
               (() => {
-                const parent = allMessages.find(
-                  (msg) => msg.id === item.parentMessageId
-                );
+                const parent = allMessages.find((msg) => msg.id === item.parentMessageId);
                 if (!parent) return null;
-                const isImage =
-                  parent.messageType === "IMAGE" && parent.media?.length > 0;
-                const isDoc =
-                  parent.messageType === "DOCUMENT" && parent.media?.length > 0;
+                const isImage = parent.messageType === "IMAGE" && parent.media?.length > 0;
+                const isDoc = parent.messageType === "DOCUMENT" && parent.media?.length > 0;
+
                 return (
                   <View style={styles.replyContainer}>
                     <View style={styles.replyStrip} />
@@ -236,7 +254,7 @@ const ChatBubble = ({
                       </Text>
                       {isImage ? (
                         <Image
-                          source={{ uri: parent.media[0].url }}
+                          source={{ uri: parent?.media[0]?.url }}
                           style={styles.replyThumbnail}
                           resizeMode="cover"
                         />
@@ -252,22 +270,25 @@ const ChatBubble = ({
                         </View>
                       ) : (
                         <Text style={styles.replyText} numberOfLines={1}>
-                          {parent.content || "[message]"}
+                          {renderTextWithLinks(parent.content || "[message]")}
                         </Text>
                       )}
                     </View>
                   </View>
                 );
               })()}
-            {/* MESSAGE BODY */}
+
+            {/* Message body with star */}
             {item.messageType === "IMAGE" && item.media && item.media.length > 0 ? (
-              <View style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                justifyContent: "flex-start",
-                gap: 8,
-                maxWidth: 220,
-              }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-start",
+                  gap: 8,
+                  maxWidth: 220,
+                }}
+              >
                 <View>
                   {item.media.map((mediaItem, index) => (
                     <Pressable
@@ -286,16 +307,20 @@ const ChatBubble = ({
             ) : item.messageType === "CONTACTS" ? (
               renderContacts()
             ) : item.messageType === "VCARD" ? (
-              <VbcChatCard
-                vbc={{ ...mergedUserData }}
-                onVideoPress={() => { }}
-                onChatPress={() => { }}
-                onBlockPress={() => { }}
-                onSharePress={() => { }}
-                viewShareButton
-                viewChatButton
-                viewBlockButton
-              />
+              <View style={{ right: 45 }}>
+                <VbcChatCard
+                  vbc={{ ...mergedUserData }}
+                  onVideoPress={() => { }}
+                  onChatPress={() => { }}
+                  onBlockPress={() => { }}
+                  onSharePress={() => { }}
+                  viewShareButton
+                  viewChatButton
+                  viewBlockButton
+                />
+
+              </View>
+
             ) : item.messageType === "DOCUMENT" && item.media && item.media.length > 0 ? (
               <View style={{ gap: 6, maxWidth: 220 }}>
                 {item.media.map((mediaItem, index) => (
@@ -312,50 +337,36 @@ const ChatBubble = ({
                       source={require("@/assets/icons/document.png")}
                       style={{ width: 20, height: 20, marginRight: 8 }}
                     />
-                    <Text numberOfLines={1} style={[styles.messageText, { fontFamily: FONT.MEDIUM, color: "#7174c3ff" }]}>
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.messageText,
+                        { fontFamily: FONT.MEDIUM, color: "#7174c3ff" },
+                      ]}
+                    >
                       {mediaItem.fileName || "Document"}
                     </Text>
                   </Pressable>
                 ))}
-                {item.content && (
-                  <Text style={styles.messageText}>{item.content}</Text>
-                )}
+                {item.content && <Text style={styles.messageText}>{renderTextWithLinks(item.content)}</Text>}
               </View>
             ) : (
-              // ------------- MAKE URLs CLICKABLE -----------
-              <Text style={styles.messageText}>
-                {parseMessageContent(item.content).map((part, i) =>
-                  typeof part === "string" ? part : (
-                    <Text
-                      key={i}
-                      style={{ color: "#2066cc", textDecorationLine: "underline" }}
-                      onPress={() => Linking.openURL(part.url)}
-                    >
-                      {part.url}
-                    </Text>
-                  )
-                )}
-              </Text>
+              // TEXT messages (with URL detection & star)
+              <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap" }}>
+                {renderTextWithLinks(item.content || "")}
+                <Pressable
+                  onPress={() => onStar(item.id)}
+                  style={{ marginLeft: 8, padding: 4 }}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Text style={{ fontSize: 18 }}>{item.starred ? "⭐" : " "}</Text>
+                </Pressable>
+              </View>
             )}
           </View>
+
           <View style={[styles.timeRow, { alignSelf: me ? "flex-end" : "flex-start" }]}>
             <Text style={styles.timeText}>{formatTime(item.createdAt)}</Text>
-            {/* -------- STAR ICON -------- */}
-            <Pressable
-              style={{ marginLeft: 6 }}
-              onPress={() => {
-                // Defensive check
-                if (!item.id) {
-                  Alert.alert("Error", "Message ID missing");
-                  return;
-                }
-                isStarred ? onUnstar?.(item.id) : onStar?.(item.id);
-              }}
-            >
-              <Text style={{ fontSize: 14 }}>
-                {isStarred ? "★" : ""}
-              </Text>
-            </Pressable>
           </View>
         </View>
       </Pressable>
@@ -363,82 +374,60 @@ const ChatBubble = ({
   );
 };
 
-
-// ---------- NETWORK HELPERS ---------------
-async function starMessage(messageId, userId) {
-
-  if (!messageId || !userId) throw new Error("Missing messageId or userId");
-  const url = `${API_BASE}/api/chat/${messageId}/star`;
-  return axios.post(url, { userId });
-}
-
-async function unstarMessage(messageId, userId) {
-  if (!messageId || !userId) throw new Error("Missing messageId or userId");
-  const url = `${API_BASE}/api/chat/${messageId}/unstar`;
-  return axios.post(url, { userId });
-}
-
-// ---------- MAIN COMPONENT ---------------
 export default function ChatBody({
-  messages,
+  messages: initialMessages,
   onReply,
   onDelete = () => { },
-  starredMessages = [],
+  onStar = () => { },
+  onLoadMore,
+  hasMore = false,
+  loadingMore = false,
 }: ChatBodyProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+
   const [messageProps, setMessageprops] = useState<PosState>({
-    x: 0, y: 0, h: 0, w: 0, isMe: false,
+    x: 0,
+    y: 0,
+    h: 0,
+    w: 0,
+    isMe: false,
   });
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
   const [mediaViewerVisible, setMediaViewerVisible] = useState(false);
-  const [mediaItems, setMediaItems] = useState<Array<{ id: string; url: string; fileName?: string; type?: string }>>([]);
+  const [mediaItems, setMediaItems] = useState<
+    Array<{ id: string; url: string; fileName?: string; type?: string }>
+  >([]);
   const [mediaInitialIndex, setMediaInitialIndex] = useState(0);
 
-  // Keep local starred state that mirrors parent prop for UI update
-  const [localStarred, setLocalStarred] = useState<string[]>(starredMessages || []);
+  const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
+  const flatListRef = useRef<FlatList>(null);
+  const endReachedLock = useRef(false);
+
   useEffect(() => {
-    setLocalStarred(starredMessages || []);
-  }, [starredMessages]);
+    setMessages(initialMessages);
+  }, [initialMessages]);
 
-  const userId = useAuthStore((state) => state.userId);
+  const isMenuVisible = selectedMessageId !== null;
 
-  const onStar = async (messageId: string) => {
-    if (!messageId) return;
-    if (!userId) {
-      Alert.alert("Error", "No user ID found");
-      return;
-    }
-    try {
-      await starMessage(messageId, userId);
-      setLocalStarred((prev) => [...prev, messageId]);
-    } catch (err) {
-      console.log("Star error:", err);
-      Alert.alert("Error", "Could not star message.");
-    }
-  };
-
-  const onUnstar = async (messageId: string) => {
-    if (!messageId) return;
-    if (!userId) {
-      Alert.alert("Error", "No user ID found");
-      return;
-    }
-    try {
-      await unstarMessage(messageId, userId);
-      setLocalStarred((prev) => prev.filter((id) => id !== messageId));
-    } catch (err) {
-      console.log("Unstar error:", err);
-      Alert.alert("Error", "Could not unstar message.");
-    }
-  };
+  // Position offsets for overlay menu
+  const leftOffset = messageProps.isMe
+    ? Math.max(messageProps.x + messageProps.w - 220, 10)
+    : Math.max(messageProps.x, 10);
+  const topOffset = Math.max(messageProps.y - 35, 10);
 
   const onAction = (action: string) => {
     if (action === "reply") {
       onReply?.(selectedMessage);
     } else if (action === "star") {
-      onStar?.(selectedMessage?.id || "");
-    } else if (action === "unstar") {
-      onUnstar?.(selectedMessage?.id || "");
+      if (selectedMessage?.id) {
+        setMessages((prevMsgs) =>
+          prevMsgs.map((msg) =>
+            msg.id === selectedMessage.id ? { ...msg, starred: !msg.starred } : msg
+          )
+        );
+        onStar?.(selectedMessage.id);
+      }
     } else if (action === "deleteforme") {
       onDelete?.(selectedMessage?.id || "", "me");
     } else if (action === "deleteforeveryone") {
@@ -448,7 +437,12 @@ export default function ChatBody({
   };
 
   const handleMediaPress = (
-    mediaItems: Array<{ id: string; url: string; fileName?: string; type?: string }>,
+    mediaItems: Array<{
+      id: string;
+      url: string;
+      fileName?: string;
+      type?: string;
+    }>,
     initialIndex: number
   ) => {
     setMediaItems(mediaItems);
@@ -456,23 +450,13 @@ export default function ChatBody({
     setMediaViewerVisible(true);
   };
 
-  const handleCloseMediaViewer = () => setMediaViewerVisible(false);
+  const handleCloseMediaViewer = () => {
+    setMediaViewerVisible(false);
+  };
 
-  const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
-  const flatListRef = useRef<FlatList>(null);
-
-  useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
-
-  const isMenuVisible = selectedMessageId !== null;
-
-  // Adjust offsets as you need
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
-        {/* Overlay menu */}
         <MessageAction
           onAction={onAction}
           isVisible={isMenuVisible}
@@ -484,14 +468,25 @@ export default function ChatBody({
                 : messageProps.y - 50
           }
           leftOffset={messageProps.x > 90 ? 265 : 25}
+          isStarred={selectedMessage?.starred ?? false}
+          onToggleStar={() => {
+            if (!selectedMessage) return;
+            setMessages((prevMsgs) =>
+              prevMsgs.map((msg) =>
+                msg.id === selectedMessage.id ? { ...msg, starred: !msg.starred } : msg
+              )
+            );
+            onStar?.(selectedMessage.id);
+          }}
         />
-        {/* Media Viewer Modal */}
+
         <MediaViewer
           visible={mediaViewerVisible}
           mediaItems={mediaItems}
           initialIndex={mediaInitialIndex}
           onClose={handleCloseMediaViewer}
         />
+
         <FlatList
           ref={flatListRef}
           inverted
@@ -509,12 +504,33 @@ export default function ChatBody({
                 setSelectedMessage={setSelectedMessage}
                 allMessages={messages}
                 onMediaPress={handleMediaPress}
-                starredMessages={localStarred}
-                onStar={onStar}
-                onUnstar={onUnstar}
+                onStar={(msgId) => {
+                  setMessages((prevMsgs) =>
+                    prevMsgs.map((msg) =>
+                      msg.id === msgId ? { ...msg, starred: !msg.starred } : msg
+                    )
+                  );
+                  onStar?.(msgId);
+                }}
               />
             </View>
           )}
+          onEndReachedThreshold={0.1}
+          onEndReached={() => {
+            if (!hasMore || loadingMore || endReachedLock.current) return;
+            endReachedLock.current = true;
+            onLoadMore?.();
+            setTimeout(() => {
+              endReachedLock.current = false;
+            }, 500);
+          }}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={{ paddingVertical: 8 }}>
+                <ActivityIndicator size="small" />
+              </View>
+            ) : null
+          }
           contentContainerStyle={{ paddingBottom: 10 }}
           keyboardShouldPersistTaps="handled"
         />
@@ -523,36 +539,40 @@ export default function ChatBody({
   );
 }
 
-// --- Same styles as previous ---
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  dateChip: {
-    alignSelf: "center",
-    marginVertical: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    backgroundColor: "#fff",
-    borderRadius: 3,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-      },
-      android: { elevation: 2 },
-    }),
-  },
-  dateChipText: { fontSize: 10, fontFamily: "Inter", color: "#8E8E8E" },
+
   listContent: { paddingBottom: 9 },
+
   row: { flexDirection: "row", paddingHorizontal: 8 },
   rowEnd: { justifyContent: "flex-end" },
-  onMenu: { backgroundColor: "#000", opacity: 0.5, paddingVertical: 2 },
-  bubbleWrapper: { borderRadius: 16, padding: 10, maxWidth: 250 },
-  bubbleContent: { flexDirection: "column", gap: 8 },
-  bubbleMe: { backgroundColor: "#BBCF8D", alignSelf: "flex-end" },
-  bubbleThem: { backgroundColor: "#E8E8E8", alignSelf: "flex-start" },
+  onMenu: {
+    backgroundColor: "#000",
+    opacity: 0.5,
+    paddingVertical: 2,
+  },
+
+  bubbleWrapper: {
+    borderRadius: 16,
+    padding: 10,
+    maxWidth: 250,
+  },
+
+  bubbleContent: {
+    flexDirection: "column",
+    gap: 8,
+  },
+
+  bubbleMe: {
+    backgroundColor: "#BBCF8D",
+    alignSelf: "flex-end",
+  },
+
+  bubbleThem: {
+    backgroundColor: "#E8E8E8",
+    alignSelf: "flex-start",
+  },
+
   replyContainer: {
     backgroundColor: "#e2e2e2",
     borderLeftWidth: 3,
@@ -564,8 +584,20 @@ const styles = StyleSheet.create({
     maxWidth: "100%",
     flexShrink: 1,
   },
-  replyStrip: { width: 3, backgroundColor: "#007AFF", borderRadius: 2 },
-  replySender: { fontSize: 12, fontWeight: "600", color: "#007AFF", marginBottom: 2 },
+
+  replyStrip: {
+    width: 3,
+    backgroundColor: "#007AFF",
+    borderRadius: 2,
+  },
+
+  replySender: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#007AFF",
+    marginBottom: 2,
+  },
+
   contactsContainer: { gap: 8 },
   contactCard: {
     justifyContent: "space-between",
@@ -575,9 +607,21 @@ const styles = StyleSheet.create({
     borderColor: "#e0e0e0",
     marginBottom: 8,
   },
-  contactInfo: { flexShrink: 1, paddingRight: 8 },
-  contactName: { fontSize: 16, fontWeight: "600", color: "#000" },
-  contactPhone: { fontSize: 14, color: "#555", marginTop: 2 },
+  contactInfo: {
+    flexShrink: 1,
+    paddingRight: 8,
+  },
+  contactName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+  },
+  contactPhone: {
+    fontSize: 14,
+    color: "#555",
+    marginTop: 2,
+  },
+
   addContactButton: {
     backgroundColor: "#25D366",
     paddingVertical: 6,
@@ -587,34 +631,49 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  addContactText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  replyText: { fontSize: 12, color: "#444" },
-  replyDocRow: { flexDirection: "row", alignItems: "center" },
-  replyDocText: { fontSize: 12, color: "#444", flexShrink: 1 },
-  replyThumbnail: { width: 50, height: 50, borderRadius: 6 },
-  bubble: {
-    gap: 10,
-    minHeight: 50,
-    paddingLeft: 20,
-    padding: 10,
-    borderRadius: 40,
-    alignItems: "center",
-    flexDirection: "row",
+  addContactText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
+
+  replyText: {
+    fontSize: 12,
+    color: "#444",
+  },
+
+  replyDocRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  replyDocText: {
+    fontSize: 12,
+    color: "#444",
+    flexShrink: 1,
+  },
+
+  replyThumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 6,
+  },
+
   messageText: {
     fontSize: 14,
     color: "#000",
     fontFamily: "Inter",
     flexShrink: 1,
   },
-  saveButton: {
-    marginLeft: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    backgroundColor: "#007AFF",
+
+  timeRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginTop: 4,
   },
-  saveButtonText: { color: "#fff", fontSize: 12, fontWeight: "600" },
-  timeRow: { flexDirection: "row", alignItems: "flex-end", marginTop: 4 },
   timeText: { fontSize: 10, color: "#4D4D4D" },
+
+  vcardWrapper: {
+    maxWidth: 250,
+  },
 });
