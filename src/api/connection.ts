@@ -90,8 +90,7 @@ export const getRecommendedProfiles = async (
 
 //Search User profiles
 export const searchUserProfile = async (data: SearchInterface): Promise<SearchUserResponse> => {
-    const response = await api.post(`/api/user/profiles/search/users`, data);
-    // const response = await api.post(`/api/connection/search/users`, data);
+    const response = await api.post(`/api/connection/search/users`, data);
     return response.data;
 };
 

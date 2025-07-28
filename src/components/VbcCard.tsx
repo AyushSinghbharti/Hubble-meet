@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   Platform,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import CustomModal from "./Modal/CustomModal";
 import BlockUserModal from "./Modal/BlockUserModal";
@@ -41,9 +42,13 @@ type UserProfileDataInterface = UserProfileItem[];
 const VbcCard = ({
   spacing,
   profiles,
+  onEndReached,
+  isLoadingMore,
 }: {
   spacing?: any;
   profiles?: UserProfileDataInterface;
+  onEndReached?: () => void;
+  isLoadingMore?: boolean;
 }) => {
   const router = useRouter();
   const [addModal, setAddModal] = useState(false);
@@ -53,7 +58,9 @@ const VbcCard = ({
   const connections = useConnectionStore((state) => state.connections);
   const users: UserProfileDataInterface = profiles
     ? profiles
-    : connections.filter((connection) => connection.connection_status !== "BLOCKED");
+    : connections.filter(
+        (connection) => connection.connection_status !== "BLOCKED"
+      );
   const currentUser = useAuthStore((state) => state.user);
   const userId = useAuthStore((s) => s.userId);
   const { mutate: sendConnection } = useSendConnection();
@@ -131,6 +138,13 @@ const VbcCard = ({
         keyExtractor={(item) => item.user_id}
         contentContainerStyle={[styles.listContainer, { spacing }]}
         columnWrapperStyle={styles.row}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          isLoadingMore ? (
+            <ActivityIndicator style={{ marginVertical: 16 }} size="small" />
+          ) : null
+        }
         renderItem={({ item, index }) => {
           const cardColor = item.color ?? getStableColor(item.user_id);
 
