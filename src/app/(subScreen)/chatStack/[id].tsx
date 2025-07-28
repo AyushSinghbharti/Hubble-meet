@@ -165,7 +165,7 @@ export default function ChatDetailsScreen() {
     );
 
     sendMessage(sendMessagePayload, {
-      onSuccess: (res) => {},
+      onSuccess: (res) => { },
       onError: (error) => {
         console.error("Failed to send message", error?.response?.data?.message);
         setError("Failed to send message");

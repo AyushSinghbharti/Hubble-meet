@@ -97,7 +97,7 @@ const ProfileCard = ({
   const [thumbImageAlertVisible, setThumbImageAlertVisible] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const rotationY = useSharedValue(0); // 0 for front, 180 for back
-
+  const recommendations = useConnectionStore((s) => s.recommendations);
   const userId = useAuthStore((state) => state.userId);
   const { mutate: sendConnection } = useSendConnection();
 
@@ -252,14 +252,32 @@ const ProfileCard = ({
     [handleButtonPress, showBlockAlert]
   );
 
+
   const handleThumbImagePress = useCallback(
-    (event) => {
+    (event, userId) => {
       event.stopPropagation();
-      showThumbImageAlert();
-      route.push("/(pitch)/pitch");
+      const { setCurrentPitchUser } = usePitchStore.getState();
+      const userProfile = recommendations.find(
+        (user) => user.user_id === userId
+      );
+      if (userProfile) {
+        setCurrentPitchUser(userProfile);
+        showThumbImageAlert && showThumbImageAlert();
+        route.push({
+          pathname: "/pitch",
+          params: { focusUserId: userId },
+        });
+      } else {
+        console.warn("⚠️ User profile not found for user_id:", userId);
+      }
     },
-    [showThumbImageAlert, route]
+    [recommendations, showThumbImageAlert, route]
   );
+
+
+
+
+
 
 
   const handleImageTap = useCallback(() => {
@@ -323,6 +341,9 @@ const ProfileCard = ({
     runOnJS(handleImageTap)();
   });
 
+
+
+
   return (
     <>
       {!isExpanded ? (
@@ -338,7 +359,8 @@ const ProfileCard = ({
 
             <TouchableOpacity
               style={styles.expandThumb}
-              onPress={handleThumbImagePress}
+              onPress={(e) => handleThumbImagePress(e, profile.user_id)}
+
               activeOpacity={0.7}
             >
               <Image
@@ -575,13 +597,18 @@ const Connect = () => {
       (value) => value === undefined || value === null || value === ""
     );
     const isComplete = !hasIncompleteFields;
-    setProfileComplete(isComplete);
+
+    setProfileComplete((prev) => {
+      if (prev !== isComplete) return isComplete;
+      return prev;
+    });
 
     if (!isComplete && !hasShownProfilePrompt) {
       setShowLimitModal(true);
       setProfilePromptShown(true);
     }
-  }, [user, setProfileComplete, hasShownProfilePrompt, setProfilePromptShown]);
+  }, [user, hasShownProfilePrompt, setProfileComplete, setProfilePromptShown]);
+
 
   useEffect(() => {
     const fetchAndStore = async () => {

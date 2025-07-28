@@ -1,4 +1,3 @@
-// components/ChatBody.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
@@ -14,9 +13,7 @@ import {
 } from "react-native";
 import MessageAction from "./messageAction";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import Swipeable, {
-  SwipeableRef,
-} from "react-native-gesture-handler/ReanimatedSwipeable";
+import Swipeable, { SwipeableRef } from "react-native-gesture-handler/ReanimatedSwipeable";
 import { ChatMessage } from "@/src/interfaces/chatInterface";
 import { useAuthStore } from "@/src/store/auth";
 import { FONT } from "@/assets/constants/fonts";
@@ -29,29 +26,27 @@ import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { useChatStore } from "@/src/store/chatStore";
 import MediaViewer from "@/src/components/chatScreenComps/mediaViewer";
 import * as Contacts from "expo-contacts";
+import axios from "axios"; // <-- Make sure you have axios installed
 
-interface ChatMsg {
-  id: string;
-  text: string;
-  timestamp: Date;
-  isMe: boolean;
-  delivered?: boolean;
-}
+// -------- CONSTANT for your API BASE -------------
+const API_BASE = "https://d2ak9slyuha4rna.cloudfront.net";
 
-function dateLabel(date: Date) {
-  const today = new Date();
-  const tomorrow = new Date();
-  tomorrow.setDate(today.getDate() + 1);
+// --------- Helper: Regex to detect URLs ---------------
+const urlRegex = /((https?:\/\/)?([\w\-]+\.)+\w{2,}(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?)/gi;
 
-  const strip = (d: Date) =>
-    new Date(d.getFullYear(), d.getMonth(), d.getDate()).valueOf();
-  if (strip(date) === strip(today)) return "Today";
-  if (strip(date) === strip(tomorrow)) return "Tomorrow";
-  return date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+function parseMessageContent(text: string) {
+  if (!text) return [text];
+  const parts: (string | { url: string })[] = [];
+  let lastIndex = 0;
+  text.replace(urlRegex, (match, p1, offset) => {
+    if (offset > lastIndex) parts.push(text.substring(lastIndex, offset));
+    const url = match.startsWith("http") ? match : `https://${match}`;
+    parts.push({ url });
+    lastIndex = offset + match.length;
+    return match;
   });
+  if (lastIndex < text.length) parts.push(text.substring(lastIndex));
+  return parts;
 }
 
 const formatTime = (d: string | Date) =>
@@ -64,12 +59,12 @@ interface ChatBodyProps {
   messages: ChatMessage[];
   onReply?: (message: ChatMessage | null) => void;
   onDelete?: (messageId: string, deleteType: "me" | "everyone") => void;
-  onStar?: (messageId: string) => void;
-  onCancelReply?: () => void;
+  // removed onStar/onUnstar for now—they'll be handled below
+  starredMessages?: string[]; // Array of starred message IDs
 }
 
+//----- Your bubble component ------
 type PosState = { x: number; y: number; w: number; h: number; isMe: boolean };
-
 const ChatBubble = ({
   item,
   isSelected,
@@ -80,6 +75,9 @@ const ChatBubble = ({
   setSelectedMessage,
   allMessages,
   onMediaPress,
+  starredMessages,
+  onStar,
+  onUnstar,
 }: {
   item: ChatMessage;
   isSelected: boolean;
@@ -90,16 +88,16 @@ const ChatBubble = ({
   setSelectedMessage: React.Dispatch<React.SetStateAction<ChatMessage | null>>;
   allMessages: ChatMessage[];
   onMediaPress: (
-    mediaItems: Array<{
-      id: string;
-      url: string;
-      fileName?: string;
-      type?: string;
-    }>,
+    mediaItems: Array<{ id: string; url: string; fileName?: string; type?: string }>,
     initialIndex: number
   ) => void;
+  starredMessages?: string[];
+  onStar?: (id: string) => void;
+  onUnstar?: (id: string) => void;
 }) => {
   const me = item.sender?.id === useAuthStore.getState().userId;
+
+
   const swipeableRef = useRef<SwipeableRef | null>(null);
   const bubbleRef = useRef<View>(null);
   const isVcard = item.messageType === "VCARD";
@@ -107,16 +105,16 @@ const ChatBubble = ({
   const { data: vbcData } = useGetOtherVbcCard(item.vCardUserId || "");
   const { data: userData } = useOtherUserProfile(item.vCardUserId || "");
 
-  // 👉 merge color from vbcData into userData and expose a new field
   const mergedUserData = useMemo(() => {
     if (!userData) return undefined;
     return {
       ...userData,
-      color: vbcData?.color, // overwrite/ensure color
-      vbcColor: vbcData?.color, // <<< new field if you want it explicit
+      color: vbcData?.color,
+      vbcColor: vbcData?.color,
     };
   }, [userData, vbcData]);
 
+  // -------- Contacts stuff -----------
   const saveContact = async (contact: { name: string; phone: string }) => {
     const { status } = await Contacts.requestPermissionsAsync();
     if (status === "granted") {
@@ -134,10 +132,7 @@ const ChatBubble = ({
         Alert.alert("Error", "Could not save contact.");
       }
     } else {
-      Alert.alert(
-        "Permission denied",
-        "Cannot save without contacts permission."
-      );
+      Alert.alert("Permission denied", "Cannot save without contacts permission.");
     }
   };
 
@@ -148,7 +143,6 @@ const ChatBubble = ({
     ) {
       currentlyOpenSwipeable.current?.close?.();
     }
-
     currentlyOpenSwipeable.current = swipeableRef.current;
     onReply?.(item);
     setTimeout(() => {
@@ -163,13 +157,10 @@ const ChatBubble = ({
         <View style={styles.contactsContainer}>
           {contacts.map((contact: any, index: number) => (
             <View key={index} style={styles.contactCard}>
-              {/* Name + Number */}
               <View style={styles.contactInfo}>
                 <Text style={styles.contactName}>{contact.name}</Text>
                 <Text style={styles.contactPhone}>{contact.phone}</Text>
               </View>
-
-              {/* WhatsApp‑style “Add Contact” */}
               <Pressable
                 style={styles.addContactButton}
                 onPress={() => saveContact(contact)}
@@ -186,18 +177,12 @@ const ChatBubble = ({
   };
 
   const renderRightActions = () => (
-    <View
-      style={{
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 16,
-      }}
-    >
-      <Text style={{ color: "#007AFF", fontWeight: "bold", fontSize: 24 }}>
-        ↩
-      </Text>
+    <View style={{ justifyContent: "center", alignItems: "center", paddingHorizontal: 16 }}>
+      <Text style={{ color: "#007AFF", fontWeight: "bold", fontSize: 24 }}>↩</Text>
     </View>
   );
+  // Check if starred
+  const isStarred = starredMessages?.includes(item.id);
 
   return (
     <Swipeable
@@ -224,28 +209,24 @@ const ChatBubble = ({
       >
         <View
           style={[
-            isVcard
-              ? styles.vcardWrapper
-              : [
-                  styles.bubbleWrapper,
-                  me ? styles.bubbleMe : styles.bubbleThem,
-                ],
+            isVcard ? styles.vcardWrapper : [
+              styles.bubbleWrapper,
+              me ? styles.bubbleMe : styles.bubbleThem,
+            ],
           ]}
         >
           <View style={styles.bubbleContent}>
-            {/* REPLY PREVIEW SECTION */}
+            {/* ... reply/parentMessage rendering ... */}
             {item.parentMessageId &&
               (() => {
                 const parent = allMessages.find(
                   (msg) => msg.id === item.parentMessageId
                 );
                 if (!parent) return null;
-
                 const isImage =
                   parent.messageType === "IMAGE" && parent.media?.length > 0;
                 const isDoc =
                   parent.messageType === "DOCUMENT" && parent.media?.length > 0;
-
                 return (
                   <View style={styles.replyContainer}>
                     <View style={styles.replyStrip} />
@@ -278,20 +259,15 @@ const ChatBubble = ({
                   </View>
                 );
               })()}
-
             {/* MESSAGE BODY */}
-            {item.messageType === "IMAGE" &&
-            item.media &&
-            item.media.length > 0 ? (
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  justifyContent: "flex-start",
-                  gap: 8,
-                  maxWidth: 220,
-                }}
-              >
+            {item.messageType === "IMAGE" && item.media && item.media.length > 0 ? (
+              <View style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                justifyContent: "flex-start",
+                gap: 8,
+                maxWidth: 220,
+              }}>
                 <View>
                   {item.media.map((mediaItem, index) => (
                     <Pressable
@@ -312,17 +288,15 @@ const ChatBubble = ({
             ) : item.messageType === "VCARD" ? (
               <VbcChatCard
                 vbc={{ ...mergedUserData }}
-                onVideoPress={() => {}}
-                onChatPress={() => {}}
-                onBlockPress={() => {}}
-                onSharePress={() => {}}
+                onVideoPress={() => { }}
+                onChatPress={() => { }}
+                onBlockPress={() => { }}
+                onSharePress={() => { }}
                 viewShareButton
                 viewChatButton
                 viewBlockButton
               />
-            ) : item.messageType === "DOCUMENT" &&
-              item.media &&
-              item.media.length > 0 ? (
+            ) : item.messageType === "DOCUMENT" && item.media && item.media.length > 0 ? (
               <View style={{ gap: 6, maxWidth: 220 }}>
                 {item.media.map((mediaItem, index) => (
                   <Pressable
@@ -338,13 +312,7 @@ const ChatBubble = ({
                       source={require("@/assets/icons/document.png")}
                       style={{ width: 20, height: 20, marginRight: 8 }}
                     />
-                    <Text
-                      numberOfLines={1}
-                      style={[
-                        styles.messageText,
-                        { fontFamily: FONT.MEDIUM, color: "#7174c3ff" },
-                      ]}
-                    >
+                    <Text numberOfLines={1} style={[styles.messageText, { fontFamily: FONT.MEDIUM, color: "#7174c3ff" }]}>
                       {mediaItem.fileName || "Document"}
                     </Text>
                   </Pressable>
@@ -354,16 +322,40 @@ const ChatBubble = ({
                 )}
               </View>
             ) : (
-              <Text style={styles.messageText}>{item.content}</Text>
+              // ------------- MAKE URLs CLICKABLE -----------
+              <Text style={styles.messageText}>
+                {parseMessageContent(item.content).map((part, i) =>
+                  typeof part === "string" ? part : (
+                    <Text
+                      key={i}
+                      style={{ color: "#2066cc", textDecorationLine: "underline" }}
+                      onPress={() => Linking.openURL(part.url)}
+                    >
+                      {part.url}
+                    </Text>
+                  )
+                )}
+              </Text>
             )}
           </View>
-          <View
-            style={[
-              styles.timeRow,
-              { alignSelf: me ? "flex-end" : "flex-start" },
-            ]}
-          >
+          <View style={[styles.timeRow, { alignSelf: me ? "flex-end" : "flex-start" }]}>
             <Text style={styles.timeText}>{formatTime(item.createdAt)}</Text>
+            {/* -------- STAR ICON -------- */}
+            <Pressable
+              style={{ marginLeft: 6 }}
+              onPress={() => {
+                // Defensive check
+                if (!item.id) {
+                  Alert.alert("Error", "Message ID missing");
+                  return;
+                }
+                isStarred ? onUnstar?.(item.id) : onStar?.(item.id);
+              }}
+            >
+              <Text style={{ fontSize: 14 }}>
+                {isStarred ? "★" : ""}
+              </Text>
+            </Pressable>
           </View>
         </View>
       </Pressable>
@@ -371,47 +363,82 @@ const ChatBubble = ({
   );
 };
 
+
+// ---------- NETWORK HELPERS ---------------
+async function starMessage(messageId, userId) {
+
+  if (!messageId || !userId) throw new Error("Missing messageId or userId");
+  const url = `${API_BASE}/api/chat/${messageId}/star`;
+  return axios.post(url, { userId });
+}
+
+async function unstarMessage(messageId, userId) {
+  if (!messageId || !userId) throw new Error("Missing messageId or userId");
+  const url = `${API_BASE}/api/chat/${messageId}/unstar`;
+  return axios.post(url, { userId });
+}
+
+// ---------- MAIN COMPONENT ---------------
 export default function ChatBody({
   messages,
   onReply,
-  onDelete = () => {},
-  onStar = () => {},
+  onDelete = () => { },
+  starredMessages = [],
 }: ChatBodyProps) {
   const [messageProps, setMessageprops] = useState<PosState>({
-    x: 0,
-    y: 0,
-    h: 0,
-    w: 0,
-    isMe: false,
+    x: 0, y: 0, h: 0, w: 0, isMe: false,
   });
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
-    null
-  );
-  const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(
-    null
-  );
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
   const [mediaViewerVisible, setMediaViewerVisible] = useState(false);
-  const [mediaItems, setMediaItems] = useState<
-    Array<{ id: string; url: string; fileName?: string; type?: string }>
-  >([]);
+  const [mediaItems, setMediaItems] = useState<Array<{ id: string; url: string; fileName?: string; type?: string }>>([]);
   const [mediaInitialIndex, setMediaInitialIndex] = useState(0);
 
-  const userId = useAuthStore((state) => state.userId);
-  const currentChat = useChatStore((state) => state.currentChat);
+  // Keep local starred state that mirrors parent prop for UI update
+  const [localStarred, setLocalStarred] = useState<string[]>(starredMessages || []);
+  useEffect(() => {
+    setLocalStarred(starredMessages || []);
+  }, [starredMessages]);
 
-  const transformedMessages: ChatMsg[] = messages.map((msg) => ({
-    id: msg.id,
-    text: msg.content,
-    timestamp: new Date(msg.createdAt),
-    isMe: msg.sender?.id === userId,
-    delivered: true,
-  }));
+  const userId = useAuthStore((state) => state.userId);
+
+  const onStar = async (messageId: string) => {
+    if (!messageId) return;
+    if (!userId) {
+      Alert.alert("Error", "No user ID found");
+      return;
+    }
+    try {
+      await starMessage(messageId, userId);
+      setLocalStarred((prev) => [...prev, messageId]);
+    } catch (err) {
+      console.log("Star error:", err);
+      Alert.alert("Error", "Could not star message.");
+    }
+  };
+
+  const onUnstar = async (messageId: string) => {
+    if (!messageId) return;
+    if (!userId) {
+      Alert.alert("Error", "No user ID found");
+      return;
+    }
+    try {
+      await unstarMessage(messageId, userId);
+      setLocalStarred((prev) => prev.filter((id) => id !== messageId));
+    } catch (err) {
+      console.log("Unstar error:", err);
+      Alert.alert("Error", "Could not unstar message.");
+    }
+  };
 
   const onAction = (action: string) => {
     if (action === "reply") {
       onReply?.(selectedMessage);
     } else if (action === "star") {
       onStar?.(selectedMessage?.id || "");
+    } else if (action === "unstar") {
+      onUnstar?.(selectedMessage?.id || "");
     } else if (action === "deleteforme") {
       onDelete?.(selectedMessage?.id || "", "me");
     } else if (action === "deleteforeveryone") {
@@ -421,12 +448,7 @@ export default function ChatBody({
   };
 
   const handleMediaPress = (
-    mediaItems: Array<{
-      id: string;
-      url: string;
-      fileName?: string;
-      type?: string;
-    }>,
+    mediaItems: Array<{ id: string; url: string; fileName?: string; type?: string }>,
     initialIndex: number
   ) => {
     setMediaItems(mediaItems);
@@ -434,9 +456,7 @@ export default function ChatBody({
     setMediaViewerVisible(true);
   };
 
-  const handleCloseMediaViewer = () => {
-    setMediaViewerVisible(false);
-  };
+  const handleCloseMediaViewer = () => setMediaViewerVisible(false);
 
   const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -448,19 +468,11 @@ export default function ChatBody({
 
   const isMenuVisible = selectedMessageId !== null;
 
-  // Calculate offsets
-  const MENU_WIDTH = 220; // whatever your MessageAction width roughly is
-  const leftOffset = messageProps.isMe
-    ? Math.max(messageProps.x + messageProps.w - MENU_WIDTH, 10)
-    : Math.max(messageProps.x, 10);
-
-  const topOffset = Math.max(messageProps.y - 35, 10); // small offset above bubble
-
+  // Adjust offsets as you need
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
         {/* Overlay menu */}
-
         <MessageAction
           onAction={onAction}
           isVisible={isMenuVisible}
@@ -468,12 +480,11 @@ export default function ChatBody({
             messageProps.y > 550
               ? messageProps.y - messageProps.y / 2.5
               : messageProps.y > 515
-              ? messageProps.y - messageProps.y / 2
-              : messageProps.y - 50
+                ? messageProps.y - messageProps.y / 2
+                : messageProps.y - 50
           }
           leftOffset={messageProps.x > 90 ? 265 : 25}
         />
-
         {/* Media Viewer Modal */}
         <MediaViewer
           visible={mediaViewerVisible}
@@ -481,7 +492,6 @@ export default function ChatBody({
           initialIndex={mediaInitialIndex}
           onClose={handleCloseMediaViewer}
         />
-
         <FlatList
           ref={flatListRef}
           inverted
@@ -499,12 +509,12 @@ export default function ChatBody({
                 setSelectedMessage={setSelectedMessage}
                 allMessages={messages}
                 onMediaPress={handleMediaPress}
+                starredMessages={localStarred}
+                onStar={onStar}
+                onUnstar={onUnstar}
               />
             </View>
           )}
-          // onEndReached={loadMoreMessages}
-          onEndReachedThreshold={0.1} // Close to top
-          // ListFooterComponent={isFetching && <ActivityIndicator />}
           contentContainerStyle={{ paddingBottom: 10 }}
           keyboardShouldPersistTaps="handled"
         />
@@ -513,9 +523,10 @@ export default function ChatBody({
   );
 }
 
+// --- Same styles as previous ---
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-
   dateChip: {
     alignSelf: "center",
     marginVertical: 8,
@@ -534,40 +545,14 @@ const styles = StyleSheet.create({
     }),
   },
   dateChipText: { fontSize: 10, fontFamily: "Inter", color: "#8E8E8E" },
-
-  /* List content spacing */
   listContent: { paddingBottom: 9 },
-
-  /* Message rows */
   row: { flexDirection: "row", paddingHorizontal: 8 },
   rowEnd: { justifyContent: "flex-end" },
-  onMenu: {
-    backgroundColor: "#000",
-    opacity: 0.5,
-    paddingVertical: 2,
-  },
-  /* Bubbles */
-  bubbleWrapper: {
-    borderRadius: 16,
-    padding: 10,
-    maxWidth: 250,
-  },
-
-  bubbleContent: {
-    flexDirection: "column",
-    gap: 8,
-  },
-
-  bubbleMe: {
-    backgroundColor: "#BBCF8D",
-    alignSelf: "flex-end",
-  },
-
-  bubbleThem: {
-    backgroundColor: "#E8E8E8",
-    alignSelf: "flex-start",
-  },
-
+  onMenu: { backgroundColor: "#000", opacity: 0.5, paddingVertical: 2 },
+  bubbleWrapper: { borderRadius: 16, padding: 10, maxWidth: 250 },
+  bubbleContent: { flexDirection: "column", gap: 8 },
+  bubbleMe: { backgroundColor: "#BBCF8D", alignSelf: "flex-end" },
+  bubbleThem: { backgroundColor: "#E8E8E8", alignSelf: "flex-start" },
   replyContainer: {
     backgroundColor: "#e2e2e2",
     borderLeftWidth: 3,
@@ -576,23 +561,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
     gap: 8,
-    maxWidth: "100%", // prevents overflow and allows wrapping
+    maxWidth: "100%",
     flexShrink: 1,
   },
-
-  replyStrip: {
-    width: 3,
-    backgroundColor: "#007AFF",
-    borderRadius: 2,
-  },
-
-  replySender: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#007AFF",
-    marginBottom: 2,
-  },
-
+  replyStrip: { width: 3, backgroundColor: "#007AFF", borderRadius: 2 },
+  replySender: { fontSize: 12, fontWeight: "600", color: "#007AFF", marginBottom: 2 },
   contactsContainer: { gap: 8 },
   contactCard: {
     justifyContent: "space-between",
@@ -602,23 +575,11 @@ const styles = StyleSheet.create({
     borderColor: "#e0e0e0",
     marginBottom: 8,
   },
-  contactInfo: {
-    flexShrink: 1,
-    paddingRight: 8,
-  },
-  contactName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000",
-  },
-  contactPhone: {
-    fontSize: 14,
-    color: "#555",
-    marginTop: 2,
-  },
-
+  contactInfo: { flexShrink: 1, paddingRight: 8 },
+  contactName: { fontSize: 16, fontWeight: "600", color: "#000" },
+  contactPhone: { fontSize: 14, color: "#555", marginTop: 2 },
   addContactButton: {
-    backgroundColor: "#25D366", // WhatsApp green
+    backgroundColor: "#25D366",
     paddingVertical: 6,
     marginTop: 8,
     paddingHorizontal: 12,
@@ -626,34 +587,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  addContactText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-  replyText: {
-    fontSize: 12,
-    color: "#444",
-  },
-
-  replyDocRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  replyDocText: {
-    fontSize: 12,
-    color: "#444",
-    flexShrink: 1,
-  },
-
-  replyThumbnail: {
-    width: 50,
-    height: 50,
-    borderRadius: 6,
-  },
-
+  addContactText: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  replyText: { fontSize: 12, color: "#444" },
+  replyDocRow: { flexDirection: "row", alignItems: "center" },
+  replyDocText: { fontSize: 12, color: "#444", flexShrink: 1 },
+  replyThumbnail: { width: 50, height: 50, borderRadius: 6 },
   bubble: {
     gap: 10,
     minHeight: 50,
@@ -663,14 +601,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
   },
-
   messageText: {
     fontSize: 14,
     color: "#000",
     fontFamily: "Inter",
     flexShrink: 1,
   },
-
   saveButton: {
     marginLeft: 12,
     paddingVertical: 4,
@@ -678,16 +614,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#007AFF",
   },
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
-  timeRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    marginTop: 4,
-  },
+  saveButtonText: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  timeRow: { flexDirection: "row", alignItems: "flex-end", marginTop: 4 },
   timeText: { fontSize: 10, color: "#4D4D4D" },
 });
