@@ -17,72 +17,85 @@ interface ChatStore {
   deleteMessage: (msgId: string) => void;
   clearMessages: () => void;
 
+  hasMore: boolean;
+  replaceMessages: (msgs: ChatMessage[]) => void;
+  addMessages: (msgs: ChatMessage[]) => void;
+  setHasMore: (val: boolean) => void;
+
   isChatOpen: boolean;
   setIsChatOpen: (val: boolean) => void;
 
-  // ✅ NEW STATE for pre-navigation tracking
   chatStatus: 'ready' | 'new' | null;
   setChatStatus: (status: 'ready' | 'new' | null) => void;
 
   intendedUserId: string | null;
   setIntendedUserId: (id: string | null) => void;
 
-  // ✅ NEW: Last viewed time per chat
   lastViewedMap: { [chatId: string]: string };
   setLastViewed: (chatId: string, timestamp: string) => void;
   setAllLastViewed: (map: Record<string, string>) => void;
 
-
-  // ⭐ Starred messages
   starredMessages: ChatMessage[];
   setStarredMessages: (messages: ChatMessage[]) => void;
   addStarredMessage: (message: ChatMessage) => void;
   removeStarredMessage: (messageId: string) => void;
 }
 
-export const useChatStore = create<ChatStore>((set) => ({
+export const useChatStore = create<ChatStore>((set, get) => ({
+  // Current chat
   currentChat: null,
   setCurrentChat: (chat) => set({ currentChat: chat }),
   clearCurrentChat: () => set({ currentChat: null }),
 
+  // All chats
   chat: null,
-  setChat: (chat: Chat[]) => set({ chat: chat }),
+  setChat: (chat) => set({ chat }),
   clearChat: () => set({ chat: null }),
 
+  // Messages
   messages: [],
   setMessages: (msgs) => set({ messages: msgs }),
-  // addMessage: (msg) => set((state) => ({ messages: [...state.messages, msg] })),
   addMessage: (msg) => set((state) => ({ messages: [msg, ...state.messages] })),
   deleteMessage: (msgId) =>
     set((state) => ({
       messages: state.messages.filter((msg) => msg.id !== msgId),
     })),
-  clearMessages: () => set({ messages: [] }),
+  clearMessages: () => set({ messages: [], hasMore: true }),
 
+  // Pagination
+  hasMore: true,
+  replaceMessages: (msgs) => set({ messages: msgs }),
+  addMessages: (msgs) =>
+    set((state) => {
+      const existingIds = new Set(state.messages.map((m) => m.id));
+      const newMessages = msgs.filter((m) => !existingIds.has(m.id));
+      return { messages: [...state.messages, ...newMessages] };
+    }),
+  setHasMore: (val) => set({ hasMore: val }),
+
+  // UI
   isChatOpen: false,
   setIsChatOpen: (val) => set({ isChatOpen: val }),
 
-  // ✅ NEW
+  // Chat status (new, ready)
   chatStatus: null,
   setChatStatus: (status) => set({ chatStatus: status }),
 
+  // Pre-navigation target
   intendedUserId: null,
   setIntendedUserId: (id) => set({ intendedUserId: id }),
 
+  // Last viewed timestamps
   lastViewedMap: {},
-  setLastViewed: (chatId, timestamp) => {
+  setLastViewed: (chatId, timestamp) =>
     set((state) => {
-      const updatedMap = {
-        ...state.lastViewedMap,
-        [chatId]: timestamp,
-      };
+      const updatedMap = { ...state.lastViewedMap, [chatId]: timestamp };
       saveLastViewedMapToStorage(updatedMap);
       return { lastViewedMap: updatedMap };
-    });
-  },
-  setAllLastViewed: (map: Record<string, string>) => set({ lastViewedMap: map }),
+    }),
+  setAllLastViewed: (map) => set({ lastViewedMap: map }),
 
-
+  // Starred messages
   starredMessages: [],
   setStarredMessages: (messages) => set({ starredMessages: messages }),
   addStarredMessage: (message) =>
@@ -91,6 +104,8 @@ export const useChatStore = create<ChatStore>((set) => ({
     })),
   removeStarredMessage: (messageId) =>
     set((state) => ({
-      starredMessages: state.starredMessages.filter((msg) => msg.id !== messageId),
+      starredMessages: state.starredMessages.filter(
+        (msg) => msg.id !== messageId
+      ),
     })),
 }));

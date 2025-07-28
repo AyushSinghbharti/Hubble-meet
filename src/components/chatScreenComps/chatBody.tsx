@@ -11,6 +11,7 @@ import {
   Linking,
   FlatList,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import MessageAction from "./messageAction";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -66,6 +67,10 @@ interface ChatBodyProps {
   onDelete?: (messageId: string, deleteType: "me" | "everyone") => void;
   onStar?: (messageId: string) => void;
   onCancelReply?: () => void;
+  /** NEW **/
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  loadingMore?: boolean;
 }
 
 type PosState = { x: number; y: number; w: number; h: number; isMe: boolean };
@@ -376,6 +381,9 @@ export default function ChatBody({
   onReply,
   onDelete = () => {},
   onStar = () => {},
+  onLoadMore,
+  hasMore = false,
+  loadingMore = false,
 }: ChatBodyProps) {
   const [messageProps, setMessageprops] = useState<PosState>({
     x: 0,
@@ -441,6 +449,7 @@ export default function ChatBody({
   const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const flatListRef = useRef<FlatList>(null);
+  const endReachedLock = useRef(false); // to avoid multiple triggers quickly
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -502,9 +511,22 @@ export default function ChatBody({
               />
             </View>
           )}
-          // onEndReached={loadMoreMessages}
-          onEndReachedThreshold={0.1} // Close to top
-          // ListFooterComponent={isFetching && <ActivityIndicator />}
+          onEndReachedThreshold={0.1}
+          onEndReached={() => {
+            if (!hasMore || loadingMore || endReachedLock.current) return;
+            endReachedLock.current = true;
+            onLoadMore?.();
+            setTimeout(() => {
+              endReachedLock.current = false;
+            }, 500);
+          }}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={{ paddingVertical: 8 }}>
+                <ActivityIndicator size="small" />
+              </View>
+            ) : null
+          }
           contentContainerStyle={{ paddingBottom: 10 }}
           keyboardShouldPersistTaps="handled"
         />

@@ -122,6 +122,12 @@ export const getChatMessages = (
 ): Promise<GetChatMessagesResponse> =>
     apiClient.post<GetChatMessagesResponse>(`${CHAT_BASE}/msg/${chatId}`, data).then(res => res.data);
 
+export const chatApi = {
+    getMessages: (
+        chatId: string,
+        body: { userId: string; page: number; limit: number }
+    ) => apiClient.post(`/api/chat/msg/${chatId}`, body),
+};
 /**
  * Deletes a specific message by its ID
  */

@@ -98,7 +98,18 @@ export default function ChatDetailsScreen() {
 
   //Fetching all messages
   useChatById(id);
-  useChatMessages(id, { userId: userId, page: 1, limit: 50 });
+  
+  const LIMIT = 20;
+  const [page, setPage] = useState(1);
+
+  const hasMore = useChatStore((s) => s.hasMore);
+  const { isFetching } = useChatMessages(id, { userId, page, limit: LIMIT });
+  const loadingMore = isFetching && page > 1;
+
+  const loadMore = () => {
+    if (!hasMore || loadingMore) return;
+    setPage((p) => p + 1);
+  };
 
   const onPressSendMessage = (content: string) => {
     if (!content) return;
@@ -517,6 +528,10 @@ export default function ChatDetailsScreen() {
               onDelete={(messageId, deleteType) =>
                 onPressDeleteMessage({ messageId, deleteType })
               }
+              //New
+              onLoadMore={loadMore}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
             />
           ) : (
             <View
