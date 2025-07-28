@@ -37,6 +37,7 @@ import { useAuthStore } from "@/src/store/auth";
 import { useClearChat } from "@/src/hooks/useChat";
 import ShareVBCScreen from "./[id]/vbcShare";
 import ViewVbcModal from "@/src/components/chatScreenComps/chatVBCShow";
+import ChatBodyLoader from "@/src/components/skeletons/chatBodyLoader";
 
 export default function ChatDetailsScreen() {
   const router = useRouter();
@@ -98,12 +99,16 @@ export default function ChatDetailsScreen() {
 
   //Fetching all messages
   useChatById(id);
-  
+
   const LIMIT = 20;
   const [page, setPage] = useState(1);
 
   const hasMore = useChatStore((s) => s.hasMore);
-  const { isFetching } = useChatMessages(id, { userId, page, limit: LIMIT });
+  const { isFetching, isLoading } = useChatMessages(id, {
+    userId,
+    page,
+    limit: LIMIT,
+  });
   const loadingMore = isFetching && page > 1;
 
   const loadMore = () => {
@@ -519,7 +524,9 @@ export default function ChatDetailsScreen() {
             showMenu={showMenu}
             setShowMenu={setShowMenu}
           />
-          {messages.length > 0 ? (
+          {isLoading ? (
+            <ChatBodyLoader />
+          ) : messages.length > 0 ? (
             <ChatBody
               messages={messages}
               onReply={handleReply}

@@ -245,7 +245,6 @@ const ChatBubble = ({
                   (msg) => msg.id === item.parentMessageId
                 );
                 if (!parent) return null;
-
                 const isImage =
                   parent.messageType === "IMAGE" && parent.media?.length > 0;
                 const isDoc =
@@ -260,7 +259,7 @@ const ChatBubble = ({
                       </Text>
                       {isImage ? (
                         <Image
-                          source={{ uri: parent.media[0].url }}
+                          source={{ uri: parent?.media[0]?.url }}
                           style={styles.replyThumbnail}
                           resizeMode="cover"
                         />
@@ -405,15 +404,6 @@ export default function ChatBody({
   const [mediaInitialIndex, setMediaInitialIndex] = useState(0);
 
   const userId = useAuthStore((state) => state.userId);
-  const currentChat = useChatStore((state) => state.currentChat);
-
-  const transformedMessages: ChatMsg[] = messages.map((msg) => ({
-    id: msg.id,
-    text: msg.content,
-    timestamp: new Date(msg.createdAt),
-    isMe: msg.sender?.id === userId,
-    delivered: true,
-  }));
 
   const onAction = (action: string) => {
     if (action === "reply") {
@@ -447,13 +437,8 @@ export default function ChatBody({
   };
 
   const currentlyOpenSwipeable = useRef<SwipeableRef | null>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
   const flatListRef = useRef<FlatList>(null);
   const endReachedLock = useRef(false); // to avoid multiple triggers quickly
-
-  useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
 
   const isMenuVisible = selectedMessageId !== null;
 
