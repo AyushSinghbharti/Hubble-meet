@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,16 +7,19 @@ import {
   Animated,
   Easing,
   FlatList,
-  Dimensions,
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import FlipCardWrapper from "../../../components/pitchScreenComps/flipCardWrapper";
 import MainCardWrapper from "../../../components/pitchScreenComps/mainCardWrapper";
+import { Dimensions } from "react-native";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { useConnectionStore } from "@/src/store/connectionStore";
 import { getUserPitch } from "@/src/api/pitch";
 import { useQueries } from "@tanstack/react-query";
+import { Pitch } from "@/src/interfaces/pitchInterface";
+import { UserProfile } from "@/src/interfaces/profileInterface";
+import { FONT } from "@/assets/constants/fonts";
 import PitchScreenLoader from "@/src/components/skeletons/pitchCard";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -26,23 +29,20 @@ const SAFE_MARGIN = 36;
 const ITEM_HEIGHT = SCREEN_HEIGHT - TAB_BAR_HEIGHT - TOP_PADDING - SAFE_MARGIN;
 
 export default function PitchScreen() {
-  // State & refs
   const router = useRouter();
-  const focusUserId = usePitchStore((state) => state.focusUserId);
+  const [flipped, setFlipped] = useState(false);
+  const rotateAnim = useRef(new Animated.Value(0)).current;
   const pitch = usePitchStore((state) => state.pitch);
   const recommendations = useConnectionStore((s) => s.recommendations);
   const recommendationsId = useConnectionStore((s) => s.recommendationsId);
-
   const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef<FlatList | null>(null);
-
   const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
 
-  // Flip animation states
-  const [flipped, setFlipped] = useState(false);
-  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const handleProfilePress = (user: any) => {
+    setCurrentPitchUser(user);
+    router.push("/connect");
+  };
 
-  // Fetch pitches using pitchQueries
   const pitchQueries = useQueries({
     queries: recommendationsId.map((userId) => ({
       queryKey: ["pitch", userId],
@@ -51,27 +51,24 @@ export default function PitchScreen() {
     })),
   });
 
-  // Prepare valid pitches - memoized
   const validPitches = useMemo(() => {
     if (!pitchQueries.length) return [];
-
-    const pitches = recommendations
+    return recommendations
       .map((profile) => {
-        const pitchData = pitchQueries.find(
+        const pitch: Pitch = pitchQueries.find(
           (q) => q.data?.user_id === profile.user_id
         )?.data;
-        if (!pitchData) return null;
-
+        if (!pitch) return null;
         return {
           pitch: {
-            id: pitchData.id,
+            id: pitch.id,
             thumbnail: "",
-            videoUri: pitchData.url,
+            videoUri: pitch.url,
             user: {
               id: profile.user_id,
               name: profile.full_name,
               avatar: profile.profile_picture_url,
-              tagline: pitchData.pitch_caption || "",
+              tagline: pitch.pitch_caption || "",
             },
             likes: 0,
           },
@@ -91,48 +88,31 @@ export default function PitchScreen() {
     return pitches;
   }, [pitchQueries, recommendations]);
 
-  // Current item derived from validPitches & currentIndex
-  const currentItem = useMemo(() => {
-    return validPitches[currentIndex] || null;
-  }, [validPitches, currentIndex]);
-
-  // Scroll FlatList to focusUserId when focusUserId or pitches change
-  useEffect(() => {
-    if (!focusUserId || !validPitches.length || !flatListRef.current) return;
-
-    const idx = validPitches.findIndex(
-      (item) => item.pitch.user.id === focusUserId
-    );
-    if (idx >= 0) {
-      setCurrentIndex(idx);
-      flatListRef.current.scrollToOffset({
-        offset: idx * (ITEM_HEIGHT + 36),
-        animated: true,
-      });
-    }
-  }, [focusUserId, validPitches]);
-
-  // Handle profile press navigation
-  const handleProfilePress = useCallback(
-    (user: any) => {
-      setCurrentPitchUser(user);
-      router.push("/connect");
-    },
-    [router, setCurrentPitchUser]
+  const [currentPitch, setCurrentPitch] = useState(
+    validPitches[0]?.pitch || null
+  );
+  const [currentProfile, setCurrentProfile] = useState(
+    validPitches[0]?.profile || null
   );
 
-  // Handle flip animation
-  const handleFlip = useCallback(() => {
+  useEffect(() => {
+    const target = validPitches[currentIndex];
+    if (target) {
+      setCurrentPitch(target.pitch);
+      setCurrentProfile(target.profile);
+    }
+  }, [currentIndex]);
+
+  const handleFlip = () => {
     Animated.timing(rotateAnim, {
       toValue: flipped ? 0 : 180,
       duration: 400,
       easing: Easing.ease,
       useNativeDriver: true,
-    }).start(() => setFlipped((prev) => !prev));
-  }, [flipped, rotateAnim]);
+    }).start(() => setFlipped(!flipped));
+  };
 
-  // Navigate to MyPitch or CreatePitch screen
-  const navigateToMyPitch = useCallback(() => {
+  const navigateToMyPitch = () => {
     if (pitch) router.push("/pitchStack/myPitch");
     else
       router.push({
@@ -148,9 +128,8 @@ export default function PitchScreen() {
           }),
         },
       });
-  }, [pitch, router]);
+  };
 
-  // Animated styles for flip card
   const frontRotation = rotateAnim.interpolate({
     inputRange: [0, 180],
     outputRange: ["0deg", "180deg"],
@@ -173,34 +152,15 @@ export default function PitchScreen() {
     extrapolate: "clamp",
   });
 
-  // FlatList helpers
-  const keyExtractor = useCallback(
-    (item, index) => item.pitch.id + "_" + index,
-    []
-  );
-
-  // pre-calculate height + margin for getItemLayout
-  const ITEM_FULL_HEIGHT = ITEM_HEIGHT + 36; // 18 top + 18 bottom margins
-
-  const getItemLayout = useCallback(
-    (_data, index) => ({
-      length: ITEM_FULL_HEIGHT,
-      offset: ITEM_FULL_HEIGHT * index,
-      index,
-    }),
-    []
-  );
-
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={navigateToMyPitch} activeOpacity={0.7}>
+        <TouchableOpacity onPress={navigateToMyPitch}>
           <View style={styles.iconContainer}>
             <Image
               source={require("../../../../assets/icons/pitch2.png")}
               style={styles.pitchIcon}
-              priority="high"
             />
             <Text style={styles.headerText}>My Pitch</Text>
           </View>
@@ -221,23 +181,22 @@ export default function PitchScreen() {
           ]}
         >
           <FlatList
-            ref={flatListRef}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ flexGrow: 1 }}
             data={validPitches}
-            keyExtractor={keyExtractor}
+            keyExtractor={(item, index) => item.pitch.id + index}
             pagingEnabled
             showsVerticalScrollIndicator={false}
-            initialNumToRender={3}
-            windowSize={5}
-            getItemLayout={getItemLayout}
-            contentContainerStyle={{ flexGrow: 1 }}
-            ListEmptyComponent={() => (
-              <View style={{ flex: 1, justifyContent: "center" }}>
-                <PitchScreenLoader />
-              </View>
-            )}
+            ListEmptyComponent={() => {
+              return (
+                <View style={{ flex: 1, justifyContent: "center" }}>
+                  <PitchScreenLoader />
+                </View>
+              );
+            }}
             onMomentumScrollEnd={(e) => {
               const offsetY = e.nativeEvent.contentOffset.y;
-              const newIndex = Math.round(offsetY / ITEM_FULL_HEIGHT);
+              const newIndex = Math.round(offsetY / ITEM_HEIGHT);
               if (newIndex !== currentIndex) setCurrentIndex(newIndex);
             }}
             renderItem={({ item, index }) => {
@@ -257,7 +216,7 @@ export default function PitchScreen() {
                   {isVisible && (
                     <MainCardWrapper
                       pitch={item.pitch}
-                      onPress={() => handleProfilePress(item.profile)}
+                      onPress={() => handleProfilePress(item?.profile)}
                       isActive={index === currentIndex && !flipped}
                     />
                   )}
@@ -267,24 +226,16 @@ export default function PitchScreen() {
           />
         </Animated.View>
 
-        {/* Back Side - Uncomment this section if you want to enable flip back card */}
-        {/*
-        <Animated.View
+        {/* Back Side */}
+        {/* <Animated.View
           style={[
             styles.flipCard,
             styles.absoluteFill,
-            {
-              transform: [{ rotateY: backRotation }],
-              opacity: backOpacity,
-              zIndex: flipped ? 1 : 0,
-            },
+            { transform: [{ rotateY: backRotation }], opacity: backOpacity, zIndex: flipped ? 1 : 0 },
           ]}
         >
-          {currentItem?.profile && (
-            <FlipCardWrapper item={currentItem.profile} onPress={handleFlip} />
-          )}
-        </Animated.View>
-        */}
+          {currentProfile && <FlipCardWrapper item={currentProfile} onPress={handleFlip} />}
+        </Animated.View> */}
       </View>
     </View>
   );
@@ -308,6 +259,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   cardWrapper: {
+    // flex: 1,
     height: "95%",
     marginTop: 18,
     borderRadius: 20,

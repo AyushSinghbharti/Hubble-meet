@@ -13,34 +13,59 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import ProfileCardVertical from "./ProfileCardVertical";
 import { UserProfile } from "@/src/interfaces/profileInterface";
-import profileData from "../dummyData/dummyProfiles";
 import { useConnectionStore } from "../store/connectionStore";
 import { useAuthStore } from "../store/auth";
 import { resolveChatAndNavigate } from "../utility/resolveChatAndNavigate";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomModal from "./Modal/CustomModal";
-import { getAllConnections, getCloseCircle } from "../api/connection";
-// Import the API function
+import axios from "axios";
 
 const { width } = Dimensions.get("window");
 const CENTER = width / 2;
 
-const ProfileOrbit = ({}: {}) => {
+const ProfileOrbit = () => {
   const router = useRouter();
-  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(
-    null
-  );
+  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
   const connections = useConnectionStore((state) => state.connections);
   const user = useAuthStore((state) => state.user);
   const [addModal, setAddModal] = useState(false);
   const [blockModal, setBlockModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [filteredConnections, setFilteredConnections] = useState<UserProfile[]>(
-    []
-  );
+  const [filteredConnections, setFilteredConnections] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-
   const currentUser = useAuthStore((state) => state.user);
+
+  // ✅ New API call
+  const fetchCloseConnections = async ({
+    userId,
+    currentPage = 1,
+    pageSize = 10,
+  }: {
+    userId: string;
+    currentPage?: number;
+    pageSize?: number;
+  }): Promise<UserProfile[]> => {
+    try {
+      const res = await axios.post(
+        "https://d2aks9kyhua4na.cloudfront.net/api/connection/close-connections",
+        {
+          userId,
+          currentPage,
+          pageSize,
+        }
+      );
+
+      console.log(" Close Connections API response:", JSON.stringify(res.data, null, 2));
+
+      if (res.data?.success) return res.data.data;
+
+      throw new Error(res.data?.message || "Failed to fetch close connections");
+    } catch (error: any) {
+      console.error("Error in fetchCloseConnections:", error?.message || error);
+      throw error;
+    }
+  };
+
 
   useEffect(() => {
     let isCancelled = false;
@@ -56,22 +81,16 @@ const ProfileOrbit = ({}: {}) => {
 
       try {
         setLoading(true);
-
-        // If you really need the server list, keep this:
-        const all = await getAllConnections({ userId: currentUser.user_id });
-
-        const filtered = (all || connections).filter(
-          (c) => c.connection_status === "CLOSE_CONNECTION"
-        );
-
-        if (!isCancelled) setFilteredConnections(filtered);
+        const result = await fetchCloseConnections({ userId: currentUser.user_id });
+        if (!isCancelled) {
+          setFilteredConnections(result);
+        }
       } catch (err) {
         console.error("Error fetching close circle data:", err);
         if (!isCancelled) {
-          // Fallback: just use local store connections with CLOSE
           setFilteredConnections(
             connections.filter(
-              (c) => c.connection_status?.toLowerCase() === "CLOSE_CONNECTION"
+              (c) => c.connection_status?.toLowerCase() === "close_connection"
             )
           );
         }
@@ -86,14 +105,9 @@ const ProfileOrbit = ({}: {}) => {
     };
   }, [connections, currentUser?.user_id]);
 
-  // Use filtered connections instead of all connections
   const outerProfiles = filteredConnections.slice(0, 3);
-  const innerProfiles = filteredConnections.slice(
-    3,
-    filteredConnections.length - 1
-  );
+  const innerProfiles = filteredConnections.slice(3);
 
-  //Functions
   const handleChatPress = async () => {
     await resolveChatAndNavigate({ currentUser, targetUser: selectedProfile });
   };
@@ -126,12 +140,7 @@ const ProfileOrbit = ({}: {}) => {
     setSelectedProfile(profile);
   };
 
-  //Function
-  const renderOrbitAvatars = (
-    radius: number,
-    avatars: UserProfile[],
-    length: number
-  ) =>
+  const renderOrbitAvatars = (radius: number, avatars: UserProfile[], length: number) =>
     avatars.map((avatar, index) => {
       const angle = (2 * Math.PI * index) / length;
       const imageSize = Math.floor(Math.random() * 30) + 25;
@@ -154,7 +163,7 @@ const ProfileOrbit = ({}: {}) => {
             style={[
               styles.avatar,
               {
-                borderColor: "#a8d69f", // Default color, or random/given color
+                borderColor: "#a8d69f",
                 height: imageSize,
                 width: imageSize,
               },
@@ -164,7 +173,6 @@ const ProfileOrbit = ({}: {}) => {
       );
     });
 
-  // Show loading state while fetching data
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
@@ -175,7 +183,7 @@ const ProfileOrbit = ({}: {}) => {
 
   return (
     <View style={styles.container}>
-      {/* Orbit Gradients */}
+      {/* Gradients */}
       <LinearGradient
         colors={["#fff", "#BBCF8D"]}
         start={{ x: 0.1, y: 0 }}
@@ -210,12 +218,10 @@ const ProfileOrbit = ({}: {}) => {
         />
       )}
 
-      {/* Button */}
       <TouchableOpacity style={styles.button} onPress={handleViewAll}>
         <Text style={styles.buttonText}>View All</Text>
       </TouchableOpacity>
 
-      {/* Show message if no high-score connections */}
       {filteredConnections.length === 0 && (
         <View style={styles.noConnectionsContainer}>
           <Text style={styles.noConnectionsText}>

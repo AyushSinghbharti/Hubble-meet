@@ -66,6 +66,7 @@ export const getAllConnections = async (
     return res.data;
 };
 
+
 // Get All VBC (for the user)
 export const getAllConnectionVbcs = async (
     data: GetVbcConnectionsRequestBody
