@@ -13,6 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import NavHeader from "../../../components/NavHeader";
 import Button from "../../../components/Button";
 import { FONT } from "../../../../assets/constants/fonts";
+import { router } from "expo-router";
 
 const loginAlerts = [
   {
@@ -51,15 +52,24 @@ export default function PrivacySettingsScreen() {
   const [isTermsModalVisible, setIsTermsModalVisible] = useState(false);
 
   const handleOptionPress = (option) => {
-    if (option === "Privacy Policy") {
-      setIsPrivacyModalVisible(true);
-    } else if (option === "Terms & Conditions") {
-      setIsTermsModalVisible(true);
-    } else {
-      // Handle other options
-      console.log(`Pressed: ${option}`);
+    switch (option) {
+      case "Privacy Policy":
+        setIsPrivacyModalVisible(true);
+        break;
+      case "Terms & Conditions":
+        setIsTermsModalVisible(true);
+        break;
+      case "Blocked Users":
+        router.push('/BlockedUsers')
+        break;
+      case "Data Compliance":
+        console.log("Navigating to Data Compliance screen");
+        break;
+      default:
+        console.log(`Pressed: ${option}`);
     }
   };
+
 
   const closePrivacyModal = () => {
     setIsPrivacyModalVisible(false);
@@ -104,8 +114,8 @@ export default function PrivacySettingsScreen() {
 
       <View style={styles.card}>
         {options.map((item, idx) => (
-          <TouchableOpacity 
-            key={idx} 
+          <TouchableOpacity
+            key={idx}
             style={styles.listItem}
             onPress={() => handleOptionPress(item)}
           >
@@ -115,7 +125,7 @@ export default function PrivacySettingsScreen() {
         ))}
       </View>
 
-      <Button label="Save settings" onPress={() => {}} />
+      <Button label="Save settings" onPress={() => { }} />
 
       {/* Privacy Policy Modal */}
       <Modal
@@ -129,15 +139,15 @@ export default function PrivacySettingsScreen() {
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Privacy Policy</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.closeButton}
                 onPress={closePrivacyModal}
               >
                 <MaterialIcons name="close" size={24} color="#000" />
               </TouchableOpacity>
             </View>
-            
-            <ScrollView 
+
+            <ScrollView
               style={styles.modalContent}
               contentContainerStyle={styles.modalContentContainer}
               showsVerticalScrollIndicator={true}
@@ -161,15 +171,15 @@ export default function PrivacySettingsScreen() {
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Terms & Conditions</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.closeButton}
                 onPress={closeTermsModal}
               >
                 <MaterialIcons name="close" size={24} color="#000" />
               </TouchableOpacity>
             </View>
-            
-            <ScrollView 
+
+            <ScrollView
               style={styles.modalContent}
               contentContainerStyle={styles.modalContentContainer}
               showsVerticalScrollIndicator={true}
