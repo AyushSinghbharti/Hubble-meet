@@ -7,7 +7,7 @@ import {
 
 //Get user info
 export const fetchUserProfile = async (userId: string): Promise<UserProfile> => {
-  const response = await axios.get<UserProfile>(`/api/user/profiles/${userId}`);
+  const response = await axios.post<UserProfile>(`/api/user/profiles/get-profile`, { "userId": userId });
   return response.data;
 };
 
