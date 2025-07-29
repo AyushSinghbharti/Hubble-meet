@@ -27,8 +27,8 @@ export const useUserProfile = (userId: string): UseQueryResult<UserProfile, Erro
   });
 
   useEffect(() => {
-    if (queryResult.data) {
-      const data = queryResult.data;
+    if (queryResult.data?.profile) {
+      const data = queryResult.data?.profile;
       saveUserIdToStorage(data.user_id);
       saveUserToStorage(data);
       setUserId(data.user_id);
