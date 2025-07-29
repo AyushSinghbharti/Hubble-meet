@@ -39,12 +39,12 @@ export default function SettingsScreen() {
     setToggles({ ...toggles, [key]: !toggles[key] });
   };
 
-  const handleSendFeedback = async(message: string) => {
+  const handleSendFeedback = async (message: string) => {
     const userId = await getUserIdFromStorage();
     console.log(`${supportModalType}: ${message}`);
-    const data={
+    const data = {
       message,
-      type:supportModalType,
+      type: supportModalType,
       userId: userId, // User ID from the logged in user
     }
     console.log(data);
@@ -77,12 +77,12 @@ export default function SettingsScreen() {
 
       <Text style={styles.sectionHeader}>My App</Text>
       <View style={styles.card}>
-        <SupportItem label="HubbleMeet Demo" onPress={() => {}} />
+        <SupportItem label="HubbleMeet Demo" onPress={() => { }} />
         <Divider />
-        <SupportItem label="Contact Us" onPress={() => {}} />
+        {/* <SupportItem label="Contact Us" onPress={() => {}} /> */}
       </View>
 
-      <Button label="Save settings" onPress={() => {}} />
+      <Button label="Save settings" onPress={() => { }} />
 
       <SupportModal
         visible={!!supportModalType}
