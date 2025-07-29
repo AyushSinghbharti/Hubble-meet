@@ -7,12 +7,14 @@ import {
   Pressable,
   Alert,
   FlatList,
-  ActivityIndicator,
   Linking,
+  ActivityIndicator,
 } from "react-native";
 import MessageAction from "./messageAction";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import Swipeable, { SwipeableRef } from "react-native-gesture-handler/ReanimatedSwipeable";
+import Swipeable, {
+  SwipeableRef,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
 import * as Contacts from "expo-contacts";
 
 import { ChatMessage } from "@/src/interfaces/chatInterface";
@@ -80,6 +82,7 @@ interface ChatBodyProps {
   onDelete?: (messageId: string, deleteType: "me" | "everyone") => void;
   onStar?: (messageId: string) => void;
   onCancelReply?: () => void;
+  /** NEW **/
   onLoadMore?: () => void;
   hasMore?: boolean;
   loadingMore?: boolean;
@@ -143,14 +146,19 @@ const ChatBubble = ({
           [Contacts.Fields.Name]: contact.name,
           [Contacts.Fields.FirstName]: contact.name,
           [Contacts.Fields.ContactType]: Contacts.ContactTypes.Person,
-          [Contacts.Fields.PhoneNumbers]: [{ label: "mobile", number: contact.phone }],
+          [Contacts.Fields.PhoneNumbers]: [
+            { label: "mobile", number: contact.phone },
+          ],
         });
         Alert.alert("Success", `${contact.name} saved to contacts.`);
       } catch {
         Alert.alert("Error", "Could not save contact.");
       }
     } else {
-      Alert.alert("Permission denied", "Cannot save without contacts permission.");
+      Alert.alert(
+        "Permission denied",
+        "Cannot save without contacts permission."
+      );
     }
   };
 
@@ -203,7 +211,9 @@ const ChatBubble = ({
         paddingHorizontal: 16,
       }}
     >
-      <Text style={{ color: "#007AFF", fontWeight: "bold", fontSize: 24 }}>↩</Text>
+      <Text style={{ color: "#007AFF", fontWeight: "bold", fontSize: 24 }}>
+        ↩
+      </Text>
     </View>
   );
 
@@ -234,16 +244,23 @@ const ChatBubble = ({
           style={[
             isVcard
               ? styles.vcardWrapper
-              : [styles.bubbleWrapper, me ? styles.bubbleMe : styles.bubbleThem],
+              : [
+                  styles.bubbleWrapper,
+                  me ? styles.bubbleMe : styles.bubbleThem,
+                ],
           ]}
         >
           <View style={styles.bubbleContent}>
             {item.parentMessageId &&
               (() => {
-                const parent = allMessages.find((msg) => msg.id === item.parentMessageId);
+                const parent = allMessages.find(
+                  (msg) => msg.id === item.parentMessageId
+                );
                 if (!parent) return null;
-                const isImage = parent.messageType === "IMAGE" && parent.media?.length > 0;
-                const isDoc = parent.messageType === "DOCUMENT" && parent.media?.length > 0;
+                const isImage =
+                  parent.messageType === "IMAGE" && parent.media?.length > 0;
+                const isDoc =
+                  parent.messageType === "DOCUMENT" && parent.media?.length > 0;
 
                 return (
                   <View style={styles.replyContainer}>
@@ -279,7 +296,9 @@ const ChatBubble = ({
               })()}
 
             {/* Message body with star */}
-            {item.messageType === "IMAGE" && item.media && item.media.length > 0 ? (
+            {item.messageType === "IMAGE" &&
+            item.media &&
+            item.media.length > 0 ? (
               <View
                 style={{
                   flexDirection: "row",
@@ -310,18 +329,18 @@ const ChatBubble = ({
               <View style={{ right: 45 }}>
                 <VbcChatCard
                   vbc={{ ...mergedUserData }}
-                  onVideoPress={() => { }}
-                  onChatPress={() => { }}
-                  onBlockPress={() => { }}
-                  onSharePress={() => { }}
+                  onVideoPress={() => {}}
+                  onChatPress={() => {}}
+                  onBlockPress={() => {}}
+                  onSharePress={() => {}}
                   viewShareButton
                   viewChatButton
                   viewBlockButton
                 />
-
               </View>
-
-            ) : item.messageType === "DOCUMENT" && item.media && item.media.length > 0 ? (
+            ) : item.messageType === "DOCUMENT" &&
+              item.media &&
+              item.media.length > 0 ? (
               <View style={{ gap: 6, maxWidth: 220 }}>
                 {item.media.map((mediaItem, index) => (
                   <Pressable
@@ -348,24 +367,41 @@ const ChatBubble = ({
                     </Text>
                   </Pressable>
                 ))}
-                {item.content && <Text style={styles.messageText}>{renderTextWithLinks(item.content)}</Text>}
+                {item.content && (
+                  <Text style={styles.messageText}>
+                    {renderTextWithLinks(item.content)}
+                  </Text>
+                )}
               </View>
             ) : (
               // TEXT messages (with URL detection & star)
-              <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
                 {renderTextWithLinks(item.content || "")}
                 <Pressable
                   onPress={() => onStar(item.id)}
                   style={{ marginLeft: 8, padding: 4 }}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Text style={{ fontSize: 18 }}>{item.starred ? "⭐" : " "}</Text>
+                  <Text style={{ fontSize: 18 }}>
+                    {item.starred ? "⭐" : " "}
+                  </Text>
                 </Pressable>
               </View>
             )}
           </View>
 
-          <View style={[styles.timeRow, { alignSelf: me ? "flex-end" : "flex-start" }]}>
+          <View
+            style={[
+              styles.timeRow,
+              { alignSelf: me ? "flex-end" : "flex-start" },
+            ]}
+          >
             <Text style={styles.timeText}>{formatTime(item.createdAt)}</Text>
           </View>
         </View>
@@ -377,8 +413,8 @@ const ChatBubble = ({
 export default function ChatBody({
   messages: initialMessages,
   onReply,
-  onDelete = () => { },
-  onStar = () => { },
+  onDelete = () => {},
+  onStar = () => {},
   onLoadMore,
   hasMore = false,
   loadingMore = false,
@@ -392,8 +428,12 @@ export default function ChatBody({
     w: 0,
     isMe: false,
   });
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
-  const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
+    null
+  );
+  const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(
+    null
+  );
   const [mediaViewerVisible, setMediaViewerVisible] = useState(false);
   const [mediaItems, setMediaItems] = useState<
     Array<{ id: string; url: string; fileName?: string; type?: string }>
@@ -411,10 +451,14 @@ export default function ChatBody({
   const isMenuVisible = selectedMessageId !== null;
 
   // Position offsets for overlay menu
+  // Calculate offsets
+  const MENU_WIDTH = 220; // whatever your MessageAction width roughly is
   const leftOffset = messageProps.isMe
-    ? Math.max(messageProps.x + messageProps.w - 220, 10)
+    ? Math.max(messageProps.x + messageProps.w - MENU_WIDTH, 10)
     : Math.max(messageProps.x, 10);
-  const topOffset = Math.max(messageProps.y - 35, 10);
+
+  const topOffset = Math.max(messageProps.y - 35, 10); // small offset above bubble
+  const userId = useAuthStore((state) => state.userId);
 
   const onAction = (action: string) => {
     if (action === "reply") {
@@ -423,7 +467,9 @@ export default function ChatBody({
       if (selectedMessage?.id) {
         setMessages((prevMsgs) =>
           prevMsgs.map((msg) =>
-            msg.id === selectedMessage.id ? { ...msg, starred: !msg.starred } : msg
+            msg.id === selectedMessage.id
+              ? { ...msg, starred: !msg.starred }
+              : msg
           )
         );
         onStar?.(selectedMessage.id);
@@ -464,8 +510,8 @@ export default function ChatBody({
             messageProps.y > 550
               ? messageProps.y - messageProps.y / 2.5
               : messageProps.y > 515
-                ? messageProps.y - messageProps.y / 2
-                : messageProps.y - 50
+              ? messageProps.y - messageProps.y / 2
+              : messageProps.y - 50
           }
           leftOffset={messageProps.x > 90 ? 265 : 25}
           isStarred={selectedMessage?.starred ?? false}
@@ -473,7 +519,9 @@ export default function ChatBody({
             if (!selectedMessage) return;
             setMessages((prevMsgs) =>
               prevMsgs.map((msg) =>
-                msg.id === selectedMessage.id ? { ...msg, starred: !msg.starred } : msg
+                msg.id === selectedMessage.id
+                  ? { ...msg, starred: !msg.starred }
+                  : msg
               )
             );
             onStar?.(selectedMessage.id);

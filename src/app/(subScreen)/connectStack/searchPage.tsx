@@ -1,62 +1,80 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
   ActivityIndicator,
   TextInput,
-  FlatList,
   TouchableOpacity,
   Text,
 } from "react-native";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import VbcCard from "@/src/components/VbcCard";
 import { useSearchUser } from "@/src/hooks/useConnection";
-import { useQueries } from "@tanstack/react-query";
-import { fetchUserProfile } from "@/src/api/profile";
-import { UserProfile } from "@/src/interfaces/profileInterface";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useConnectionStore } from "@/src/store/connectionStore";
 import debounce from "lodash.debounce";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuthStore } from "@/src/store/auth";
+import { useConnectionStore } from "@/src/store/connectionStore";
+
+const PAGE_SIZE = 10;
 
 const SearchScreen = () => {
   const { query } = useLocalSearchParams<{ query?: string }>();
   const [searchText, setSearchText] = useState(query || "");
   const [submittedText, setSubmittedText] = useState(query || "");
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  const connections = useConnectionStore((s) => s.connections);
   const userId = useAuthStore((s) => s.userId);
+  const connections = useConnectionStore((s) => s.connections);
   const router = useRouter();
 
-  // Search users based on input
-  const { data: searchResults, isLoading: searching } = useSearchUser({
-    // userId: userId,
+  const {
+    data: searchResults,
+    isLoading,
+    isFetching,
+  } = useSearchUser({
+    userId,
     searchText,
-    currentPage: 1,
-    PageSize: 100,
+    currentPage: page,
+    PageSize: PAGE_SIZE,
   });
 
-  const userIds = searchResults?.data?.map((u) => u.user_id) || [];
+  // Merge and deduplicate profiles
+  useEffect(() => {
+    if (!searchResults?.data) return;
+    const connectedUserIds = connections.map((c) => c.user_id);
 
-  const queries = useQueries({
-    queries: userIds.map((userId) => ({
-      queryKey: ["user-profile", userId],
-      queryFn: () => fetchUserProfile(userId),
-      enabled: !!userId,
-    })),
-  });
-
-  const connectedUserIds = connections.map((conn) => conn.user_id);
-  const profiles: (UserProfile & { isConnected: boolean })[] = queries
-    .map((q) => q.data)
-    .filter((profile): profile is UserProfile => !!profile)
-    .map((profile) => ({
-      ...profile,
-      isConnected: connectedUserIds.includes(profile.user_id),
+    const enriched = searchResults.data.map((u) => ({
+      ...u,
+      isConnected: connectedUserIds.includes(u.user_id),
     }));
 
-  // Debounce input changes
+    setProfiles((prev) => {
+      const existingIds = new Set(prev.map((p) => p.user_id));
+      const merged = [...prev];
+      enriched.forEach((item) => {
+        if (!existingIds.has(item.user_id)) merged.push(item);
+      });
+      return merged;
+    });
+
+    setHasMore(enriched.length === PAGE_SIZE);
+  }, [searchResults]);
+
+  // Reset pagination when search text changes
+  useEffect(() => {
+    setProfiles([]);
+    setPage(1);
+    setHasMore(true);
+  }, [searchText]);
+
+  const loadMore = () => {
+    if (!isFetching && hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
   const debouncedSearch = useCallback(
     debounce((text: string) => {
       setSearchText(text);
@@ -67,13 +85,6 @@ const SearchScreen = () => {
   const handleInputChange = (text: string) => {
     debouncedSearch(text);
     setSubmittedText(text);
-    setShowSuggestions(true);
-  };
-
-  const handleSuggestionPress = (username: string) => {
-    setSearchText(username);
-    setSubmittedText(username);
-    setShowSuggestions(false);
   };
 
   return (
@@ -89,15 +100,12 @@ const SearchScreen = () => {
             style={styles.searchInput}
             placeholder="Search profiles..."
             placeholderTextColor="#888"
-            defaultValue={searchText}
+            value={submittedText}
             onChangeText={handleInputChange}
             returnKeyType="search"
-            onSubmitEditing={() => {
-              setSubmittedText(searchText);
-              setShowSuggestions(false);
-            }}
+            onSubmitEditing={() => setSearchText(submittedText)}
           />
-          <TouchableOpacity onPress={() => setSubmittedText(searchText)}>
+          <TouchableOpacity onPress={() => setSearchText(submittedText)}>
             <Feather
               name="search"
               size={20}
@@ -107,16 +115,25 @@ const SearchScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
-      {(searching || queries.some((q) => q.isLoading)) && (
+
+      {isLoading && page === 1 ? (
         <ActivityIndicator
           size="large"
           color="#6C63FF"
           style={{ marginTop: 20 }}
         />
+      ) : profiles.length > 0 ? (
+        <VbcCard
+          profiles={profiles}
+          spacing={20}
+          onEndReached={loadMore}
+          isLoadingMore={isFetching && page > 1}
+        />
+      ) : (
+        <Text style={{ textAlign: "center", marginTop: 40, color: "#999" }}>
+          No profiles found.
+        </Text>
       )}
-      <View style={{ flex: 1 }}>
-        <VbcCard profiles={profiles} spacing={20} />
-      </View>
     </View>
   );
 };
@@ -161,22 +178,5 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     marginLeft: 10,
-  },
-  suggestionsContainer: {
-    maxHeight: 200,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    marginBottom: 8,
-    elevation: 2,
-    paddingHorizontal: 10,
-  },
-  suggestionItem: {
-    paddingVertical: 10,
-    borderBottomColor: "#eee",
-    borderBottomWidth: 1,
-  },
-  suggestionText: {
-    fontSize: 16,
-    color: "#333",
   },
 });
