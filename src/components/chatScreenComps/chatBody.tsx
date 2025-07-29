@@ -126,8 +126,8 @@ const ChatBubble = ({
   const bubbleRef = useRef<View>(null);
   const isVcard = item.messageType === "VCARD";
 
-  const { data: vbcData } = useGetOtherVbcCard(item.vCardUserId || "");
   const { data: userData } = useOtherUserProfile(item.vCardUserId || "");
+  const { data: vbcData } = useGetOtherVbcCard(item.vCardUserId || "");
 
   const mergedUserData = useMemo(() => {
     if (!userData) return undefined;
@@ -137,6 +137,7 @@ const ChatBubble = ({
       vbcColor: vbcData?.color,
     };
   }, [userData, vbcData]);
+
 
   const saveContact = async (contact: { name: string; phone: string }) => {
     const { status } = await Contacts.requestPermissionsAsync();
@@ -329,12 +330,8 @@ const ChatBubble = ({
               <View style={{ right: 45 }}>
                 <VbcChatCard
                   vbc={{ ...mergedUserData }}
-                  onVideoPress={() => {}}
-                  onChatPress={() => {}}
-                  onBlockPress={() => {}}
-                  onSharePress={() => {}}
                   viewShareButton
-                  viewChatButton
+                  viewChatButton = {mergedUserData?.status !== "BLOCKED"}
                   viewBlockButton
                 />
               </View>

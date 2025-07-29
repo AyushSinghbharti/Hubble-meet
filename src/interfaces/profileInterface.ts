@@ -18,6 +18,7 @@ export interface UserProfile {
   is_active: boolean;
   created_at: string; // ISO string
   updated_at?: string;
+  status?: "CONNECTED" | "CLOSE_CONNECTION" | "BLOCKED";
 }
 
 export interface CreateUserProfilePayload {

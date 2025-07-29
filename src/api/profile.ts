@@ -13,7 +13,7 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile> => 
 
 //Get other user info
 export const fetchOtherUserProfile = async (userId: string, currentUser?: string | null): Promise<UserProfile> => {
-  const response = await axios.post<UserProfile>(`/api/user/profiles/get-profile`, { "userId": userId, "currentUser": currentUser });
+  const response = await axios.post<UserProfile>(`/api/user/profiles/get-profile`, { "userId": userId, "currentUserId": currentUser });
   return response.data;
 };
 

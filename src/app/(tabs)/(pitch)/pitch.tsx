@@ -80,13 +80,13 @@ export default function PitchScreen() {
       })
       .filter(Boolean);
 
-    if (__DEV__) {
-      console.log(
-        "Pitch Queries (raw):",
-        JSON.stringify(pitchQueries.map((q) => q.data), null, 2)
-      );
-      console.log("Valid Pitches:", JSON.stringify(pitches, null, 2));
-    }
+    // if (__DEV__) {
+    //   console.log(
+    //     "Pitch Queries (raw):",
+    //     JSON.stringify(pitchQueries.map((q) => q.data), null, 2)
+    //   );
+    //   console.log("Valid Pitches:", JSON.stringify(pitches, null, 2));
+    // }
 
     return pitches;
   }, [pitchQueries, recommendations]);

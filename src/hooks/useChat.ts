@@ -117,6 +117,7 @@ export function useChatMessages(
   const query = useQuery<ChatMessage[]>({
     queryKey: ["chatMessages", _chatId, page, limit, userId],
     enabled,
+    refetchInterval: 10,
     queryFn: async () => {
       const { data } = await chatApi.getMessages(_chatId!, {
         userId,
