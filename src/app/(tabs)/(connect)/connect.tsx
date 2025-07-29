@@ -27,7 +27,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { router, useRouter } from "expo-router";
 import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
 import logo from "../../../../assets/logo/logo.png";
@@ -251,29 +251,25 @@ const ProfileCard = ({
     },
     [handleButtonPress, showBlockAlert]
   );
-
+  const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
 
   const handleThumbImagePress = useCallback(
-    (event, userId) => {
-      event.stopPropagation();
+    (user) => {
       const { setCurrentPitchUser } = usePitchStore.getState();
-      const userProfile = recommendations.find(
-        (user) => user.user_id === userId
-      );
-      if (userProfile) {
-        setCurrentPitchUser(userProfile);
-        showThumbImageAlert && showThumbImageAlert();
-        route.push({
+
+      if (user) {
+        setCurrentPitchUser(user);
+        showThumbImageAlert?.();
+        router.push({
           pathname: "/pitch",
-          params: { focusUserId: userId },
+          params: { focusUserId: user.user_id },
         });
       } else {
-        console.warn("⚠️ User profile not found for user_id:", userId);
+        console.warn("⚠️ User object is undefined in handleThumbImagePress.");
       }
     },
-    [recommendations, showThumbImageAlert, route]
+    [showThumbImageAlert, router]
   );
-
 
 
 

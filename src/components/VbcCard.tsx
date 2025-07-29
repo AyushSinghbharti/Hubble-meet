@@ -114,11 +114,11 @@ const VbcCard = ({
     );
   };
 
-  const setFocusUserId = usePitchStore((state) => state.setFocusUserId);
+  const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
 
   const handlePitchPress = (user) => {
-    setFocusUserId(user.user_id);   // Set focused user in store
-    router.push("/pitch");          // Navigate WITHOUT params
+    setCurrentPitchUser(user);
+    router.push("/pitch");
   };
 
 
