@@ -106,7 +106,7 @@ export default function StarredMessage() {
 
       <FlatList
         data={messages}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, idx) => `${item.id} + ${idx}`}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16 }}
       />
