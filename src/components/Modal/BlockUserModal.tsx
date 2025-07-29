@@ -141,8 +141,6 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
 
 export default BlockUserModal;
 
-// styles unchanged...
-
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,

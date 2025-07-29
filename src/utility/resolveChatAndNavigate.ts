@@ -1,5 +1,4 @@
 // utils/resolveChatAndNavigate.ts
-
 import { router } from "expo-router";
 import { getUserChats, createChat, sendMessage } from "../api/chat";
 import { Chat, CreateChatRequest } from "../interfaces/chatInterface";
@@ -38,20 +37,14 @@ export const resolveChatAndNavigate = async ({
   messageType?: "VCARD" | "TEXT" | "IMAGE" | "DOCUMENT";
   vbcData?: VbcDataProp;
 }) => {
-  let targetUserEmail = targetUser.email;
-
-  if (!targetUserEmail) {
-    try {
-      const result = await fetchUserProfile(targetUser.user_id);
-      targetUserEmail = result?.email ?? "";
-    } catch (error) {
-      console.error("❌ Error fetching target user profile:", error);
-      return;
-    }
-  }
-
+  let targetUserProfile = await fetchUserProfile(targetUser.user_id);;
+  let targetUserEmail = targetUserProfile.email;
+  
+  if(!targetUserProfile) return;
+  
   try {
     const chats: Chat[] = await getUserChats(currentUser.user_id);
+
     // Declare chat object
     let resolvedChat: Chat | undefined = chats.find((chat) => {
       if (chat.isGroup) return false;
@@ -82,7 +75,7 @@ export const resolveChatAndNavigate = async ({
     if (isRoutingEnable && resolvedChat) {
       router.push({
         pathname: `/chatStack/${resolvedChat.id}`,
-        params: { item: JSON.stringify(targetUser) },
+        params: { item: JSON.stringify(targetUserProfile) },
       });
     }
 
@@ -114,8 +107,6 @@ export const resolveChatAndNavigate = async ({
           allowSharing: vbcData?.AllowSharing || false,
         },
       };
-
-      console.log(JSON.stringify(payload, null, 4));
 
       try {
         await sendMessage(payload);

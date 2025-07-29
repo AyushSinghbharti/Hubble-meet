@@ -76,11 +76,6 @@ const VbcCard = ({
     Share.share({ message: `Hey see my VBC card here ${user.full_name}` });
   };
 
-  useEffect(() => {
-    console.log("Users Data", JSON.stringify(users, null, 2));
-
-  }, [users]);
-
   const handleBlockPress = (user: UserProfile) => {
     setBlockModal(true);
     setSelectedUser(user);
