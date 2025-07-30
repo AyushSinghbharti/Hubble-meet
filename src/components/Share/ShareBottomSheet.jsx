@@ -100,7 +100,7 @@ const ShareModal = ({ visible, onClose, cardProfile }) => {
         style={styles.userColumn}
         onPress={() => handleUserSelect(item)}
       >
-        <Image source={{ uri: item.profile_picture_url }} style={styles.avatar} />
+        <Image source={{ uri: item.profile_picture_url || "https://xsgames.co/randomusers/assets/images/favicon.png" }} style={styles.avatar} />
         <Text style={styles.name}>{item.full_name}</Text>
         {isSelected && (
           <View style={styles.selectedTick}>

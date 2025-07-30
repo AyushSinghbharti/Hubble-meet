@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { UserProfile } from "@/src/interfaces/profileInterface";
-import CustomCard from "../Cards/vbcCard";
-import { useGetVbcCard } from "@/src/hooks/useVbc";
+import { useOtherUserProfile } from "@/src/hooks/useProfile";
+import VbcCard from "../VbcCard";
 
 interface ViewVbcModalProps {
   visible: boolean;
@@ -23,26 +23,17 @@ const ViewVbcModal: React.FC<ViewVbcModalProps> = ({
   onClose,
   profile,
 }) => {
-  const { data, isLoading } = useGetVbcCard(profile.user_id);
+  const { data, isLoading } = useOtherUserProfile(profile.user_id);
   const userProfile = data || profile;
 
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={32} color="#FFF" />
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <Ionicons name="close" size={32} color="#FFF" />
+        </TouchableOpacity>
         <View style={styles.modalContent}>
-          <View style={{ transform: [{ scale: 1.5 }] }}>
-            <CustomCard
-              id={userProfile.user_id}
-              name={userProfile.full_name || userProfile.display_name}
-              role={userProfile.job_title || ""}
-              location={userProfile.city || userProfile.location}
-              backgroundColor={userProfile.color}
-              avatar={{ uri: userProfile.profile_picture_url }}
-            />
-          </View>
+          <VbcCard profiles={[userProfile]} closeVBC={onClose} />
         </View>
       </View>
     </Modal>
@@ -57,12 +48,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
+    marginTop: 100,
+    transform: [{ scale: 1.3 }],
     width: "90%",
-    // backgroundColor: "#fff",
-    // borderRadius: 16,
-    // padding: 20,
     alignItems: "center",
-    // elevation: 5,
   },
   closeButton: {
     position: "absolute",

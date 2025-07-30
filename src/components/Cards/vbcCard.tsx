@@ -9,11 +9,7 @@ import {
   Dimensions,
   Pressable,
 } from "react-native";
-import {
-  Ionicons,
-  Feather,
-  SimpleLineIcons,
-} from "@expo/vector-icons";
+import { Ionicons, Feather, SimpleLineIcons } from "@expo/vector-icons";
 
 interface User {
   id: string;
@@ -21,13 +17,14 @@ interface User {
   role: string;
   location: string;
   avatar: any;
+  isBlocked?: boolean;
   backgroundColor: string | null;
 }
 
 interface CardProps extends User {
   onChatPress: () => void;
   onSharePress: () => void;
-  onAddPress: () => void;
+  onBlockPress: () => void; // Updated prop name for clarity
   onBagPress: () => void;
   onProfilePress: () => void;
   handlePress: () => void;
@@ -58,13 +55,14 @@ const CustomCard = memo(
     role,
     location,
     avatar,
+    isBlocked = false,
     backgroundColor,
     onChatPress,
     onSharePress,
-    onAddPress,
+    onBlockPress,
     onBagPress,
     onProfilePress,
-    handlePress
+    handlePress,
   }: CardProps) => {
     const bgColor = cardColors[Math.floor(Math.random() * cardColors.length)];
     const iconBgColor = iconColorMap[backgroundColor || bgColor];
@@ -92,35 +90,66 @@ const CustomCard = memo(
           </View>
         </ImageBackground>
 
-        <View style={[styles.bottomSection, { backgroundColor: backgroundColor || bgColor }]}>
+        <View
+          style={[
+            styles.bottomSection,
+            { backgroundColor: backgroundColor || bgColor },
+          ]}
+        >
           <View style={styles.nameRow}>
             <Text style={[styles.name, { color: textColor }]}>{name}</Text>
           </View>
           <Text style={[styles.role, { color: textColor }]}>{role}</Text>
-          <Text style={[styles.location, { color: textColor }]}>{location}</Text>
+          <Text style={[styles.location, { color: textColor }]}>
+            {location}
+          </Text>
 
           <View style={styles.actionIcons}>
-            <TouchableOpacity
-              style={[styles.iconButton, { backgroundColor: iconBgColor }]}
-              onPress={onChatPress}
-            >
-              <Ionicons name="chatbubble-ellipses-outline" size={15} color={iconColor} />
-            </TouchableOpacity>
+            {/* Chat button - only show if user is not blocked */}
+            {!isBlocked ? (
+              <TouchableOpacity
+                style={[styles.iconButton, { backgroundColor: iconBgColor }]}
+                onPress={onChatPress}
+              >
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={15}
+                  color={iconColor}
+                />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.iconButton, { backgroundColor: iconBgColor }]}
+              ></TouchableOpacity>
+            )}
+
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: iconBgColor }]}
               onPress={onSharePress}
             >
               <Feather name="share-2" size={18} color={iconColor} />
             </TouchableOpacity>
+
+            {/* Block/Unblock button */}
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: iconBgColor }]}
-              onPress={onAddPress}
+              onPress={onBlockPress}
             >
-              <Image
-                source={require("../../../assets/icons/block2.png")}
-                style={{ width: 15, height: 24, tintColor: iconColor }}
-                resizeMode="contain"
-              />
+              {isBlocked ? (
+                // Show unblock icon when user is blocked
+                <Image
+                  source={require("../../../assets/icons/unblock.png")} // You'll need to add this icon
+                  style={{ width: 24, height: 24, tintColor: iconColor }}
+                  resizeMode="contain"
+                />
+              ) : (
+                // Show block icon when user is not blocked
+                <Image
+                  source={require("../../../assets/icons/block2.png")}
+                  style={{ width: 15, height: 24, tintColor: iconColor }}
+                  resizeMode="contain"
+                />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -147,11 +176,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     borderRadius: 20,
-    marginHorizontal: 4, // ⬅️ Gap between cards
+    marginHorizontal: 4,
   },
 
   imageSection: {
-    height: 180, // ⬅️ increased from 140
+    height: 180,
     padding: 10,
     justifyContent: "space-between",
   },

@@ -24,7 +24,7 @@ import { useAuthStore } from "../store/auth";
 import { resolveChatAndNavigate } from "../utility/resolveChatAndNavigate";
 import ConnectionCard from "./Cards/connectionCard";
 import ProfileViewer from "./graidentInfoCard";
-import { useSendConnection } from "../hooks/useConnection";
+import { useSendConnection, useUnblockUser } from "../hooks/useConnection";
 import ErrorAlert from "./errorAlert";
 import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
@@ -44,11 +44,13 @@ type UserProfileDataInterface = UserProfileItem[];
 const VbcCard = ({
   spacing,
   profiles,
+  closeVBC,
   onEndReached,
   isLoadingMore,
 }: {
   spacing?: any;
   profiles?: UserProfileDataInterface;
+  closeVBC?: () => void;
   onEndReached?: () => void;
   isLoadingMore?: boolean;
 }) => {
@@ -67,8 +69,8 @@ const VbcCard = ({
   const currentUser = useAuthStore((state) => state.user);
   const userId = useAuthStore((s) => s.userId);
   const { mutate: sendConnection } = useSendConnection();
+  const { mutate: unBlockUser } = useUnblockUser();
   const [error, setError] = useState<string | null>();
-  const [loadingPitch, setLoadingPitch] = useState(false);
 
   const handleChatPress = async (user: UserProfile) => {
     await resolveChatAndNavigate({ currentUser, targetUser: user });
@@ -79,9 +81,17 @@ const VbcCard = ({
     setShareModal(true);
   };
 
-  const handleBlockPress = (user: UserProfile) => {
-    setBlockModal(true);
-    setSelectedUser(user);
+  const handleBlockPress = (user: UserProfileItem) => {
+    if (user.status === "BLOCKED" || user.connection_status === "BLOCKED") {
+      unBlockUser({
+        user_id: userId,
+        blocked_user_id: user.user_id,
+      });
+      closeVBC?.(); // Close parent modal after unblocking
+    } else {
+      setBlockModal(true); // Open block modal
+      setSelectedUser(user); // Set selected user
+    }
   };
 
   const handleProfilePress = (user: UserProfile) => {
@@ -183,11 +193,16 @@ const VbcCard = ({
                   name={item.full_name}
                   role={item.job_title || ""}
                   location={item.city || ""}
+                  isBlocked={
+                    item.status === "BLOCKED" ||
+                    item.connection_status === "BLOCKED" ||
+                    false
+                  }
                   backgroundColor={cardColor}
                   avatar={{ uri: item.profile_picture_url }}
                   onChatPress={() => handleChatPress(item)}
                   onSharePress={() => handleSharePress(item)}
-                  onAddPress={() => handleBlockPress(item)}
+                  onBlockPress={() => handleBlockPress(item)}
                   onBagPress={() => handleBagPress(item)}
                   onProfilePress={() => handleProfilePress(item)}
                   handlePress={() => handlePitchPress(item)}
@@ -202,7 +217,10 @@ const VbcCard = ({
         visible={blockModal}
         blockedUserId={selectedUser?.user_id || ""}
         userName={selectedUser?.full_name || ""}
-        onClose={() => setBlockModal(false)}
+        onClose={() => {
+          setBlockModal(false);
+          closeVBC?.(); // Close parent modal when block modal closes
+        }}
       />
 
       {selectedUser && (
