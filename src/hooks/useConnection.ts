@@ -13,6 +13,7 @@ import {
   searchUserProfile,
   getAllConnectionVbcs,
   searchUserVbc,
+  removeCloseCircle,
 } from "../api/connection";
 import {
   AcceptConnectionRequestBody,
@@ -78,7 +79,14 @@ export const useAcceptConnection = () =>
 export const useCloseConnection = () =>
   useMutation({
     mutationFn: (data: CloseConnectionRequestBody) => closeConnection(data),
-    onSuccess: () => handleSuccess("Close Connection"),
+    onSuccess: () => handleSuccess("Added to Close Connection"),
+    onError: (error) => handleError("Close Connection", error),
+  });
+
+export const useRemoveCloseConnection = () =>
+  useMutation({
+    mutationFn: (data: CloseConnectionRequestBody) => removeCloseCircle(data),
+    onSuccess: () => handleSuccess("User removed from close connection"),
     onError: (error) => handleError("Close Connection", error),
   });
 
@@ -154,7 +162,7 @@ export const useConnectionRequests = ({ userId, enabled = true }: { userId: stri
   const setSentRequests = useConnectionStore((state) => state.setSentRequests);
   const query = useQuery<ConnectionRequest[]>({
     queryKey: ["connection-requests", userId],
-    queryFn: () => getConnectionRequests({userId}),
+    queryFn: () => getConnectionRequests({ userId }),
     enabled: !!userId && enabled,
     retry: 1, // Optional: don't retry failed POSTs too aggressively
     gcTime: 0, // Optional: prevent auto garbage collection
@@ -245,7 +253,7 @@ export const useSearchVBC = (data: SearchInterface, enabled = true) => {
 
   useEffect(() => {
     if (query.data) {
-      
+
     }
 
     if (query.error) {

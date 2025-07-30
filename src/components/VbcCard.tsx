@@ -24,7 +24,12 @@ import { useAuthStore } from "../store/auth";
 import { resolveChatAndNavigate } from "../utility/resolveChatAndNavigate";
 import ConnectionCard from "./Cards/connectionCard";
 import ProfileViewer from "./graidentInfoCard";
-import { useSendConnection, useUnblockUser } from "../hooks/useConnection";
+import {
+  useCloseConnection,
+  useRemoveCloseConnection,
+  useSendConnection,
+  useUnblockUser,
+} from "../hooks/useConnection";
 import ErrorAlert from "./errorAlert";
 import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
@@ -99,15 +104,31 @@ const VbcCard = ({
     setConnectionDetailModal(true);
   };
 
-  const handleBagPress = async (user: UserProfile) => {
-    console.log(user, "bag pressss");
-    const response = await addCloseCircle({
-      user_id: userId,
-      closed_user_id: user.user_id,
-    });
-    console.log(response, "response of the adding to the bag");
-    setSelectedUser(user);
-    setAddModal(true);
+  const { mutate: removeCloseConnection } = useRemoveCloseConnection();
+  const { mutate: addCloseCircle } = useCloseConnection();
+  const handleBagPress = async (user: UserProfileItem) => {
+    if (
+      user.status === "CLOSE_CONNECTION" ||
+      user.connection_status === "CLOSE_CONNECTION"
+    ) {
+      removeCloseConnection({
+        user_id: userId,
+        closed_user_id: user.user_id,
+      });
+    } else {
+      addCloseCircle({
+        user_id: userId,
+        closed_user_id: user.user_id,
+      });
+    }
+    // console.log(user, "bag pressss");
+    // const response = await addCloseCircle({
+    // user_id: userId,
+    // closed_user_id: user.user_id,
+    // });
+    // console.log(response, "response of the adding to the bag");
+    // setSelectedUser(user);
+    // setAddModal(true);
   };
 
   const handleSendRequestPress = (receiverId: string) => {
