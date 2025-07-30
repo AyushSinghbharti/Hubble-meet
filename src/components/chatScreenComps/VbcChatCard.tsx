@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   Alert,
   Modal,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { FONT } from "@/assets/constants/fonts";
 import { VbcCard as VbcInterface } from "@/src/interfaces/vbcInterface";
 import { getStableColor } from "@/src/utility/getStableColor";
@@ -24,6 +24,8 @@ import { resolveChatAndNavigate } from "@/src/utility/resolveChatAndNavigate";
 import BlockUserModal from "@/src/components/Modal/BlockUserModal";
 import ErrorAlert from "@/src/components/errorAlert";
 import ShareModal from "../Share/ShareBottomSheet";
+import { useUnblockUser, useBlockUser } from "@/src/hooks/useConnection";
+import { useConnectionStore } from "@/src/store/connectionStore";
 
 type Props = {
   vbc: Partial<VbcInterface> & {
@@ -64,8 +66,10 @@ const VbcChatCard: React.FC<Props> = ({
   const [blockModal, setBlockModal] = useState(false);
   const [shareModal, setShareModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   // ---- resolve fields ----
+  const id = vbc.user_id || vbc.id || "";
   const name =
     vbc.vCardDisplayName ||
     vbc.full_name ||
@@ -78,14 +82,24 @@ const VbcChatCard: React.FC<Props> = ({
   const location = vbc.vCardLocation || vbc.location || (vbc as any).city || "";
   const avatar = vbc.avatarUrl || vbc.profile_picture_url || null;
   const bgColor =
-    backgroundColor || vbc.color || getStableColor(vbc.user_id || "");
-
+    getStableColor(vbc.user_id || "") || backgroundColor || vbc.color;
+  const initialStatus = vbc?.status || "NOT_CONNECTED";
   const showActions = viewShareButton || viewChatButton || viewBlockButton;
 
   const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
   const setFocusUserId = usePitchStore((state) => state.setFocusUserId);
   const currentUser = useAuthStore((state) => state.user);
+  const userId = useAuthStore((s) => s.userId);
+  const connections = useConnectionStore((state) => state.connections);
   const router = useRouter();
+
+  // Check if user is blocked from connections store
+  useEffect(() => {
+    const connection = connections.find((conn) => conn.user_id === id);
+    setIsBlocked(
+      connection?.connection_status === "BLOCKED" || initialStatus === "BLOCKED"
+    );
+  }, [connections, id, initialStatus]);
 
   // ---- responsive sizing (chat bubble width) ----
   const { width } = useWindowDimensions();
@@ -103,8 +117,8 @@ const VbcChatCard: React.FC<Props> = ({
 
   // Handle video/pitch press - copied from VbcCard.tsx
   const onVideoPress = () => {
-    setFocusUserId(vbc.user_id);   // Set focused user in store
-    router.push("/pitch");          // Navigate WITHOUT params
+    setFocusUserId(vbc.user_id); // Set focused user in store
+    router.push("/pitch"); // Navigate WITHOUT params
   };
 
   // Handle chat press - copied from VbcCard.tsx
@@ -122,9 +136,34 @@ const VbcChatCard: React.FC<Props> = ({
     setShareModal(true);
   };
 
-  // Handle block press - copied from VbcCard.tsx
+  // Handle block press with proper state management
+  const { mutate: unBlock } = useUnblockUser();
+  const { mutate: blockUser } = useBlockUser();
+
   const onBlockPress = () => {
-    setBlockModal(true);
+    if (isBlocked) {
+      // Unblock user
+      unBlock(
+        { user_id: userId, blocked_user_id: id },
+        {
+          onSuccess: () => {
+            setIsBlocked(false);
+          },
+          onError: (error) => {
+            setError("Failed to unblock user");
+          },
+        }
+      );
+    } else {
+      // Block user via modal
+      setBlockModal(true);
+    }
+  };
+
+  // Handle successful block from modal
+  const handleBlockSuccess = () => {
+    setIsBlocked(true);
+    setBlockModal(false);
   };
 
   const s = useMemo(
@@ -258,7 +297,7 @@ const VbcChatCard: React.FC<Props> = ({
 
           {showActions && (
             <View style={s.actions}>
-              {viewChatButton && (
+              {viewChatButton && !isBlocked && (
                 <TouchableOpacity style={s.actionBtn} onPress={onChatPress}>
                   <Image
                     source={require("@/assets/icons/chat.png")}
@@ -268,20 +307,25 @@ const VbcChatCard: React.FC<Props> = ({
               )}
 
               {viewShareButton && (
-                <TouchableOpacity
-                  style={s.actionBtn}
-                  onPress={onSharePress}
-                >
+                <TouchableOpacity style={s.actionBtn} onPress={onSharePress}>
                   <Feather name="share-2" size={ICON} />
                 </TouchableOpacity>
               )}
 
               {viewBlockButton && (
                 <TouchableOpacity style={s.actionBtn} onPress={onBlockPress}>
-                  <Image
-                    source={require("@/assets/icons/block2.png")}
-                    style={{ width: ICON, height: ICON }}
-                  />
+                  {isBlocked ? (
+                    <FontAwesome5
+                      name="user-slash"
+                      size={ICON - 2}
+                      color="black"
+                    />
+                  ) : (
+                    <Image
+                      source={require("@/assets/icons/block2.png")}
+                      style={{ width: ICON, height: ICON }}
+                    />
+                  )}
                 </TouchableOpacity>
               )}
             </View>
@@ -295,6 +339,7 @@ const VbcChatCard: React.FC<Props> = ({
         blockedUserId={vbc.user_id || ""}
         userName={name}
         onClose={() => setBlockModal(false)}
+        onBlockSuccess={handleBlockSuccess}
       />
 
       {/* Share Modal */}

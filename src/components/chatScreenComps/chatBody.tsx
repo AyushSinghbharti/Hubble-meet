@@ -138,7 +138,6 @@ const ChatBubble = ({
     };
   }, [userData, vbcData]);
 
-
   const saveContact = async (contact: { name: string; phone: string }) => {
     const { status } = await Contacts.requestPermissionsAsync();
     if (status === "granted") {
@@ -327,14 +326,14 @@ const ChatBubble = ({
             ) : item.messageType === "CONTACTS" ? (
               renderContacts()
             ) : item.messageType === "VCARD" ? (
-              <View style={{ right: 45 }}>
-                <VbcChatCard
-                  vbc={{ ...mergedUserData }}
-                  viewShareButton
-                  viewChatButton = {mergedUserData?.status !== "BLOCKED"}
-                  viewBlockButton
-                />
-              </View>
+              <VbcChatCard
+                vbc={{ ...mergedUserData }}
+                viewShareButton
+                viewChatButton={
+                  mergedUserData?.status && mergedUserData?.status !== "BLOCKED"
+                }
+                viewBlockButton
+              />
             ) : item.messageType === "DOCUMENT" &&
               item.media &&
               item.media.length > 0 ? (
@@ -719,6 +718,6 @@ const styles = StyleSheet.create({
   timeText: { fontSize: 10, color: "#4D4D4D" },
 
   vcardWrapper: {
-    maxWidth: 250,
+    // maxWidth: 250,
   },
 });
