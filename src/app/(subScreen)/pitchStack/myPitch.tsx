@@ -93,7 +93,7 @@ export default function MyPitchScreen() {
       });
     } else {
       router.push({
-        pathname: "/pitchStack/recordPitch",
+        pathname: "/pitchStack/createPitch",
         params: {
           item: JSON.stringify({
             name: null,

@@ -34,8 +34,15 @@ const FlipCardWrapper = ({
     <View style={styles.root}>
       {/* Background Image */}
       <Image
-        source={{ uri: item.image }}
-        style={[styles.backgroundImage, { aspectRatio, flex: 1, width: "100%" }]}
+        source={{
+          uri:
+            item.image ||
+            "https://xsgames.co/randomusers/assets/images/favicon.png",
+        }}
+        style={[
+          styles.backgroundImage,
+          { aspectRatio, flex: 1, width: "100%" },
+        ]}
         resizeMode="cover"
       />
 

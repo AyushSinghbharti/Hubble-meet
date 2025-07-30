@@ -42,7 +42,7 @@ export default function PitchScreen() {
 
   // Use focusUserId if available, else fallback to pitchId
   const targetId = focusUserId || pitchId;
-  console.log("target id (focusUserId or pitchId):", targetId);
+  // console.log("target id (focusUserId or pitchId):", targetId);
 
   const [flipped, setFlipped] = useState(false);
   const rotateAnim = useRef(new Animated.Value(0)).current;

@@ -214,7 +214,11 @@ const MainCardWrapper = ({
 
         <TouchableOpacity style={{ flexDirection: "row" }} onPress={onPress}>
           <Image
-            source={{ uri: pitch.user.avatar }}
+            source={{
+              uri:
+                pitch.user.avatar ||
+                "https://xsgames.co/randomusers/assets/images/favicon.png",
+            }}
             style={styles.avatar}
             transition={300}
           />
