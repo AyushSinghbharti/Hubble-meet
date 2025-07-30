@@ -315,10 +315,9 @@ const VbcChatCard: React.FC<Props> = ({
               {viewBlockButton && (
                 <TouchableOpacity style={s.actionBtn} onPress={onBlockPress}>
                   {isBlocked ? (
-                    <FontAwesome5
-                      name="user-slash"
-                      size={ICON - 2}
-                      color="black"
+                    <Image
+                      source={require("@/assets/icons/unblock.png")}
+                      style={{ width: ICON + 7, height: ICON + 7 }}
                     />
                   ) : (
                     <Image
