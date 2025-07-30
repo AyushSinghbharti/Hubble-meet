@@ -20,11 +20,10 @@ import PitchScreenLoader from "@/src/components/skeletons/pitchCard";
 import axios from "axios";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const TAB_BAR_HEIGHT = 70;   // was 100 → decreased
-const TOP_PADDING = 60;      // was 71 → decreased
-const SAFE_MARGIN = 30;      // was 46 → decreased
+const TAB_BAR_HEIGHT = 70; // was 100 → decreased
+const TOP_PADDING = 60; // was 71 → decreased
+const SAFE_MARGIN = 30; // was 46 → decreased
 const ITEM_HEIGHT = SCREEN_HEIGHT - TAB_BAR_HEIGHT - TOP_PADDING - SAFE_MARGIN;
-
 
 const fetchPitchById = async (id: string) => {
   const response = await axios.get(
@@ -108,12 +107,13 @@ export default function PitchScreen() {
       .filter(Boolean);
 
     if (selectedPitch && targetId) {
-      const profile =
-        recommendations.find((r) => r.user_id === selectedPitch.user_id) || {
-          user_id: selectedPitch.user_id,
-          full_name: selectedPitch.display_name || "Unknown",
-          profile_picture_url: "",
-        };
+      const profile = recommendations.find(
+        (r) => r.user_id === selectedPitch.user_id
+      ) || {
+        user_id: selectedPitch.user_id,
+        full_name: selectedPitch.display_name || "Unknown",
+        profile_picture_url: "",
+      };
       const selectedPitchItem = {
         pitch: {
           id: selectedPitch.id,
@@ -150,7 +150,7 @@ export default function PitchScreen() {
         };
         likes: number;
       };
-      profile: typeof recommendations[number];
+      profile: (typeof recommendations)[number];
     }[];
   }, [pitchQueries, recommendations, selectedPitch, targetId]);
 
