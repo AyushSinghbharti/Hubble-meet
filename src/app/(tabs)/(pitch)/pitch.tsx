@@ -7,91 +7,197 @@ import {
   Animated,
   Easing,
   FlatList,
+  Dimensions,
 } from "react-native";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import FlipCardWrapper from "../../../components/pitchScreenComps/flipCardWrapper";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import MainCardWrapper from "../../../components/pitchScreenComps/mainCardWrapper";
-import { Dimensions } from "react-native";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { useConnectionStore } from "@/src/store/connectionStore";
 import { getUserPitch } from "@/src/api/pitch";
-import { useQueries } from "@tanstack/react-query";
-import { Pitch } from "@/src/interfaces/pitchInterface";
-import { UserProfile } from "@/src/interfaces/profileInterface";
-import { FONT } from "@/assets/constants/fonts";
 import PitchScreenLoader from "@/src/components/skeletons/pitchCard";
+import axios from "axios";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const TAB_BAR_HEIGHT = 100;
-const TOP_PADDING = 15;
-const SAFE_MARGIN = 36;
+const TAB_BAR_HEIGHT = 70;   // was 100 → decreased
+const TOP_PADDING = 60;      // was 71 → decreased
+const SAFE_MARGIN = 30;      // was 46 → decreased
 const ITEM_HEIGHT = SCREEN_HEIGHT - TAB_BAR_HEIGHT - TOP_PADDING - SAFE_MARGIN;
+
+
+const fetchPitchById = async (id: string) => {
+  const response = await axios.get(
+    `https://d2aks9kyhua4na.cloudfront.net/api/pitch/getDetails/${id}`
+  );
+  if (!response.data.success) {
+    throw new Error(response.data.message || "Failed to fetch pitch");
+  }
+  return response.data.data;
+};
 
 export default function PitchScreen() {
   const router = useRouter();
+  const { pitchId, focusUserId } = useLocalSearchParams();
+
+  // Use focusUserId if available, else fallback to pitchId
+  const targetId = focusUserId || pitchId;
+  console.log("target id (focusUserId or pitchId):", targetId);
+
   const [flipped, setFlipped] = useState(false);
   const rotateAnim = useRef(new Animated.Value(0)).current;
+
   const pitch = usePitchStore((state) => state.pitch);
-  const recommendations = useConnectionStore((s) => s.recommendations);
-  const recommendationsId = useConnectionStore((s) => s.recommendationsId);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
 
-  const handleProfilePress = (user: any) => {
-    setCurrentPitchUser(user);
-    router.push("/connect");
-  };
+  const recommendations = useConnectionStore((s) => s.recommendations);
+  const recommendationsId = useConnectionStore((s) => s.recommendationsId);
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+
+  // To ensure initial scroll happens only once
+  const initialScrollDone = useRef(false);
+
+  // Fetch selected pitch by targetId
+  const {
+    data: selectedPitch,
+    isLoading: isPitchLoading,
+    error: pitchError,
+  } = useQuery({
+    queryKey: ["pitch", targetId],
+    queryFn: () => fetchPitchById(targetId as string),
+    enabled: !!targetId,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Fetch recommended users' pitches
   const pitchQueries = useQueries({
     queries: recommendationsId.map((userId) => ({
       queryKey: ["pitch", userId],
       queryFn: () => getUserPitch(userId),
       enabled: !!userId,
+      staleTime: 1000 * 60 * 5,
     })),
   });
 
+  // Combine selected pitch and recommended pitches, selected pitch on top
   const validPitches = useMemo(() => {
-    if (!pitchQueries.length) return [];
-    return recommendations
+    const pitches = recommendations
       .map((profile) => {
-        const pitch: Pitch = pitchQueries.find(
+        const pitchData = pitchQueries.find(
           (q) => q.data?.user_id === profile.user_id
         )?.data;
-        if (!pitch) return null;
+        if (!pitchData) return null;
         return {
           pitch: {
-            id: pitch.id,
+            id: pitchData.id,
             thumbnail: "",
-            videoUri: pitch.url,
+            videoUri: pitchData.url,
             user: {
               id: profile.user_id,
-              name: profile.full_name,
-              avatar: profile.profile_picture_url,
-              tagline: pitch.pitch_caption || "",
+              name: profile.full_name || "Unknown",
+              avatar: profile.profile_picture_url || "",
+              tagline: pitchData.pitch_caption || "",
             },
-            likes: 0,
+            likes: pitchData.likeCount || 0,
           },
           profile,
         };
       })
       .filter(Boolean);
-  }, [pitchQueries, recommendations]);
 
-  const [currentPitch, setCurrentPitch] = useState(
-    validPitches[0]?.pitch || null
-  );
-  const [currentProfile, setCurrentProfile] = useState(
-    validPitches[0]?.profile || null
-  );
+    if (selectedPitch && targetId) {
+      const profile =
+        recommendations.find((r) => r.user_id === selectedPitch.user_id) || {
+          user_id: selectedPitch.user_id,
+          full_name: selectedPitch.display_name || "Unknown",
+          profile_picture_url: "",
+        };
+      const selectedPitchItem = {
+        pitch: {
+          id: selectedPitch.id,
+          thumbnail: "",
+          videoUri: selectedPitch.url,
+          user: {
+            id: selectedPitch.user_id,
+            name: profile.full_name,
+            avatar: profile.profile_picture_url,
+            tagline: selectedPitch.pitch_caption || "",
+          },
+          likes: selectedPitch.likeCount || 0,
+        },
+        profile,
+      };
 
+      const filteredPitches = pitches.filter(
+        (p) => p.pitch.id !== selectedPitch.id
+      );
+      filteredPitches.unshift(selectedPitchItem);
+      return filteredPitches;
+    }
+
+    return pitches as {
+      pitch: {
+        id: string;
+        thumbnail: string;
+        videoUri: string;
+        user: {
+          id: string;
+          name: string;
+          avatar: string;
+          tagline: string;
+        };
+        likes: number;
+      };
+      profile: typeof recommendations[number];
+    }[];
+  }, [pitchQueries, recommendations, selectedPitch, targetId]);
+
+  // Scroll FlatList to initial pitch only once, then user can scroll freely
+  useEffect(() => {
+    if (!initialScrollDone.current && targetId && validPitches.length) {
+      const idx = validPitches.findIndex(
+        (item) =>
+          item.pitch.id === targetId ||
+          item.pitch.user.id === targetId ||
+          item.profile.user_id === targetId
+      );
+
+      if (idx >= 0) {
+        setCurrentIndex(idx);
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({ index: idx, animated: false });
+          initialScrollDone.current = true;
+        }, 100);
+      } else {
+        console.warn("⚠️ No pitch found for targetId:", targetId);
+        initialScrollDone.current = true; // prevent retrying on missing pitch
+      }
+    }
+  }, [targetId, validPitches]);
+
+  const handleScrollToIndexFailed = (info: {
+    index: number;
+    highestMeasuredFrameIndex: number;
+    averageItemLength: number;
+  }) => {
+    console.warn("Scroll to index failed:", info);
+    setTimeout(() => {
+      flatListRef.current?.scrollToIndex({
+        index: info.highestMeasuredFrameIndex,
+        animated: false,
+      });
+    }, 200);
+  };
+
+  // Update current pitch user when currentIndex changes
   useEffect(() => {
     const target = validPitches[currentIndex];
     if (target) {
-      setCurrentPitch(target.pitch);
-      setCurrentProfile(target.profile);
+      setCurrentPitchUser(target.profile);
     }
-  }, [currentIndex]);
+  }, [currentIndex, validPitches, setCurrentPitchUser]);
 
   const handleFlip = () => {
     Animated.timing(rotateAnim, {
@@ -100,6 +206,11 @@ export default function PitchScreen() {
       easing: Easing.ease,
       useNativeDriver: true,
     }).start(() => setFlipped(!flipped));
+  };
+
+  const handleProfilePress = (user: any) => {
+    setCurrentPitchUser(user);
+    router.push("/connect");
   };
 
   const navigateToMyPitch = () => {
@@ -125,20 +236,9 @@ export default function PitchScreen() {
     outputRange: ["0deg", "180deg"],
   });
 
-  const backRotation = rotateAnim.interpolate({
-    inputRange: [0, 180],
-    outputRange: ["180deg", "360deg"],
-  });
-
   const frontOpacity = rotateAnim.interpolate({
     inputRange: [0, 90],
     outputRange: [1, 0],
-    extrapolate: "clamp",
-  });
-
-  const backOpacity = rotateAnim.interpolate({
-    inputRange: [90, 180],
-    outputRange: [0, 1],
     extrapolate: "clamp",
   });
 
@@ -159,7 +259,6 @@ export default function PitchScreen() {
 
       {/* Card View */}
       <View style={styles.cardArea}>
-        {/* Front Side */}
         <Animated.View
           style={[
             styles.flipCard,
@@ -171,29 +270,41 @@ export default function PitchScreen() {
           ]}
         >
           <FlatList
+            ref={flatListRef}
             style={{ flex: 1 }}
             contentContainerStyle={{ flexGrow: 1 }}
             data={validPitches}
             keyExtractor={(item, index) => item.pitch.id + index}
             pagingEnabled
             showsVerticalScrollIndicator={false}
-            ListEmptyComponent={() => {
-              return (
-                <View style={{ flex: 1, justifyContent: "center" }}>
-                  <PitchScreenLoader />
-                </View>
-              );
-            }}
+            getItemLayout={(_, index) => ({
+              length: ITEM_HEIGHT,
+              offset: ITEM_HEIGHT * index,
+              index,
+            })}
+            onScrollToIndexFailed={handleScrollToIndexFailed}
             onMomentumScrollEnd={(e) => {
               const offsetY = e.nativeEvent.contentOffset.y;
               const newIndex = Math.round(offsetY / ITEM_HEIGHT);
               if (newIndex !== currentIndex) setCurrentIndex(newIndex);
             }}
+            ListEmptyComponent={() => (
+              <View style={{ flex: 1, justifyContent: "center" }}>
+                {isPitchLoading ? (
+                  <PitchScreenLoader />
+                ) : (
+                  <Text style={{ textAlign: "center", color: "#999" }}>
+                    {pitchError
+                      ? "Failed to load pitch: " + pitchError.message
+                      : "No pitches available"}
+                  </Text>
+                )}
+              </View>
+            )}
             renderItem={({ item, index }) => {
               const isVisible = Math.abs(index - currentIndex) <= 1;
               const scale = index === currentIndex ? 1 : 0.97;
               const opacity = index === currentIndex ? 1 : 0.5;
-
               return (
                 <Animated.View
                   style={{
@@ -206,7 +317,7 @@ export default function PitchScreen() {
                   {isVisible && (
                     <MainCardWrapper
                       pitch={item.pitch}
-                      onPress={() => handleProfilePress(item?.profile)}
+                      onPress={() => handleProfilePress(item.profile)}
                       isActive={index === currentIndex && !flipped}
                     />
                   )}
@@ -215,17 +326,6 @@ export default function PitchScreen() {
             }}
           />
         </Animated.View>
-
-        {/* Back Side */}
-        {/* <Animated.View
-          style={[
-            styles.flipCard,
-            styles.absoluteFill,
-            { transform: [{ rotateY: backRotation }], opacity: backOpacity, zIndex: flipped ? 1 : 0 },
-          ]}
-        >
-          {currentProfile && <FlipCardWrapper item={currentProfile} onPress={handleFlip} />}
-        </Animated.View> */}
       </View>
     </View>
   );
@@ -248,21 +348,10 @@ const styles = StyleSheet.create({
     top: 70,
     zIndex: 2,
   },
-  cardWrapper: {
-    // flex: 1,
-    height: "95%",
-    marginTop: 18,
-    borderRadius: 20,
-    overflow: "hidden",
-    backgroundColor: "#e5e7eb",
-    justifyContent: "center",
-    alignItems: "center",
-    verticalAlign: "middle",
-  },
   iconContainer: {
     justifyContent: "center",
     alignItems: "center",
-    gap: 2,
+    marginTop: 20,
   },
   pitchIcon: {
     height: 24,
@@ -283,12 +372,5 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backfaceVisibility: "hidden",
-  },
-  absoluteFill: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
 });

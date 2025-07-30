@@ -70,8 +70,8 @@ const VbcCard = ({
   const users: UserProfileDataInterface = profiles
     ? profiles
     : connections.filter(
-        (connection) => connection.connection_status !== "BLOCKED"
-      );
+      (connection) => connection.connection_status !== "BLOCKED"
+    );
   const currentUser = useAuthStore((state) => state.user);
   const userId = useAuthStore((s) => s.userId);
   const { mutate: sendConnection } = useSendConnection();
@@ -151,11 +151,11 @@ const VbcCard = ({
     );
   };
 
-  const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
 
   const handlePitchPress = (user) => {
-    setCurrentPitchUser(user);
-    router.push("/pitch");
+
+    router.push({ pathname: "/pitch", params: { pitchId: user.user_id } });
+
   };
 
   return (
