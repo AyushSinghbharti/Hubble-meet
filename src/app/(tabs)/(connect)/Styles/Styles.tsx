@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     borderRadius: 20,
     overflow: "hidden",
+
   },
   gradientOverlay: {
     paddingVertical: 24,
@@ -168,6 +169,8 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
     // paddingBottom: 20,
     // paddingHorizontal: 16,
+
+
   },
   section: {
     marginTop: 16,

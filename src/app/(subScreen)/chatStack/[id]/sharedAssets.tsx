@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -15,71 +15,118 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import { useChatStore } from "@/src/store/chatStore";
-import { useMemo } from "react";
 import moment from "moment";
+import MediaViewer from "@/src/components/chatScreenComps/mediaViewer";
 
 const { width } = Dimensions.get("window");
 const GRID_GAP = 8;
 const THUMB_SIZE = (width - 32 - GRID_GAP * 2) / 3;
 
-interface SharedAssetsProps {}
+type MediaItem = {
+  id: string;
+  url: string;
+  fileName?: string;
+  type?: string;
+  size?: number;
+};
 
 export default function SharedAssets() {
   const params = useLocalSearchParams();
   const item: UserProfile = JSON.parse(params.item as string);
-  const id = params.id;
   const router = useRouter();
   const messages = useChatStore((s) => s.messages);
 
-  //Local file size calculator
-  const getRemoteFileSize = async (url: string): Promise<number | null> => {
-    try {
-      const res = await fetch(url, { method: "HEAD" });
-      const size = res.headers.get("content-length");
-      return size ? parseInt(size, 10) : null;
-    } catch (err) {
-      console.warn("Error fetching file size:", err);
-      return null;
-    }
-  };
+  const [activeTab, setActiveTab] = useState<"media" | "docs" | "links">(
+    "media"
+  );
 
-  // Link start
+  // ---- MediaViewer state ----
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerItems, setViewerItems] = useState<MediaItem[]>([]);
+  const [viewerIndex, setViewerIndex] = useState(0);
+
+  // ----------------- Flattened global arrays (what MediaViewer will consume) -----------------
+
+  // All image/video items across the chat
+  const allMediaItems = useMemo<MediaItem[]>(() => {
+    const list: MediaItem[] = [];
+    messages.forEach((msg) => {
+      if (msg.messageType === "IMAGE" && Array.isArray(msg.media)) {
+        msg.media.forEach((m) => {
+          list.push({
+            id: `${msg.id}-${m.id}`,
+            url: m.url ?? m.uri,
+            fileName: m.fileName,
+            type: m.type, // might be undefined, MediaViewer falls back to url
+            size: m.size,
+          });
+        });
+      }
+    });
+    return list;
+  }, [messages]);
+
+  // All document items across the chat
+  const allDocItems = useMemo<MediaItem[]>(() => {
+    const list: MediaItem[] = [];
+    messages.forEach((msg) => {
+      if (msg.messageType === "DOCUMENT" && Array.isArray(msg.media)) {
+        msg.media.forEach((m) => {
+          list.push({
+            id: `${msg.id}-${m.id}`,
+            url: m.url ?? m.uri,
+            fileName: m.fileName,
+            type: m.type, // likely application/pdf, docx, etc.
+            size: m.size,
+          });
+        });
+      }
+    });
+    return list;
+  }, [messages]);
+
+  // ----------------- Sectioned data for UI (but each item also knows its globalIndex) -----------------
 
   const mediaSections = useMemo(() => {
     const grouped: Record<string, any[]> = {};
+    let counter = 0;
 
     messages.forEach((msg) => {
       if (msg.messageType === "IMAGE" && Array.isArray(msg.media)) {
         const groupTitle = moment(msg.createdAt).format("MMMM YYYY");
 
-        msg.media.forEach((mediaItem: any, index: number) => {
+        msg.media.forEach((mediaItem: any) => {
           const uri = mediaItem?.uri ?? mediaItem?.url ?? null;
           if (!uri) return;
 
+          // find the global index for this media in allMediaItems (we can use counter)
+          const globalIndex = counter++;
+
           if (!grouped[groupTitle]) grouped[groupTitle] = [];
           grouped[groupTitle].push({
-            id: `${msg.id}-${index}`,
+            id: `${msg.id}-${mediaItem.id}`,
             uri,
+            globalIndex,
           });
         });
       }
     });
 
     return Object.entries(grouped).map(([title, data]) => ({ title, data }));
-  }, [messages]);
+  }, [messages, allMediaItems.length]);
 
   const docSections = useMemo(() => {
     const grouped: Record<string, any[]> = {};
+    let docCounter = 0;
 
     messages.forEach((msg) => {
       if (msg.messageType === "DOCUMENT" && Array.isArray(msg.media)) {
         const groupTitle = moment(msg.createdAt).format("MMMM YYYY");
 
-        msg.media.forEach((doc: any, index: number) => {
-          const size = getRemoteFileSize(doc.url);
+        msg.media.forEach((doc: any) => {
           const fileName = doc?.fileName ?? "Unnamed";
           const fileSize = doc?.size
             ? `${(doc.size / 1024 / 1024).toFixed(1)} MB`
@@ -88,20 +135,24 @@ export default function SharedAssets() {
             ? fileName.split(".").pop()?.toUpperCase()
             : "FILE";
 
+          // global index inside allDocItems
+          const globalIndex = docCounter++;
+
           if (!grouped[groupTitle]) grouped[groupTitle] = [];
           grouped[groupTitle].push({
-            id: `${msg.id}-${index}`,
+            id: `${msg.id}-${doc.id}`,
             name: fileName,
             size: `${fileSize} · ${ext}`,
             date: moment(msg.createdAt).format("D/M/YY"),
-            uri: doc.url,
+            uri: doc.url ?? doc.uri,
+            globalIndex,
           });
         });
       }
     });
 
     return Object.entries(grouped).map(([title, data]) => ({ title, data }));
-  }, [messages]);
+  }, [messages, allDocItems.length]);
 
   const linkSections = useMemo(() => {
     const grouped: Record<string, any[]> = {};
@@ -125,22 +176,20 @@ export default function SharedAssets() {
     return Object.entries(grouped).map(([title, data]) => ({ title, data }));
   }, [messages]);
 
-  useEffect(() => {
-    console.log(
-      "Processed media sections: ",
-      JSON.stringify(mediaSections, null, 2)
-    );
-    console.log(
-      "Processed doc sections: ",
-      JSON.stringify(docSections, null, 2)
-    );
-  }, [mediaSections, docSections]);
+  // ----------------- Handlers to open MediaViewer -----------------
+  const openMediaViewerAt = (index: number) => {
+    setViewerItems(allMediaItems);
+    setViewerIndex(index);
+    setViewerVisible(true);
+  };
 
-  //Link end
+  const openDocViewerAt = (index: number) => {
+    setViewerItems(allDocItems);
+    setViewerIndex(index);
+    setViewerVisible(true);
+  };
 
-  const [activeTab, setActiveTab] = useState<"media" | "docs" | "links">(
-    "media"
-  );
+  // ----------------- Renders -----------------
 
   const renderMediaSection = ({ section }: any) => (
     <View style={styles.section}>
@@ -153,16 +202,8 @@ export default function SharedAssets() {
         keyExtractor={(item) => item.id}
         numColumns={3}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={async () => {
-              const supported = await Linking.canOpenURL(item.uri);
-              if (supported) {
-                Linking.openURL(item.uri);
-              } else {
-                Alert.alert("Can't open this file.");
-              }
-            }}
-          >
+          <TouchableOpacity onPress={() => openMediaViewerAt(item.globalIndex)}>
+          {/* No more Linking.openURL here */}
             <Image
               source={{ uri: item.uri }}
               style={styles.mediaThumb}
@@ -178,21 +219,7 @@ export default function SharedAssets() {
   );
 
   const renderDocItem = ({ item }: any) => (
-    <TouchableOpacity
-      onPress={async () => {
-        if (!item.uri || typeof item.uri !== "string") {
-          Alert.alert("Invalid file URL");
-          return;
-        }
-
-        const supported = await Linking.canOpenURL(item.uri);
-        if (supported) {
-          Linking.openURL(item.uri);
-        } else {
-          Alert.alert("Can't open this file.");
-        }
-      }}
-    >
+    <TouchableOpacity onPress={() => openDocViewerAt(item.globalIndex)}>
       <View style={styles.docRow}>
         <Image
           style={{ height: 32, width: 32, tintColor: "#868686" }}
@@ -208,12 +235,23 @@ export default function SharedAssets() {
   );
 
   const renderLinkItem = ({ item }: any) => (
-    <View style={styles.linkRow}>
-      <Image source={{ uri: item.uri }} style={styles.linkThumb} />
-      <Text style={styles.linkText} numberOfLines={2} ellipsizeMode="tail">
-        {item.link}
-      </Text>
-    </View>
+    <TouchableOpacity
+      onPress={async () => {
+        const supported = await Linking.canOpenURL(item.link);
+        if (supported) {
+          Linking.openURL(item.link);
+        } else {
+          Alert.alert("Can't open this link.");
+        }
+      }}
+    >
+      <View style={styles.linkRow}>
+        <Image source={{ uri: item.uri }} style={styles.linkThumb} />
+        <Text style={styles.linkText} numberOfLines={2} ellipsizeMode="tail">
+          {item.link}
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
 
   const MediaBody = () => (
@@ -231,6 +269,26 @@ export default function SharedAssets() {
       sections={docSections}
       keyExtractor={(item) => item.id}
       renderItem={renderDocItem}
+      renderSectionHeader={({ section: { title } }) => (
+        <Text
+          style={[
+            styles.sectionTitle,
+            { paddingHorizontal: 16, paddingTop: 16 },
+          ]}
+        >
+          {title}
+        </Text>
+      )}
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
+      contentContainerStyle={{ paddingBottom: 32 }}
+    />
+  );
+
+  const LinksBody = () => (
+    <SectionList
+      sections={linkSections}
+      keyExtractor={(item) => item.id}
+      renderItem={renderLinkItem}
       renderSectionHeader={({ section: { title } }) => (
         <Text
           style={[
@@ -267,33 +325,12 @@ export default function SharedAssets() {
     </TouchableOpacity>
   );
 
-  const LinksBody = () => (
-    <SectionList
-      sections={linkSections}
-      keyExtractor={(item) => item.id}
-      renderItem={renderLinkItem}
-      renderSectionHeader={({ section: { title } }) => (
-        <Text
-          style={[
-            styles.sectionTitle,
-            { paddingHorizontal: 16, paddingTop: 16 },
-          ]}
-        >
-          {title}
-        </Text>
-      )}
-      ItemSeparatorComponent={() => <View style={styles.separator} />}
-      contentContainerStyle={{ paddingBottom: 32 }}
-    />
-  );
-
   return (
     <Modal
       style={styles.container}
       animationType="slide"
       onRequestClose={() => router.back()}
     >
-      {/* <View style={styles.container}> */}
       <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
         <TouchableOpacity hitSlop={500} onPress={() => router.back()}>
@@ -314,7 +351,14 @@ export default function SharedAssets() {
         {activeTab === "docs" && <DocsBody />}
         {activeTab === "links" && <LinksBody />}
       </View>
-      {/* </View> */}
+
+      {/* MediaViewer Modal */}
+      <MediaViewer
+        visible={viewerVisible}
+        mediaItems={viewerItems}
+        initialIndex={viewerIndex}
+        onClose={() => setViewerVisible(false)}
+      />
     </Modal>
   );
 }
@@ -327,7 +371,6 @@ const styles = StyleSheet.create({
     paddingTop: 28,
     paddingBottom: 12,
     backgroundColor: "#F7F7F7",
-    // backgroundColor: "white",
   },
   headerTitle: {
     paddingHorizontal: 16,
@@ -410,7 +453,7 @@ const styles = StyleSheet.create({
 
   /* Separators */
   separator: {
-    marginLeft: 56, // indent to align with text, leaving icon/thumbnail space
+    marginLeft: 56,
     height: StyleSheet.hairlineWidth,
     backgroundColor: "#e4e4e4",
   },

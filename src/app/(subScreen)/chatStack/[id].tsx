@@ -37,8 +37,7 @@ import { useAuthStore } from "@/src/store/auth";
 import { useClearChat } from "@/src/hooks/useChat";
 import ShareVBCScreen from "./[id]/vbcShare";
 import ViewVbcModal from "@/src/components/chatScreenComps/chatVBCShow";
-import ChatBodyLoader from "@/src/components/ChatBodyLoader";
-
+import ChatBodyLoader from "@/src/components/skeletons/chatBodyLoader";
 
 export default function ChatDetailsScreen() {
   const router = useRouter();
@@ -181,7 +180,7 @@ export default function ChatDetailsScreen() {
     );
 
     sendMessage(sendMessagePayload, {
-      onSuccess: (res) => { },
+      onSuccess: (res) => {},
       onError: (error) => {
         console.error("Failed to send message", error?.response?.data?.message);
         setError("Failed to send message");

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useMutation, useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import {
   createChat,
   getChatById,
@@ -13,7 +13,8 @@ import {
   deleteMessageforeveryone,
   starMessage,
   unStarMessage,
-  getStarredMessages
+  getStarredMessages,
+  chatApi
 } from '../api/chat';
 import {
   AddUserToChatRequest,
@@ -97,28 +98,60 @@ export const useUserChats = (userId: string): UseQueryResult<Chat[], Error> => {
 };
 
 /* ---------- Get all chat messages ---------- */
-export const useChatMessages = (chatId: string, data: GetAllChatMessageRequestPayload): UseQueryResult<Chat, Error> => {
-  const setMessages = useChatStore((state) => state.setMessages);
-  const setCurrentChat = useChatStore((state) => state.setCurrentChat);
 
-  const queryResult = useQuery<ChatMessage[], Error, Chat, [string, string]>({
-    queryKey: ['messages', chatId],
-    queryFn: () => getChatMessages(chatId, data),
-    enabled: !!chatId,
-    refetchInterval: 10,
+type PaginatedArgs = {
+  userId: string;
+  page: number;
+  limit: number;
+};
+
+export function useChatMessages(
+  chatId: string | string[] | undefined,
+  { userId, page, limit }: PaginatedArgs
+) {
+  const { replaceMessages, addMessages, setHasMore } = useChatStore.getState();
+  const _chatId = Array.isArray(chatId) ? chatId[0] : chatId;
+
+  const enabled = Boolean(_chatId && userId);
+
+  const query = useQuery<ChatMessage[]>({
+    queryKey: ["chatMessages", _chatId, page, limit, userId],
+    enabled,
+    queryFn: async () => {
+      const { data } = await chatApi.getMessages(_chatId!, {
+        userId,
+        page,
+        limit,
+      });
+      return data as ChatMessage[];
+    },
+    /**
+     * v5 replacement for keepPreviousData
+     * This keeps the last page's data around while the next page is loading.
+     */
+    placeholderData: (prev) => prev,
+    refetchOnWindowFocus: false,
   });
 
+  // Move the side-effects OUT of useQuery (v5 best practice)
   useEffect(() => {
-    if (queryResult.data) {
-      setMessages(queryResult.data); //The interface is not updated for this
-    }
-    if (queryResult.error) {
-      console.error("Error fetching chat messages:", queryResult.error);
-    }
-  }, [queryResult.data, queryResult.error]);
+    const data = query.data;
+    // console.log("Chat messages data:", JSON.stringify(data, null, 4));
+    if (!data) return;
 
-  return queryResult;
-};
+    const batch = data ?? [];
+
+    if (page === 1) {
+      replaceMessages(batch);
+    } else {
+      addMessages(batch);
+    }
+  }, [query.data, page, limit]);
+
+  return query;
+}
+
+
 
 /* ---------- Add user to chat ---------- */
 export const useAddUserToChat = () => {
