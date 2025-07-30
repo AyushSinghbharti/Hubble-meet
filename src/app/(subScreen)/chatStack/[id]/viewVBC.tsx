@@ -28,7 +28,7 @@ export default function ViewVBC() {
   const item: UserProfile = JSON.parse(params.item as string);
   const id = params.id;
   const router = useRouter();
-  
+
   const [isCloseFriend, setCloseFriend] = useState(
     item?.status === "CLOSE_CONNECTION" || false
   );
@@ -36,7 +36,7 @@ export default function ViewVBC() {
   const [blockPopUp, setBlockPopUp] = useState(false);
   const [shareModal, setShareModal] = useState(false); // Add share modal state
   const [isBlocked, setBlocked] = useState(item?.status === "BLOCKED" || false);
-  
+
   const userId = useAuthStore((s) => s.userId);
 
   // Update actions to reflect current blocked state
@@ -51,7 +51,9 @@ export default function ViewVBC() {
     },
     {
       id: "add",
-      label: isCloseFriend ? "Remove from Hubble circle" : "Add to Hubble circle",
+      label: isCloseFriend
+        ? "Remove from Hubble circle"
+        : "Add to Hubble circle",
       icon: "star",
       image: isCloseFriend
         ? require("../../../../../assets/icons/star2.png")
@@ -62,7 +64,7 @@ export default function ViewVBC() {
       id: "block",
       label: isBlocked ? "Unblock user" : "Block user",
       icon: "user-x",
-      image: isBlocked 
+      image: isBlocked
         ? require("../../../../../assets/icons/unblock.png") // You might need to add an unblock icon
         : require("../../../../../assets/icons/block.png"),
     },
@@ -148,21 +150,21 @@ export default function ViewVBC() {
       onPress={() => !item.disabled && operation({ option: item.id })}
     >
       {item.image ? (
-        <Image 
-          source={item.image} 
+        <Image
+          source={item.image}
           style={[
             { height: 22, width: 22 },
             item.disabled && styles.disabledImage, // Add disabled image style
-          ]} 
+          ]}
         />
       ) : (
-        <Feather 
-          name={item.icon as any} 
-          size={21} 
-          color={item.disabled ? "#999" : "#1e1e1e"} 
+        <Feather
+          name={item.icon as any}
+          size={21}
+          color={item.disabled ? "#999" : "#1e1e1e"}
         />
       )}
-      <Text 
+      <Text
         style={[
           styles.rowLabel,
           item.disabled && styles.disabledText, // Add disabled text style
@@ -207,11 +209,9 @@ export default function ViewVBC() {
 
       <Text style={styles.name}>{item.full_name}</Text>
       <Text style={styles.role}>{item.job_title}</Text>
-      
+
       {/* Show blocked status */}
-      {isBlocked && (
-        <Text style={styles.blockedStatus}>Blocked</Text>
-      )}
+      {isBlocked && <Text style={styles.blockedStatus}>Blocked</Text>}
 
       <View style={styles.divider} />
 
@@ -235,7 +235,9 @@ export default function ViewVBC() {
         visible={blockPopUp}
         onClose={() => setBlockPopUp(false)}
         onSelect={handleBlock}
-        message={isBlocked ? `Unblock ${item.full_name}` : `Block ${item.full_name}`}
+        message={
+          isBlocked ? `Unblock ${item.full_name}` : `Block ${item.full_name}`
+        }
         description={
           isBlocked
             ? "This contact will be able to send you messages again"

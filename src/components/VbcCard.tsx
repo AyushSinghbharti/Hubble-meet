@@ -13,7 +13,6 @@ import {
   StatusBar,
   ActivityIndicator,
 } from "react-native";
-import CustomModal from "./Modal/CustomModal";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomCard from "./Cards/vbcCard";
 import ShareModal from "./Share/ShareBottomSheet";
@@ -34,8 +33,8 @@ import ErrorAlert from "./errorAlert";
 import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
 import { getStableColor } from "../utility/getStableColor";
-import { addCloseCircle } from "../api/connection";
 import { usePitchStore } from "../store/pitchStore";
+import PopUpNotification from "./chatScreenComps/popUpNotification";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
@@ -60,7 +59,9 @@ const VbcCard = ({
   isLoadingMore?: boolean;
 }) => {
   const router = useRouter();
-  const [addModal, setAddModal] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [isRemoveAction, setIsRemoveAction] = useState(false);
+  const [popupName, setPopupName] = useState("");
   const [blockModal, setBlockModal] = useState(false);
   const [shareModal, setShareModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
@@ -106,11 +107,13 @@ const VbcCard = ({
 
   const { mutate: removeCloseConnection } = useRemoveCloseConnection();
   const { mutate: addCloseCircle } = useCloseConnection();
+
   const handleBagPress = async (user: UserProfileItem) => {
-    if (
+    const isRemoving =
       user.status === "CLOSE_CONNECTION" ||
-      user.connection_status === "CLOSE_CONNECTION"
-    ) {
+      user.connection_status === "CLOSE_CONNECTION";
+
+    if (isRemoving) {
       removeCloseConnection({
         user_id: userId,
         closed_user_id: user.user_id,
@@ -121,14 +124,12 @@ const VbcCard = ({
         closed_user_id: user.user_id,
       });
     }
-    // console.log(user, "bag pressss");
-    // const response = await addCloseCircle({
-    // user_id: userId,
-    // closed_user_id: user.user_id,
-    // });
-    // console.log(response, "response of the adding to the bag");
-    // setSelectedUser(user);
-    // setAddModal(true);
+
+    setPopupName(user.full_name);
+    setIsRemoveAction(isRemoving);
+    setShowPopup(true);
+
+    setSelectedUser(user);
   };
 
   const handleSendRequestPress = (receiverId: string) => {
@@ -220,6 +221,7 @@ const VbcCard = ({
                     false
                   }
                   backgroundColor={cardColor}
+                  status={item.status || item.connection_status}
                   avatar={{ uri: item.profile_picture_url }}
                   onChatPress={() => handleChatPress(item)}
                   onSharePress={() => handleSharePress(item)}
@@ -244,19 +246,12 @@ const VbcCard = ({
         }}
       />
 
-      {selectedUser && (
-        <CustomModal
-          visible={addModal}
-          onClose={() => setAddModal(false)}
-          name={selectedUser.full_name}
-          onConfirm={() => {
-            Alert.alert("Open Bag", `Bag opened for ${selectedUser.full_name}`);
-            setAddModal(false);
-          }}
-          confirmText="Open Bag"
-          cancelText="Close"
-        />
-      )}
+      <PopUpNotification
+        visible={showPopup}
+        onClose={() => setShowPopup(false)}
+        name={popupName}
+        closeFriend={isRemoveAction}
+      />
 
       {/* Share Modal */}
       {selectedUser && (

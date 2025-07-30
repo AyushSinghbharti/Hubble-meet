@@ -17,6 +17,7 @@ interface User {
   role: string;
   location: string;
   avatar: any;
+  status: "BLOCKED" | "CLOSE_CONNECTION" | "CONNECTED";
   isBlocked?: boolean;
   backgroundColor: string | null;
 }
@@ -57,6 +58,7 @@ const CustomCard = memo(
     avatar,
     isBlocked = false,
     backgroundColor,
+    status,
     onChatPress,
     onSharePress,
     onBlockPress,
@@ -78,7 +80,14 @@ const CustomCard = memo(
         >
           <View style={styles.topIcons}>
             <TouchableOpacity style={styles.roundIcon} onPress={onBagPress}>
-              <SimpleLineIcons name="bag" size={13} color="#000" />
+              {status === "CLOSE_CONNECTION" ? (
+                <Image
+                  source={require("@/assets/icons/suitcase.png")}
+                  style={{ height: 16, width: 16 }}
+                />
+              ) : (
+                <SimpleLineIcons name="bag" size={13} color="#000" />
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.roundIcon} onPress={handlePress}>
               <Image
