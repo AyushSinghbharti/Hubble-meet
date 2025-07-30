@@ -16,6 +16,7 @@ import {
 import CustomModal from "./Modal/CustomModal";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomCard from "./Cards/vbcCard";
+import ShareModal from "./Share/ShareBottomSheet";
 import { useRouter } from "expo-router";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import { useConnectionStore } from "../store/connectionStore";
@@ -54,6 +55,7 @@ const VbcCard = ({
   const router = useRouter();
   const [addModal, setAddModal] = useState(false);
   const [blockModal, setBlockModal] = useState(false);
+  const [shareModal, setShareModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [connectionDetailModal, setConnectionDetailModal] = useState(false);
   const connections = useConnectionStore((state) => state.connections);
@@ -73,7 +75,8 @@ const VbcCard = ({
   };
 
   const handleSharePress = (user: UserProfile) => {
-    Share.share({ message: `Hey see my VBC card here ${user.full_name}` });
+    setSelectedUser(user);
+    setShareModal(true);
   };
 
   const handleBlockPress = (user: UserProfile) => {
@@ -122,8 +125,6 @@ const VbcCard = ({
     setCurrentPitchUser(user);
     router.push("/pitch");
   };
-
-
 
   return (
     <>
@@ -175,7 +176,6 @@ const VbcCard = ({
                   onCardPress={() => handleProfilePress(item)}
                   onAddPress={() => handleBlockPress(item)}
                   onConnectPress={handleSendRequestPress}
-
                 />
               ) : (
                 <CustomCard
@@ -191,8 +191,6 @@ const VbcCard = ({
                   onBagPress={() => handleBagPress(item)}
                   onProfilePress={() => handleProfilePress(item)}
                   handlePress={() => handlePitchPress(item)}
-
-
                 />
               )}
             </View>
@@ -218,6 +216,15 @@ const VbcCard = ({
           }}
           confirmText="Open Bag"
           cancelText="Close"
+        />
+      )}
+
+      {/* Share Modal */}
+      {selectedUser && (
+        <ShareModal
+          visible={shareModal}
+          onClose={() => setShareModal(false)}
+          cardProfile={selectedUser}
         />
       )}
 

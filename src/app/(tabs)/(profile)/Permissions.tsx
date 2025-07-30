@@ -12,16 +12,25 @@ import {
   Alert,
   Linking,
 } from "react-native";
-import { check, request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
+import {
+  check,
+  request,
+  PERMISSIONS,
+  RESULTS,
+  openSettings,
+} from "react-native-permissions";
 
 import NavHeader from "../../../components/NavHeader";
 import Button from "../../../components/Button";
 import requestAndSavePermission from "@/utils/requestAndSavePermission";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuthStore } from "@/src/store/auth";
+import { useUpdateUserProfile } from "@/src/hooks/useProfile";
 
 export default function SettingsScreen() {
+  const user = useAuthStore((s) => s.user);
   const [toggles, setToggles] = useState({
-    shareVBC: false,
+    shareVBC: user?.allow_vbc_sharing ?? false,
     accessContacts: true,
     accessPhotos: true,
     pendingRequests: true,
@@ -42,7 +51,7 @@ export default function SettingsScreen() {
 
   // Get the correct photo permission based on platform and Android version
   const getPhotoPermission = () => {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === "ios") {
       return PERMISSIONS.IOS.PHOTO_LIBRARY;
     } else {
       // For Android, use READ_MEDIA_IMAGES for API 33+ (Android 13+)
@@ -59,10 +68,11 @@ export default function SettingsScreen() {
   const checkDevicePermissions = async () => {
     try {
       // Check contacts permission
-      const contactsPermission = Platform.OS === 'ios' 
-        ? PERMISSIONS.IOS.CONTACTS 
-        : PERMISSIONS.ANDROID.READ_CONTACTS;
-      
+      const contactsPermission =
+        Platform.OS === "ios"
+          ? PERMISSIONS.IOS.CONTACTS
+          : PERMISSIONS.ANDROID.READ_CONTACTS;
+
       const contactsStatus = await check(contactsPermission);
       const hasContactsAccess = contactsStatus === RESULTS.GRANTED;
 
@@ -72,22 +82,25 @@ export default function SettingsScreen() {
       const hasPhotosAccess = photosStatus === RESULTS.GRANTED;
 
       // Update toggles based on actual permissions
-      setToggles(prev => ({
+      setToggles((prev) => ({
         ...prev,
         accessContacts: hasContactsAccess,
         accessPhotos: hasPhotosAccess,
       }));
 
-      console.log('Contacts permission:', contactsStatus);
-      console.log('Photos permission:', photosStatus);
+      console.log("Contacts permission:", contactsStatus);
+      console.log("Photos permission:", photosStatus);
     } catch (error) {
-      console.error('Error checking permissions:', error);
+      console.error("Error checking permissions:", error);
     }
   };
 
   const toggleSwitch = async (key: keyof typeof toggles) => {
     // Check if user is trying to turn off contacts or photos permission
-    if ((key === "accessContacts" || key === "accessPhotos") && toggles[key] === true) {
+    if (
+      (key === "accessContacts" || key === "accessPhotos") &&
+      toggles[key] === true
+    ) {
       // Show confirmation modal
       setPendingToggle({ key, value: !toggles[key] });
       setModalVisible(true);
@@ -123,12 +136,13 @@ export default function SettingsScreen() {
 
   const handleContactsPermission = async (): Promise<boolean> => {
     try {
-      const permission = Platform.OS === 'ios' 
-        ? PERMISSIONS.IOS.CONTACTS 
-        : PERMISSIONS.ANDROID.READ_CONTACTS;
-      
+      const permission =
+        Platform.OS === "ios"
+          ? PERMISSIONS.IOS.CONTACTS
+          : PERMISSIONS.ANDROID.READ_CONTACTS;
+
       const result = await request(permission);
-      
+
       if (result === RESULTS.GRANTED) {
         await requestAndSavePermission("contacts");
         return true;
@@ -138,13 +152,13 @@ export default function SettingsScreen() {
           "To enable contact access, please go to Settings and allow contacts permission for this app.",
           [
             { text: "Cancel", style: "cancel" },
-            { text: "Open Settings", onPress: () => openSettings() }
+            { text: "Open Settings", onPress: () => openSettings() },
           ]
         );
       }
       return false;
     } catch (error) {
-      console.error('Error requesting contacts permission:', error);
+      console.error("Error requesting contacts permission:", error);
       return false;
     }
   };
@@ -153,7 +167,7 @@ export default function SettingsScreen() {
     try {
       const permission = getPhotoPermission();
       const result = await request(permission);
-      
+
       if (result === RESULTS.GRANTED) {
         await requestAndSavePermission("photos");
         return true;
@@ -163,13 +177,13 @@ export default function SettingsScreen() {
           "To enable photo access, please go to Settings and allow photos permission for this app.",
           [
             { text: "Cancel", style: "cancel" },
-            { text: "Open Settings", onPress: () => openSettings() }
+            { text: "Open Settings", onPress: () => openSettings() },
           ]
         );
       }
       return false;
     } catch (error) {
-      console.error('Error requesting photos permission:', error);
+      console.error("Error requesting photos permission:", error);
       return false;
     }
   };
@@ -178,24 +192,27 @@ export default function SettingsScreen() {
     if (!pendingToggle) return;
 
     const { key, value } = pendingToggle;
-    
+
     // When disabling permissions, guide user to device settings
-    if ((key === "accessContacts" || key === "accessPhotos") && value === false) {
+    if (
+      (key === "accessContacts" || key === "accessPhotos") &&
+      value === false
+    ) {
       Alert.alert(
         "Disable Permission",
         "To completely disable this permission, you need to go to your device Settings > Apps > [Your App Name] > Permissions and turn off the permission there. This will ensure the permission is revoked at the system level.",
         [
           { text: "Cancel", style: "cancel" },
-          { 
-            text: "Open Settings", 
+          {
+            text: "Open Settings",
             onPress: () => {
               openSettings();
               // Update UI state to reflect the intended change
               const updated = { ...toggles, [key]: value };
               setToggles(updated);
               saveSettingsToStorage(updated);
-            }
-          }
+            },
+          },
         ]
       );
     } else {
@@ -229,21 +246,22 @@ export default function SettingsScreen() {
       try {
         // First check actual device permissions
         await checkDevicePermissions();
-        
+
         // Then load any saved settings (for non-permission toggles)
         const stored = await AsyncStorage.getItem("userSettings");
         if (stored) {
           const savedSettings = JSON.parse(stored);
-          
+
           // Re-check permissions to ensure UI is accurate
-          const contactsPermission = Platform.OS === 'ios' 
-            ? PERMISSIONS.IOS.CONTACTS 
-            : PERMISSIONS.ANDROID.READ_CONTACTS;
+          const contactsPermission =
+            Platform.OS === "ios"
+              ? PERMISSIONS.IOS.CONTACTS
+              : PERMISSIONS.ANDROID.READ_CONTACTS;
           const photosPermission = getPhotoPermission();
-          
+
           const [contactsStatus, photosStatus] = await Promise.all([
             check(contactsPermission),
-            check(photosPermission)
+            check(photosPermission),
           ]);
 
           setToggles({
@@ -263,14 +281,21 @@ export default function SettingsScreen() {
   // Check permissions when app comes back to foreground
   useEffect(() => {
     const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState === 'active') {
+      if (nextAppState === "active") {
         checkDevicePermissions();
       }
     };
 
-    const subscription = Platform.OS === 'ios' 
-      ? require('react-native').AppState.addEventListener('change', handleAppStateChange)
-      : require('react-native').AppState.addEventListener('change', handleAppStateChange);
+    const subscription =
+      Platform.OS === "ios"
+        ? require("react-native").AppState.addEventListener(
+            "change",
+            handleAppStateChange
+          )
+        : require("react-native").AppState.addEventListener(
+            "change",
+            handleAppStateChange
+          );
 
     return () => {
       if (subscription?.remove) {
@@ -279,20 +304,32 @@ export default function SettingsScreen() {
     };
   }, []);
 
+  const { mutate: updateUser } = useUpdateUserProfile();
+  useEffect(() => {
+    if (user) {
+      updateUser({
+        userId: user.user_id,
+        data: { allowVbcSharing: toggles.shareVBC },
+      });
+    }
+  }, [toggles.shareVBC]);
+
   const getModalContent = () => {
     if (!pendingToggle) return { title: "", description: "" };
 
     if (pendingToggle.key === "accessContacts") {
       return {
         title: "Disable Contact Access?",
-        description: "You'll be directed to device settings to completely revoke contact permission. This will prevent the app from accessing your contacts until you re-enable it."
+        description:
+          "You'll be directed to device settings to completely revoke contact permission. This will prevent the app from accessing your contacts until you re-enable it.",
       };
     }
 
     if (pendingToggle.key === "accessPhotos") {
       return {
         title: "Disable Photo Access?",
-        description: "You'll be directed to device settings to completely revoke photo permission. This will prevent the app from accessing your photos until you re-enable it."
+        description:
+          "You'll be directed to device settings to completely revoke photo permission. This will prevent the app from accessing your photos until you re-enable it.",
       };
     }
 
@@ -341,18 +378,20 @@ export default function SettingsScreen() {
         <View style={styles.modalBackground}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{modalContent.title}</Text>
-            <Text style={styles.modalDescription}>{modalContent.description}</Text>
-            
+            <Text style={styles.modalDescription}>
+              {modalContent.description}
+            </Text>
+
             <View style={styles.modalButtonContainer}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]} 
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
                 onPress={cancelToggleChange}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.confirmButton]} 
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton]}
                 onPress={confirmToggleChange}
               >
                 <Text style={styles.confirmButtonText}>Go to Settings</Text>
@@ -365,7 +404,13 @@ export default function SettingsScreen() {
   );
 }
 
-const SettingItem = ({ label, value, onValueChange, subLabel, bottomWidth }: any) => (
+const SettingItem = ({
+  label,
+  value,
+  onValueChange,
+  subLabel,
+  bottomWidth,
+}: any) => (
   <View style={[styles.settingItem, { borderBottomWidth: bottomWidth }]}>
     <View>
       <Text style={styles.settingLabel}>{label}</Text>
@@ -407,8 +452,8 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ddd",
   },
   settingLabel: {
-    width: "95%",
-    fontSize: 16,
+    width: "90%",
+    fontSize: 15,
     fontWeight: "800",
     color: "#111",
   },
