@@ -5,6 +5,7 @@ import {
   updateUserProfile,
   inactivateUserProfile,
   fetchUserProfile,
+  fetchOtherUserProfile,
 } from '../api/profile';
 import {
   CreateUserProfilePayload,
@@ -35,15 +36,17 @@ export const useUserProfile = (userId: string): UseQueryResult<UserProfile, Erro
       setUser(data);
     }
   }, [queryResult.data]);
-  
+
   return queryResult;
 };
 
 //Get Other User Info (Rather than us)
 export const useOtherUserProfile = (userId: string, enable: boolean = true): UseQueryResult<UserProfile, Error> => {
+  const currentUser = useAuthStore((state) => state.userId);
+
   const queryResult = useQuery<UserProfile, Error, UserProfile, [string, string]>({
     queryKey: ['other-user-profile', userId],
-    queryFn: () => fetchUserProfile(userId),
+    queryFn: () => fetchOtherUserProfile(userId, currentUser),
     enabled: enable && !!userId,
   });
 
@@ -51,11 +54,11 @@ export const useOtherUserProfile = (userId: string, enable: boolean = true): Use
     if (queryResult.data) {
       const data = queryResult.data;
     }
-    if(queryResult.error){
+    if (queryResult.error) {
       console.log("error fetching other user info", queryResult.error);
     }
   }, [queryResult.data]);
-  
+
   return queryResult;
 };
 

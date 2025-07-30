@@ -126,8 +126,8 @@ const ChatBubble = ({
   const bubbleRef = useRef<View>(null);
   const isVcard = item.messageType === "VCARD";
 
-  const { data: vbcData } = useGetOtherVbcCard(item.vCardUserId || "");
   const { data: userData } = useOtherUserProfile(item.vCardUserId || "");
+  const { data: vbcData } = useGetOtherVbcCard(item.vCardUserId || "");
 
   const mergedUserData = useMemo(() => {
     if (!userData) return undefined;
@@ -326,18 +326,14 @@ const ChatBubble = ({
             ) : item.messageType === "CONTACTS" ? (
               renderContacts()
             ) : item.messageType === "VCARD" ? (
-              <View style={{ right: 45 }}>
-                <VbcChatCard
-                  vbc={{ ...mergedUserData }}
-                  onVideoPress={() => {}}
-                  onChatPress={() => {}}
-                  onBlockPress={() => {}}
-                  onSharePress={() => {}}
-                  viewShareButton
-                  viewChatButton
-                  viewBlockButton
-                />
-              </View>
+              <VbcChatCard
+                vbc={{ ...mergedUserData }}
+                viewShareButton
+                viewChatButton={
+                  mergedUserData?.status && mergedUserData?.status !== "BLOCKED"
+                }
+                viewBlockButton
+              />
             ) : item.messageType === "DOCUMENT" &&
               item.media &&
               item.media.length > 0 ? (
@@ -722,6 +718,6 @@ const styles = StyleSheet.create({
   timeText: { fontSize: 10, color: "#4D4D4D" },
 
   vcardWrapper: {
-    maxWidth: 250,
+    // maxWidth: 250,
   },
 });

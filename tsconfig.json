@@ -17,5 +17,5 @@
     "**/*.tsx",
     "src/app/(subScreen)/pitchStack/createPitch.tsxx",
     "src/app/(subScreen)/pitchStack/createPitch.tsx"
-  ]
+, "src/components/Share/ShareBottomSheet.jsx"  ]
 }

@@ -26,8 +26,7 @@ import RandomBackgroundImages, {
 import { useAuthStore } from "@/src/store/auth";
 import { useCreateUserProfile } from "@/src/hooks/useProfile";
 import ErrorAlert from "@/src/components/errorAlert";
-import { uploadToCloudinary } from "@/src/api/cloudinary";
-import { uploadFileToS3, uploadToS3 } from "@/src/api/aws";
+import { uploadFileToS3 } from "@/src/api/aws";
 import { FONT } from "@/assets/constants/fonts";
 import {
   industriesChipData,
@@ -223,7 +222,8 @@ export default function ProfileSetup() {
       industriesOfInterest: connectPeople,
       citiesOnRadar: radarCities,
       connectionPreferences: rolesLookingFor,
-      profilePictureUrl: image ?? undefined,
+      profilePictureUrl:
+        image || "https://xsgames.co/randomusers/assets/images/favicon.png",
       allowVbcSharing: shareVBC,
     };
 

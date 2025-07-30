@@ -13,9 +13,9 @@ import {
   StatusBar,
   ActivityIndicator,
 } from "react-native";
-import CustomModal from "./Modal/CustomModal";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomCard from "./Cards/vbcCard";
+import ShareModal from "./Share/ShareBottomSheet";
 import { useRouter } from "expo-router";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import { useConnectionStore } from "../store/connectionStore";
@@ -23,13 +23,18 @@ import { useAuthStore } from "../store/auth";
 import { resolveChatAndNavigate } from "../utility/resolveChatAndNavigate";
 import ConnectionCard from "./Cards/connectionCard";
 import ProfileViewer from "./graidentInfoCard";
-import { useSendConnection } from "../hooks/useConnection";
+import {
+  useCloseConnection,
+  useRemoveCloseConnection,
+  useSendConnection,
+  useUnblockUser,
+} from "../hooks/useConnection";
 import ErrorAlert from "./errorAlert";
 import { VbcCard as VbcCardInterface } from "../interfaces/vbcInterface";
 import { ConnectionUser } from "../interfaces/connectionInterface";
 import { getStableColor } from "../utility/getStableColor";
-import { addCloseCircle } from "../api/connection";
 import { usePitchStore } from "../store/pitchStore";
+import PopUpNotification from "./chatScreenComps/popUpNotification";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
@@ -43,47 +48,56 @@ type UserProfileDataInterface = UserProfileItem[];
 const VbcCard = ({
   spacing,
   profiles,
+  closeVBC,
   onEndReached,
   isLoadingMore,
 }: {
   spacing?: any;
   profiles?: UserProfileDataInterface;
+  closeVBC?: () => void;
   onEndReached?: () => void;
   isLoadingMore?: boolean;
 }) => {
   const router = useRouter();
-  const [addModal, setAddModal] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [isRemoveAction, setIsRemoveAction] = useState(false);
+  const [popupName, setPopupName] = useState("");
   const [blockModal, setBlockModal] = useState(false);
+  const [shareModal, setShareModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [connectionDetailModal, setConnectionDetailModal] = useState(false);
   const connections = useConnectionStore((state) => state.connections);
   const users: UserProfileDataInterface = profiles
     ? profiles
     : connections.filter(
-        (connection) => connection.connection_status !== "BLOCKED"
-      );
+      (connection) => connection.connection_status !== "BLOCKED"
+    );
   const currentUser = useAuthStore((state) => state.user);
   const userId = useAuthStore((s) => s.userId);
   const { mutate: sendConnection } = useSendConnection();
+  const { mutate: unBlockUser } = useUnblockUser();
   const [error, setError] = useState<string | null>();
-  const [loadingPitch, setLoadingPitch] = useState(false);
 
   const handleChatPress = async (user: UserProfile) => {
     await resolveChatAndNavigate({ currentUser, targetUser: user });
   };
 
   const handleSharePress = (user: UserProfile) => {
-    Share.share({ message: `Hey see my VBC card here ${user.full_name}` });
+    setSelectedUser(user);
+    setShareModal(true);
   };
 
-  useEffect(() => {
-    console.log("Users Data", JSON.stringify(users, null, 2));
-
-  }, [users]);
-
-  const handleBlockPress = (user: UserProfile) => {
-    setBlockModal(true);
-    setSelectedUser(user);
+  const handleBlockPress = (user: UserProfileItem) => {
+    if (user.status === "BLOCKED" || user.connection_status === "BLOCKED") {
+      unBlockUser({
+        user_id: userId,
+        blocked_user_id: user.user_id,
+      });
+      closeVBC?.(); // Close parent modal after unblocking
+    } else {
+      setBlockModal(true); // Open block modal
+      setSelectedUser(user); // Set selected user
+    }
   };
 
   const handleProfilePress = (user: UserProfile) => {
@@ -91,15 +105,31 @@ const VbcCard = ({
     setConnectionDetailModal(true);
   };
 
-  const handleBagPress = async (user: UserProfile) => {
-    console.log(user, "bag pressss");
-    const response = await addCloseCircle({
-      user_id: userId,
-      closed_user_id: user.user_id,
-    });
-    console.log(response, "response of the adding to the bag");
+  const { mutate: removeCloseConnection } = useRemoveCloseConnection();
+  const { mutate: addCloseCircle } = useCloseConnection();
+
+  const handleBagPress = async (user: UserProfileItem) => {
+    const isRemoving =
+      user.status === "CLOSE_CONNECTION" ||
+      user.connection_status === "CLOSE_CONNECTION";
+
+    if (isRemoving) {
+      removeCloseConnection({
+        user_id: userId,
+        closed_user_id: user.user_id,
+      });
+    } else {
+      addCloseCircle({
+        user_id: userId,
+        closed_user_id: user.user_id,
+      });
+    }
+
+    setPopupName(user.full_name);
+    setIsRemoveAction(isRemoving);
+    setShowPopup(true);
+
     setSelectedUser(user);
-    setAddModal(true);
   };
 
   const handleSendRequestPress = (receiverId: string) => {
@@ -121,14 +151,12 @@ const VbcCard = ({
     );
   };
 
-  const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
 
   const handlePitchPress = (user) => {
-    setCurrentPitchUser(user);
-    router.push("/pitch");
+
+    router.push({ pathname: "/pitch", params: { pitchId: user.user_id } });
+
   };
-
-
 
   return (
     <>
@@ -180,7 +208,6 @@ const VbcCard = ({
                   onCardPress={() => handleProfilePress(item)}
                   onAddPress={() => handleBlockPress(item)}
                   onConnectPress={handleSendRequestPress}
-
                 />
               ) : (
                 <CustomCard
@@ -188,16 +215,20 @@ const VbcCard = ({
                   name={item.full_name}
                   role={item.job_title || ""}
                   location={item.city || ""}
+                  isBlocked={
+                    item.status === "BLOCKED" ||
+                    item.connection_status === "BLOCKED" ||
+                    false
+                  }
                   backgroundColor={cardColor}
+                  status={item.status || item.connection_status}
                   avatar={{ uri: item.profile_picture_url }}
                   onChatPress={() => handleChatPress(item)}
                   onSharePress={() => handleSharePress(item)}
-                  onAddPress={() => handleBlockPress(item)}
+                  onBlockPress={() => handleBlockPress(item)}
                   onBagPress={() => handleBagPress(item)}
                   onProfilePress={() => handleProfilePress(item)}
                   handlePress={() => handlePitchPress(item)}
-
-
                 />
               )}
             </View>
@@ -209,20 +240,25 @@ const VbcCard = ({
         visible={blockModal}
         blockedUserId={selectedUser?.user_id || ""}
         userName={selectedUser?.full_name || ""}
-        onClose={() => setBlockModal(false)}
+        onClose={() => {
+          setBlockModal(false);
+          closeVBC?.(); // Close parent modal when block modal closes
+        }}
       />
 
+      <PopUpNotification
+        visible={showPopup}
+        onClose={() => setShowPopup(false)}
+        name={popupName}
+        closeFriend={isRemoveAction}
+      />
+
+      {/* Share Modal */}
       {selectedUser && (
-        <CustomModal
-          visible={addModal}
-          onClose={() => setAddModal(false)}
-          name={selectedUser.full_name}
-          onConfirm={() => {
-            Alert.alert("Open Bag", `Bag opened for ${selectedUser.full_name}`);
-            setAddModal(false);
-          }}
-          confirmText="Open Bag"
-          cancelText="Close"
+        <ShareModal
+          visible={shareModal}
+          onClose={() => setShareModal(false)}
+          cardProfile={selectedUser}
         />
       )}
 

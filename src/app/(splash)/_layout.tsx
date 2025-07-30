@@ -15,10 +15,10 @@ export default function StackLayout() {
     if (isCheckingFirstLaunch) return;
 
     const timeout = setTimeout(() => {
-      if (isFirstLaunch) {
-        router.replace("/onboardingScreen");
-      } else if (token && userId) {
+      if (token && userId) {
         router.replace("/connect");
+      } else if (isFirstLaunch) {
+        router.replace("/onboardingScreen");
       } else {
         logout();
         router.replace("/login");

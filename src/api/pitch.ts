@@ -32,7 +32,7 @@ export const createPitch = async (data: PitchFormData): Promise<Pitch> => {
 // Update an existing pitch
 export const updatePitch = async (
   pitchId: string,
-  data: Partial<PitchFormData>
+  data: PitchFormData
 ): Promise<Pitch> => {
 
   const formData = new FormData();

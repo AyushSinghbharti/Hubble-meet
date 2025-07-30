@@ -104,6 +104,12 @@ export const addCloseCircle = async (data: any): Promise<any> => {
     const response = await api.post(`/api/connection/close`, data);
     return response.data;
 };
+
+export const removeCloseCircle = async (data: CloseConnectionRequestBody): Promise<any> => {
+    const response = await api.post(`/api/connection/remove-from-close`, data);
+    return response.data;
+};
+
 export const getCloseCircle = async (data: any): Promise<any> => {
     const response = await api.post(`/api/connection/close-circle`, data);
     return response.data;

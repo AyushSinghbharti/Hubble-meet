@@ -41,7 +41,7 @@ export default function ShareVBCScreen({
   });
   const { mutate: sendMessage, isLoading: sending } = useSendMessage();
   const currentChat = useChatStore((state) => state.currentChat);
-  console.log(JSON.stringify(vbcCards, null, 4))
+  // console.log(JSON.stringify(vbcCards, null, 4))
 
   const handleShare = (vbc: VbcCard) => {
     if (!user || !chatId) return;
@@ -102,7 +102,7 @@ export default function ShareVBCScreen({
           ) : (
             <FlatList
               data={vbcCards.filter(
-                (vbc) => vbc.connection_status === "CONNECTED"
+                (vbc) => vbc.connection_status !== "BLOCKED"
               )}
               keyExtractor={(i) => i.id}
               contentContainerStyle={{ paddingBottom: 32 }}

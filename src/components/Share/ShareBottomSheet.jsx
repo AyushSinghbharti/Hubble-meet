@@ -56,7 +56,7 @@ const ShareModal = ({ visible, onClose, cardProfile }) => {
           CompanyName: cardProfile?.current_company?.[0] || "",
           Location: cardProfile?.city,
           IsDeleted: cardProfile.is_active,
-          AllowSharing: cardProfile?.allow_vbc_sharing ,
+          AllowSharing: cardProfile?.allow_vbc_sharing,
         }
       });
     }
@@ -85,10 +85,13 @@ const ShareModal = ({ visible, onClose, cardProfile }) => {
   };
 
   const filteredUsers = useMemo(() => {
-    return connections?.filter((u) =>
-      u.full_name?.toLowerCase().includes(search.toLowerCase())
+    return connections?.filter(
+      (u) =>
+        u.connection_status !== "BLOCKED" &&
+        u.full_name?.toLowerCase().includes(search.toLowerCase())
     ) || [];
   }, [search, connections]);
+
 
   const renderItem = ({ item }) => {
     const isSelected = selectedUsers.some((u) => u.user_id === item.user_id);
@@ -97,7 +100,7 @@ const ShareModal = ({ visible, onClose, cardProfile }) => {
         style={styles.userColumn}
         onPress={() => handleUserSelect(item)}
       >
-        <Image source={{ uri: item.profile_picture_url }} style={styles.avatar} />
+        <Image source={{ uri: item.profile_picture_url || "https://xsgames.co/randomusers/assets/images/favicon.png" }} style={styles.avatar} />
         <Text style={styles.name}>{item.full_name}</Text>
         {isSelected && (
           <View style={styles.selectedTick}>
@@ -182,7 +185,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    maxHeight: height * 0.8,
+    maxHeight: height * 0.5,
     padding: 20,
   },
   handleBar: {

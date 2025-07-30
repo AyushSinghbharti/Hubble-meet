@@ -14,8 +14,13 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import PopUpNotification from "../../../../components/chatScreenComps/popUpNotification";
 import PopUpOption from "../../../../components/chatScreenComps/popUpOption";
+import ShareModal from "@/src/components/Share/ShareBottomSheet"; // Add this import
 import { UserProfile } from "@/src/interfaces/profileInterface";
-import { resolveChatAndNavigate } from "@/src/utility/resolveChatAndNavigate";
+import {
+  useBlockUser,
+  useCloseConnection,
+  useUnblockUser,
+} from "@/src/hooks/useConnection";
 import { useAuthStore } from "@/src/store/auth";
 
 export default function ViewVBC() {
@@ -23,10 +28,18 @@ export default function ViewVBC() {
   const item: UserProfile = JSON.parse(params.item as string);
   const id = params.id;
   const router = useRouter();
-  const [isCloseFriend, setCloseFriend] = useState(false);
+
+  const [isCloseFriend, setCloseFriend] = useState(
+    item?.status === "CLOSE_CONNECTION" || false
+  );
   const [isVisible, setVisible] = useState(false);
   const [blockPopUp, setBlockPopUp] = useState(false);
+  const [shareModal, setShareModal] = useState(false); // Add share modal state
+  const [isBlocked, setBlocked] = useState(item?.status === "BLOCKED" || false);
 
+  const userId = useAuthStore((s) => s.userId);
+
+  // Update actions to reflect current blocked state
   const actions = [
     { id: "share", label: "Share", icon: "share-2" },
     {
@@ -34,47 +47,131 @@ export default function ViewVBC() {
       label: "Chat",
       icon: "message-square",
       image: require("../../../../../assets/icons/chat2.png"),
+      disabled: isBlocked, // Disable chat if user is blocked
     },
     {
       id: "add",
-      label: "Add to Hubble circle",
+      label: isCloseFriend
+        ? "Remove from Hubble circle"
+        : "Add to Hubble circle",
       icon: "star",
       image: isCloseFriend
-        ? require("../../../../../assets/icons/star.png")
-        : require("../../../../../assets/icons/star2.png"),
+        ? require("../../../../../assets/icons/star2.png")
+        : require("../../../../../assets/icons/star.png"),
+      disabled: isBlocked, // Disable add to circle if user is blocked
     },
     {
       id: "block",
-      label: "Block user",
+      label: isBlocked ? "Unblock user" : "Block user",
       icon: "user-x",
-      image: require("../../../../../assets/icons/block.png"),
+      image: isBlocked
+        ? require("../../../../../assets/icons/unblock.png") // You might need to add an unblock icon
+        : require("../../../../../assets/icons/block.png"),
     },
   ];
 
+  const { mutate: addToCircle } = useCloseConnection();
+  const { mutate: blockUser } = useBlockUser();
+  const { mutate: unBlockUser } = useUnblockUser();
+
+  const handleBlock = () => {
+    if (isBlocked) {
+      // Unblock user
+      unBlockUser(
+        {
+          user_id: userId,
+          blocked_user_id: item.user_id,
+        },
+        {
+          onSuccess: () => {
+            setBlocked(false);
+            console.log("User unblocked successfully");
+          },
+          onError: (error) => {
+            console.error("Failed to unblock user:", error);
+            // Optionally show error message to user
+          },
+        }
+      );
+    } else {
+      // Block user
+      blockUser(
+        {
+          user_id: userId,
+          blocked_user_id: item.user_id,
+        },
+        {
+          onSuccess: () => {
+            setBlocked(true);
+            setCloseFriend(false); // Remove from close friends when blocked
+            console.log("User blocked successfully");
+          },
+          onError: (error) => {
+            console.error("Failed to block user:", error);
+            // Optionally show error message to user
+          },
+        }
+      );
+    }
+    setBlockPopUp(false); // Close the popup
+  };
+
   const operation = ({ option }: { option: string }) => {
-    if (option === "add") {
-      setCloseFriend(!isCloseFriend);
-      setVisible(!isVisible);
+    if (option === "add" && !isBlocked) {
+      addToCircle(
+        { user_id: userId, closed_user_id: item.user_id },
+        {
+          onSuccess: () => {
+            setCloseFriend(!isCloseFriend);
+            setVisible(true); // Show success notification
+          },
+          onError: (error) => {
+            console.error("Failed to update circle status:", error);
+          },
+        }
+      );
     } else if (option === "block") {
-      setBlockPopUp(!blockPopUp);
-    } else if (option === "chat") {
+      setBlockPopUp(true);
+    } else if (option === "chat" && !isBlocked) {
       router.back();
+    } else if (option === "share") {
+      setShareModal(true); // Open share modal
     }
   };
 
   const ActionRow = ({ item }: { item: (typeof actions)[0] }) => (
     <TouchableOpacity
       key={item.id}
-      style={styles.row}
-      activeOpacity={0.6}
-      onPress={() => operation({ option: item.id })}
+      style={[
+        styles.row,
+        item.disabled && styles.disabledRow, // Add disabled style
+      ]}
+      activeOpacity={item.disabled ? 1 : 0.6}
+      onPress={() => !item.disabled && operation({ option: item.id })}
     >
       {item.image ? (
-        <Image source={item.image} style={{ height: 22, width: 22 }} />
+        <Image
+          source={item.image}
+          style={[
+            { height: 22, width: 22 },
+            item.disabled && styles.disabledImage, // Add disabled image style
+          ]}
+        />
       ) : (
-        <Feather name={item.icon as any} size={21} color="#1e1e1e" />
+        <Feather
+          name={item.icon as any}
+          size={21}
+          color={item.disabled ? "#999" : "#1e1e1e"}
+        />
       )}
-      <Text style={styles.rowLabel}>{item.label}</Text>
+      <Text
+        style={[
+          styles.rowLabel,
+          item.disabled && styles.disabledText, // Add disabled text style
+        ]}
+      >
+        {item.label}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -113,6 +210,9 @@ export default function ViewVBC() {
       <Text style={styles.name}>{item.full_name}</Text>
       <Text style={styles.role}>{item.job_title}</Text>
 
+      {/* Show blocked status */}
+      {isBlocked && <Text style={styles.blockedStatus}>Blocked</Text>}
+
       <View style={styles.divider} />
 
       <View>
@@ -124,23 +224,34 @@ export default function ViewVBC() {
       {/* Screen Popups */}
       <PopUpNotification
         visible={isVisible}
-        closeFriend={isCloseFriend}
+        closeFriend={!isCloseFriend}
         onClose={() => {
-          setVisible(!isVisible);
+          setVisible(false);
         }}
         name={item.full_name}
       />
 
       <PopUpOption
         visible={blockPopUp}
-        onClose={() => setBlockPopUp(!blockPopUp)}
-        onSelect={() => {}}
-        message={`Block ${item.full_name}`}
-        description={
-          "Blocked contacts cannot send you message. This contact will not be notified"
+        onClose={() => setBlockPopUp(false)}
+        onSelect={handleBlock}
+        message={
+          isBlocked ? `Unblock ${item.full_name}` : `Block ${item.full_name}`
         }
-        acceptButtonName={"Block"}
-        cancelButtonName={"Cancel"}
+        description={
+          isBlocked
+            ? "This contact will be able to send you messages again"
+            : "Blocked contacts cannot send you message. This contact will not be notified"
+        }
+        acceptButtonName={isBlocked ? "Unblock" : "Block"}
+        cancelButtonName="Cancel"
+      />
+
+      {/* Share Modal */}
+      <ShareModal
+        visible={shareModal}
+        onClose={() => setShareModal(false)}
+        cardProfile={item}
       />
     </Modal>
   );
@@ -181,6 +292,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#000",
   },
+  blockedStatus: {
+    textAlign: "center",
+    fontFamily: "Inter",
+    marginTop: 4,
+    fontSize: 12,
+    color: "#ff4444",
+    fontWeight: "bold",
+  },
 
   /* Divider */
   divider: {
@@ -196,10 +315,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 14,
   },
+  disabledRow: {
+    opacity: 0.5,
+  },
   rowLabel: {
     marginLeft: 16,
     fontSize: 15,
     color: "#000",
     fontFamily: "Inter",
+  },
+  disabledText: {
+    color: "#999",
+  },
+  disabledImage: {
+    opacity: 0.5,
   },
 });

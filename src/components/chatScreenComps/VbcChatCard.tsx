@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,15 +9,23 @@ import {
   Share,
   Pressable,
   Alert,
+  Modal,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { FONT } from "@/assets/constants/fonts";
 import { VbcCard as VbcInterface } from "@/src/interfaces/vbcInterface";
 import { getStableColor } from "@/src/utility/getStableColor";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { useRouter } from "expo-router";
+import { useAuthStore } from "@/src/store/auth";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { lightenColor } from "@/utils/lightenColor";
+import { resolveChatAndNavigate } from "@/src/utility/resolveChatAndNavigate";
+import BlockUserModal from "@/src/components/Modal/BlockUserModal";
+import ErrorAlert from "@/src/components/errorAlert";
+import ShareModal from "../Share/ShareBottomSheet";
+import { useUnblockUser, useBlockUser } from "@/src/hooks/useConnection";
+import { useConnectionStore } from "@/src/store/connectionStore";
 
 type Props = {
   vbc: Partial<VbcInterface> & {
@@ -38,11 +46,6 @@ type Props = {
     allow_vbc_sharing?: boolean;
     color?: string | null;
   };
-  /* same API as ProfileCard */
-  onVideoPress?: () => void;
-  onChatPress?: () => void;
-  onBlockPress?: () => void;
-  onSharePress?: () => void; // optional override
   backgroundColor?: string;
   viewShareButton?: boolean;
   viewChatButton?: boolean;
@@ -52,38 +55,21 @@ type Props = {
 
 const FALLBACK_AVATAR = require("@/assets/icons/profile.png");
 
-const shareProfile = async ({
-  name,
-  title,
-  location,
-}: {
-  name: string;
-  title: string;
-  location: string;
-}) => {
-  try {
-    await Share.share({
-      title: "Share profile",
-      message: `${name} • ${title} • ${location}\nCheck this profile: <link>`,
-    });
-  } catch (e) {
-    console.warn("Share error:", e);
-  }
-};
-
 const VbcChatCard: React.FC<Props> = ({
   vbc,
-  onVideoPress = () => {},
-  onChatPress = () => {},
-  onBlockPress = () => {},
-  onSharePress,
   backgroundColor,
   viewShareButton = true,
   viewChatButton = true,
   viewBlockButton = true,
   style,
 }) => {
+  const [blockModal, setBlockModal] = useState(false);
+  const [shareModal, setShareModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
+
   // ---- resolve fields ----
+  const id = vbc.user_id || vbc.id || "";
   const name =
     vbc.vCardDisplayName ||
     vbc.full_name ||
@@ -96,12 +82,24 @@ const VbcChatCard: React.FC<Props> = ({
   const location = vbc.vCardLocation || vbc.location || (vbc as any).city || "";
   const avatar = vbc.avatarUrl || vbc.profile_picture_url || null;
   const bgColor =
-    backgroundColor || vbc.color || getStableColor(vbc.user_id || "");
-
+    getStableColor(vbc.user_id || "") || backgroundColor || vbc.color;
+  const initialStatus = vbc?.status || "NOT_CONNECTED";
   const showActions = viewShareButton || viewChatButton || viewBlockButton;
 
   const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
+  const setFocusUserId = usePitchStore((state) => state.setFocusUserId);
+  const currentUser = useAuthStore((state) => state.user);
+  const userId = useAuthStore((s) => s.userId);
+  const connections = useConnectionStore((state) => state.connections);
   const router = useRouter();
+
+  // Check if user is blocked from connections store
+  useEffect(() => {
+    const connection = connections.find((conn) => conn.user_id === id);
+    setIsBlocked(
+      connection?.connection_status === "BLOCKED" || initialStatus === "BLOCKED"
+    );
+  }, [connections, id, initialStatus]);
 
   // ---- responsive sizing (chat bubble width) ----
   const { width } = useWindowDimensions();
@@ -115,6 +113,57 @@ const VbcChatCard: React.FC<Props> = ({
   const handleProfilePress = async () => {
     setCurrentPitchUser(vbc);
     router.push("/connect");
+  };
+
+  // Handle video/pitch press - copied from VbcCard.tsx
+  const onVideoPress = () => {
+    setFocusUserId(vbc.user_id); // Set focused user in store
+    router.push("/pitch"); // Navigate WITHOUT params
+  };
+
+  // Handle chat press - copied from VbcCard.tsx
+  const onChatPress = async () => {
+    try {
+      await resolveChatAndNavigate({ currentUser, targetUser: vbc });
+    } catch (error) {
+      console.error("Chat navigation error:", error);
+      setError("Failed to start chat");
+    }
+  };
+
+  // Handle share press - open ShareModal
+  const onSharePress = () => {
+    setShareModal(true);
+  };
+
+  // Handle block press with proper state management
+  const { mutate: unBlock } = useUnblockUser();
+  const { mutate: blockUser } = useBlockUser();
+
+  const onBlockPress = () => {
+    if (isBlocked) {
+      // Unblock user
+      unBlock(
+        { user_id: userId, blocked_user_id: id },
+        {
+          onSuccess: () => {
+            setIsBlocked(false);
+          },
+          onError: (error) => {
+            setError("Failed to unblock user");
+          },
+        }
+      );
+    } else {
+      // Block user via modal
+      setBlockModal(true);
+    }
+  };
+
+  // Handle successful block from modal
+  const handleBlockSuccess = () => {
+    setIsBlocked(true);
+    setBlockModal(false);
   };
 
   const s = useMemo(
@@ -193,79 +242,112 @@ const VbcChatCard: React.FC<Props> = ({
   );
 
   return (
-    <Pressable style={[s.card, style]} onPress={handleProfilePress}>
-      <Image
-        source={avatar ? { uri: avatar } : FALLBACK_AVATAR}
-        style={s.avatar}
+    <>
+      {/* Error Alert */}
+      {error && (
+        <View
+          style={{
+            position: "absolute",
+            top: -50,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+          }}
+        >
+          <ErrorAlert message={error} onClose={() => setError(null)} />
+        </View>
+      )}
+
+      <Pressable style={[s.card, style]} onPress={handleProfilePress}>
+        <Image
+          source={avatar ? { uri: avatar } : FALLBACK_AVATAR}
+          style={s.avatar}
+        />
+
+        <View style={s.body}>
+          <View style={s.header}>
+            <View style={s.textWrap}>
+              <Text style={s.name} numberOfLines={2}>
+                {name}
+              </Text>
+              {!!title && (
+                <Text style={s.title} numberOfLines={1}>
+                  {title}
+                </Text>
+              )}
+              {!!company && (
+                <Text style={s.company} numberOfLines={1}>
+                  {company}
+                </Text>
+              )}
+              {!!location && (
+                <Text style={s.location} numberOfLines={1}>
+                  {location}
+                </Text>
+              )}
+            </View>
+
+            <TouchableOpacity style={s.actionBtn} onPress={onVideoPress}>
+              <Image
+                source={require("@/assets/icons/pitch2.png")}
+                style={{ width: ICON + 4, height: ICON + 4 }}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {showActions && (
+            <View style={s.actions}>
+              {viewChatButton && !isBlocked && (
+                <TouchableOpacity style={s.actionBtn} onPress={onChatPress}>
+                  <Image
+                    source={require("@/assets/icons/chat.png")}
+                    style={{ width: ICON, height: ICON, tintColor: "#000" }}
+                  />
+                </TouchableOpacity>
+              )}
+
+              {viewShareButton && (
+                <TouchableOpacity style={s.actionBtn} onPress={onSharePress}>
+                  <Feather name="share-2" size={ICON} />
+                </TouchableOpacity>
+              )}
+
+              {viewBlockButton && (
+                <TouchableOpacity style={s.actionBtn} onPress={onBlockPress}>
+                  {isBlocked ? (
+                    <Image
+                      source={require("@/assets/icons/unblock.png")}
+                      style={{ width: ICON + 7, height: ICON + 7 }}
+                    />
+                  ) : (
+                    <Image
+                      source={require("@/assets/icons/block2.png")}
+                      style={{ width: ICON, height: ICON }}
+                    />
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </View>
+      </Pressable>
+
+      {/* Block User Modal */}
+      <BlockUserModal
+        visible={blockModal}
+        blockedUserId={vbc.user_id || ""}
+        userName={name}
+        onClose={() => setBlockModal(false)}
+        onBlockSuccess={handleBlockSuccess}
       />
 
-      <View style={s.body}>
-        <View style={s.header}>
-          <View style={s.textWrap}>
-            <Text style={s.name} numberOfLines={2}>
-              {name}
-            </Text>
-            {!!title && (
-              <Text style={s.title} numberOfLines={1}>
-                {title}
-              </Text>
-            )}
-            {!!company && (
-              <Text style={s.company} numberOfLines={1}>
-                {company}
-              </Text>
-            )}
-            {!!location && (
-              <Text style={s.location} numberOfLines={1}>
-                {location}
-              </Text>
-            )}
-          </View>
-
-          <TouchableOpacity style={s.actionBtn} onPress={onVideoPress}>
-            <Image
-              source={require("@/assets/icons/pitch2.png")}
-              style={{ width: ICON + 4, height: ICON + 4 }}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {showActions && (
-          <View style={s.actions}>
-            {viewChatButton && (
-              <TouchableOpacity style={s.actionBtn} onPress={onChatPress}>
-                <Image
-                  source={require("@/assets/icons/chat.png")}
-                  style={{ width: ICON, height: ICON, tintColor: "#000" }}
-                />
-              </TouchableOpacity>
-            )}
-
-            {viewShareButton && (
-              <TouchableOpacity
-                style={s.actionBtn}
-                onPress={
-                  onSharePress
-                    ? onSharePress
-                    : () => shareProfile({ name, title, location })
-                }
-              >
-                <Feather name="share-2" size={ICON} />
-              </TouchableOpacity>
-            )}
-
-            {viewBlockButton && (
-              <TouchableOpacity style={s.actionBtn} onPress={onBlockPress}>
-                <Image
-                  source={require("@/assets/icons/block2.png")}
-                  style={{ width: ICON, height: ICON }}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      </View>
-    </Pressable>
+      {/* Share Modal */}
+      <ShareModal
+        visible={shareModal}
+        onClose={() => setShareModal(false)}
+        cardProfile={vbc}
+      />
+    </>
   );
 };
 
