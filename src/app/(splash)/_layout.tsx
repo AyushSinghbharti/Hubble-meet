@@ -27,8 +27,8 @@ export default function StackLayout() {
 
   //   return () => clearTimeout(timeout);
   // }, [token, userId, user, isFirstLaunch, isCheckingFirstLaunch]);
-
   router.replace("/onboardingScreen");
+
   return (
     <Stack screenOptions={{ headerShown: false }} initialRouteName="index">
       <Stack.Screen name="index" />

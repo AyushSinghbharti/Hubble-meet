@@ -10,17 +10,18 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-
-// IntroCard.tsx
+import { PanGestureHandler, State } from "react-native-gesture-handler";
 
 type IntroCardProps = {
   backgroundImage: any;
   heading: string;
   description: string;
   onNext: () => void;
+  onSwipeNext: () => void;
   index: number;
   currentIndex: number;
   totalSlides: number;
+  isLastSlide: boolean;
 };
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -32,43 +33,70 @@ const IntroCard: React.FC<IntroCardProps> = ({
   index,
   currentIndex,
   totalSlides,
+  onNext,
+  onSwipeNext,
+  isLastSlide,
 }) => {
-  return (
-    <ImageBackground
-      source={backgroundImage}
-      style={[styles.background, { width: SCREEN_WIDTH }]}
-      resizeMode="cover"
-    >
-      <LinearGradient
-        colors={["transparent", "#000000B3", "#000000"]}
-        style={{ flex: 1, width: "100%" }}
-      >
-        <View style={styles.gradientOverlay}>
-          <View style={styles.card}>
-            <Text style={styles.heading}>{heading}</Text>
-            <Text style={styles.description}>{description}</Text>
+  const handleGestureEvent = (event: any) => {
+    const { translationX, velocityX, state } = event.nativeEvent;
 
-            <View style={styles.footer}>
-              <View style={styles.pagination}>
-                {Array.from({ length: totalSlides }).map((_, i) => (
-                  <View
-                    key={i}
-                    style={[styles.dot, currentIndex === i && styles.activeDot]}
-                  />
-                ))}
-              </View>
-              <View style={styles.swipeHint}>
-                <Image
-                  source={require("../../assets/icons/swipe.png")}
-                  style={{ height: 24, width: 24 }}
-                />
-                <Text style={styles.swipeText}>Swipe</Text>
+    // Only handle swipe if this is the active slide
+    if (index !== currentIndex) return;
+
+    // Handle swipe right on any slide
+    if (state === State.END) {
+      // Swipe right (negative translationX means swipe right)
+      if (translationX < -50 || velocityX < -500) {
+        onSwipeNext();
+      }
+    }
+  };
+
+  return (
+    <PanGestureHandler onHandlerStateChange={handleGestureEvent}>
+      <View style={{ width: SCREEN_WIDTH }}>
+        <ImageBackground
+          source={backgroundImage}
+          style={styles.background}
+          resizeMode="cover"
+        >
+          <LinearGradient
+            colors={["transparent", "#000000B3", "#000000"]}
+            style={{ flex: 1, width: "100%" }}
+          >
+            <View style={styles.gradientOverlay}>
+              <View style={styles.card}>
+                <Text style={styles.heading}>{heading}</Text>
+                <Text style={styles.description}>{description}</Text>
+
+                <View style={styles.footer}>
+                  <View style={styles.pagination}>
+                    {Array.from({ length: totalSlides }).map((_, i) => (
+                      <View
+                        key={i}
+                        style={[
+                          styles.dot,
+                          currentIndex === i && styles.activeDot,
+                        ]}
+                      />
+                    ))}
+                  </View>
+                  <View style={styles.swipeHint}>
+                    <Image
+                      source={require("../../assets/icons/swipe.png")}
+                      style={{ height: 24, width: 24 }}
+                    />
+                    <Text style={styles.swipeText}>
+                      {isLastSlide ? "Swipe to Start" : "Swipe"}
+                    </Text>
+                  </View>
+                </View>
               </View>
             </View>
-          </View>
-        </View>
-      </LinearGradient>
-    </ImageBackground>
+          </LinearGradient>
+        </ImageBackground>
+      </View>
+    </PanGestureHandler>
   );
 };
 
@@ -89,9 +117,15 @@ const styles = StyleSheet.create({
     height: 288,
     marginBottom: 45,
     padding: 20,
-    paddingBottom: 0,
     backgroundColor: "#1E1E1E",
     borderRadius: 20,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "auto",
+    marginBottom: 12,
   },
   heading: {
     fontSize: 25,
@@ -104,15 +138,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#FFFFFF80",
   },
-  footer: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 25,
-  },
   swipeText: {
-    fontSize: 14,
+    fontSize: 16,
+    marginLeft: 3,
     color: "#BBCF8D",
     fontFamily: "InterMedium",
   },

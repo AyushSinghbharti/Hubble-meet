@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  PanGestureHandler,
+  State,
 } from "react-native";
 import IntroCard from "../../components/introCard";
 import { StatusBar } from "expo-status-bar";
@@ -45,16 +47,34 @@ export default function OnboardingScreen() {
     router.replace("/login");
   };
 
-  const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const index = Math.round(e.nativeEvent.contentOffset.x / width);
-    setCurrentIndex(index);
-  };
-
   const handleNext = () => {
     if (currentIndex < screenInfo.length - 1) {
-      flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
     } else {
+      // User is on last slide and pressed next
       router.replace("/login");
+    }
+  };
+
+  const handleSwipeNext = () => {
+    if (currentIndex === screenInfo.length - 1) {
+      // User swiped right on last slide
+      router.replace("/login");
+    } else {
+      handleNext();
+    }
+  };
+
+  const handleMomentumScrollEnd = (
+    e: NativeSyntheticEvent<NativeScrollEvent>
+  ) => {
+    const offsetX = e.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(offsetX / width);
+
+    if (newIndex !== currentIndex) {
+      setCurrentIndex(newIndex);
     }
   };
 
@@ -66,7 +86,6 @@ export default function OnboardingScreen() {
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       )}
-
       <FlatList
         ref={flatListRef}
         horizontal
@@ -80,12 +99,15 @@ export default function OnboardingScreen() {
             heading={item.heading}
             description={item.description}
             onNext={handleNext}
+            onSwipeNext={handleSwipeNext}
             index={index}
             currentIndex={currentIndex}
             totalSlides={screenInfo.length}
+            isLastSlide={index === screenInfo.length - 1}
           />
         )}
-        onMomentumScrollEnd={handleScrollEnd}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        scrollEventThrottle={16}
         getItemLayout={(_, index) => ({
           length: width,
           offset: width * index,
