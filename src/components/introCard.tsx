@@ -6,28 +6,37 @@ import {
   ImageBackground,
   TouchableOpacity,
   Image,
+  Dimensions,
 } from "react-native";
-import { AntDesign, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import colourPalette from "../theme/darkPaletter";
+
+// IntroCard.tsx
 
 type IntroCardProps = {
-  backgroundImage: any; // should be the imported image module, not a string path
+  backgroundImage: any;
   heading: string;
   description: string;
   onNext: () => void;
+  index: number;
+  currentIndex: number;
+  totalSlides: number;
 };
+
+const SCREEN_WIDTH = Dimensions.get("window").width;
 
 const IntroCard: React.FC<IntroCardProps> = ({
   backgroundImage,
   heading,
   description,
-  onNext,
+  index,
+  currentIndex,
+  totalSlides,
 }) => {
   return (
     <ImageBackground
       source={backgroundImage}
-      style={styles.background}
+      style={[styles.background, { width: SCREEN_WIDTH }]}
       resizeMode="cover"
     >
       <LinearGradient
@@ -38,10 +47,23 @@ const IntroCard: React.FC<IntroCardProps> = ({
           <View style={styles.card}>
             <Text style={styles.heading}>{heading}</Text>
             <Text style={styles.description}>{description}</Text>
-            <View style={{flex: 1, justifyContent: "flex-end"}}>
-              <TouchableOpacity style={styles.nextButton} onPress={onNext}>
-                <AntDesign name="right" size={24} color="black" />
-              </TouchableOpacity>
+
+            <View style={styles.footer}>
+              <View style={styles.pagination}>
+                {Array.from({ length: totalSlides }).map((_, i) => (
+                  <View
+                    key={i}
+                    style={[styles.dot, currentIndex === i && styles.activeDot]}
+                  />
+                ))}
+              </View>
+              <View style={styles.swipeHint}>
+                <Image
+                  source={require("../../assets/icons/swipe.png")}
+                  style={{ height: 24, width: 24 }}
+                />
+                <Text style={styles.swipeText}>Swipe</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -56,44 +78,62 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
   },
   gradientOverlay: {
     flex: 1,
     justifyContent: "flex-end",
     alignItems: "center",
-    elevation: 5,
-    shadowColor: "white",
   },
   card: {
     width: "90%",
     height: 288,
-    margin: 20,
     marginBottom: 45,
     padding: 20,
+    paddingBottom: 0,
     backgroundColor: "#1E1E1E",
     borderRadius: 20,
-    elevation: 15,
-    shadowColor: "white",
   },
   heading: {
     fontSize: 25,
     fontFamily: "InterBold",
-    // color: "#000",
-    color: colourPalette.textPrimary,
+    color: "#BBCF8D",
     marginBottom: 10,
   },
   description: {
     fontFamily: "InterMedium",
     fontSize: 13,
-    color: colourPalette.textSecondary,
+    color: "#FFFFFF80",
   },
-  nextButton: {
+  footer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 25,
+  },
+  swipeText: {
+    fontSize: 14,
+    color: "#BBCF8D",
+    fontFamily: "InterMedium",
+  },
+  pagination: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dot: {
+    height: 6,
+    width: 6,
+    borderRadius: 3,
+    backgroundColor: "#FFF",
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    width: 30,
     backgroundColor: "#BBCF8D",
-    alignSelf: "flex-end",
-    justifyContent: "flex-end",
-    marginTop: 20,
-    padding: 14,
-    borderRadius: 50,
+  },
+  swipeHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
 });

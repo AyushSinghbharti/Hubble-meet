@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   StyleSheet,
-  Animated,
   Dimensions,
   Text,
-  Touchable,
+  FlatList,
   TouchableOpacity,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from "react-native";
 import IntroCard from "../../components/introCard";
 import { StatusBar } from "expo-status-bar";
@@ -37,70 +38,60 @@ const screenInfo = [
 
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState<number | null>(null);
+  const flatListRef = useRef<FlatList>(null);
   const router = useRouter();
-
-  const translateX = useRef(new Animated.Value(0)).current;
-
-  const handleNext = () => {
-    if (currentIndex < screenInfo.length - 1) {
-      setNextIndex(currentIndex + 1);
-
-      translateX.setValue(width);
-
-      Animated.timing(translateX, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        setCurrentIndex(currentIndex + 1);
-        setNextIndex(null);
-      });
-    } else {
-      router.replace("/login");
-    }
-  };
 
   const handleSkip = () => {
     router.replace("/login");
   };
 
+  const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const index = Math.round(e.nativeEvent.contentOffset.x / width);
+    setCurrentIndex(index);
+  };
+
+  const handleNext = () => {
+    if (currentIndex < screenInfo.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
+    } else {
+      router.replace("/login");
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* Current Card */}
       <StatusBar style="light" />
-      <View style={StyleSheet.absoluteFill}>
-        {currentIndex < 3 && (
-          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-            <Text style={styles.skipText}>Skip</Text>
-          </TouchableOpacity>
-        )}
-        <IntroCard
-          backgroundImage={screenInfo[currentIndex].backgroundImage}
-          heading={screenInfo[currentIndex].heading}
-          description={screenInfo[currentIndex].description}
-          onNext={handleNext}
-        />
-      </View>
-
-      {/* Next Card Sliding In */}
-      {nextIndex !== null && (
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              transform: [{ translateX }],
-            },
-          ]}
-        >
-          <IntroCard
-            backgroundImage={screenInfo[nextIndex].backgroundImage}
-            heading={screenInfo[nextIndex].heading}
-            description={screenInfo[nextIndex].description}
-            onNext={handleNext}
-          />
-        </Animated.View>
+      {currentIndex < screenInfo.length - 1 && (
+        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
       )}
+
+      <FlatList
+        ref={flatListRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        data={screenInfo}
+        keyExtractor={(_, i) => i.toString()}
+        renderItem={({ item, index }) => (
+          <IntroCard
+            backgroundImage={item.backgroundImage}
+            heading={item.heading}
+            description={item.description}
+            onNext={handleNext}
+            index={index}
+            currentIndex={currentIndex}
+            totalSlides={screenInfo.length}
+          />
+        )}
+        onMomentumScrollEnd={handleScrollEnd}
+        getItemLayout={(_, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+      />
     </View>
   );
 }
@@ -109,7 +100,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  skipButton: { position: "absolute", top: 45, zIndex: 2, right: 24 },
+  skipButton: {
+    position: "absolute",
+    top: 45,
+    zIndex: 2,
+    right: 24,
+  },
   skipText: {
     color: "#fff",
     fontFamily: "InterSemiBold",
