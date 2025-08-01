@@ -18,6 +18,7 @@ type IntroCardProps = {
   description: string;
   onNext: () => void;
   onSwipeNext: () => void;
+  onSwipePrevious: () => void;
   index: number;
   currentIndex: number;
   totalSlides: number;
@@ -35,6 +36,7 @@ const IntroCard: React.FC<IntroCardProps> = ({
   totalSlides,
   onNext,
   onSwipeNext,
+  onSwipePrevious,
   isLastSlide,
 }) => {
   const handleGestureEvent = (event: any) => {
@@ -43,11 +45,15 @@ const IntroCard: React.FC<IntroCardProps> = ({
     // Only handle swipe if this is the active slide
     if (index !== currentIndex) return;
 
-    // Handle swipe right on any slide
+    // Handle swipe gestures when user releases
     if (state === State.END) {
       // Swipe right (negative translationX means swipe right)
       if (translationX < -50 || velocityX < -500) {
         onSwipeNext();
+      }
+      // Swipe left (positive translationX means swipe left)
+      else if (translationX > 50 || velocityX > 500) {
+        onSwipePrevious();
       }
     }
   };

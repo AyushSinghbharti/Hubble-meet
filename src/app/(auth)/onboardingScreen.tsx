@@ -8,9 +8,8 @@ import {
   TouchableOpacity,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  PanGestureHandler,
-  State,
 } from "react-native";
+import { PanGestureHandler, State } from "react-native-gesture-handler";
 import IntroCard from "../../components/introCard";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
@@ -58,6 +57,14 @@ export default function OnboardingScreen() {
     }
   };
 
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      const prevIndex = currentIndex - 1;
+      setCurrentIndex(prevIndex);
+      flatListRef.current?.scrollToIndex({ index: prevIndex, animated: true });
+    }
+  };
+
   const handleSwipeNext = () => {
     if (currentIndex === screenInfo.length - 1) {
       // User swiped right on last slide
@@ -65,6 +72,10 @@ export default function OnboardingScreen() {
     } else {
       handleNext();
     }
+  };
+
+  const handleSwipePrevious = () => {
+    handlePrevious();
   };
 
   const handleMomentumScrollEnd = (
@@ -100,6 +111,7 @@ export default function OnboardingScreen() {
             description={item.description}
             onNext={handleNext}
             onSwipeNext={handleSwipeNext}
+            onSwipePrevious={handleSwipePrevious}
             index={index}
             currentIndex={currentIndex}
             totalSlides={screenInfo.length}
