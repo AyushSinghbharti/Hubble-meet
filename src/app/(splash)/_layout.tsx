@@ -11,23 +11,22 @@ export default function StackLayout() {
   const user = useAuthStore((state) => state.user);
   const { isFirstLaunch, isCheckingFirstLaunch } = useAppState();
 
-  // useEffect(() => {
-  //   if (isCheckingFirstLaunch) return;
+  useEffect(() => {
+    if (isCheckingFirstLaunch) return;
 
-  //   const timeout = setTimeout(() => {
-  //     if (token && userId) {
-  //       router.replace("/connect");
-  //     } else if (isFirstLaunch) {
-  //       router.replace("/onboardingScreen");
-  //     } else {
-  //       logout();
-  //       router.replace("/login");
-  //     }
-  //   }, 3000);
+    const timeout = setTimeout(() => {
+      if (token && userId) {
+        router.replace("/connect");
+      } else if (isFirstLaunch) {
+        router.replace("/onboardingScreen");
+      } else {
+        logout();
+        router.replace("/login");
+      }
+    }, 3000);
 
-  //   return () => clearTimeout(timeout);
-  // }, [token, userId, user, isFirstLaunch, isCheckingFirstLaunch]);
-  router.replace("/onboardingScreen");
+    return () => clearTimeout(timeout);
+  }, [token, userId, user, isFirstLaunch, isCheckingFirstLaunch]);
 
   return (
     <Stack screenOptions={{ headerShown: false }} initialRouteName="index">
