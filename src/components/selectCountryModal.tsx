@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -7,7 +7,11 @@ import {
   Text,
   Image,
   StyleSheet,
+  TextInput,
+  Dimensions,
+  Pressable,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import countryData from "../dummyData/countryData";
 
 type Country = {
@@ -21,15 +25,23 @@ type SelectCountryModalProps = {
   visible: boolean;
   onClose: () => void;
   onSelect: (country: Country) => void;
-  position: { x: number; y: number };
 };
+
+const { width, height } = Dimensions.get("window");
 
 const SelectCountryModal: React.FC<SelectCountryModalProps> = ({
   visible,
   onClose,
   onSelect,
-  position,
 }) => {
+  const [search, setSearch] = useState("");
+
+  const filteredData = countryData.filter(
+    (item) =>
+      item.name.toLowerCase().includes(search.toLowerCase()) ||
+      item.dial_code.includes(search)
+  );
+
   const renderItem = ({ item }: { item: Country }) => (
     <TouchableOpacity
       style={styles.item}
@@ -40,27 +52,49 @@ const SelectCountryModal: React.FC<SelectCountryModalProps> = ({
     >
       <Image source={{ uri: item.flag }} style={styles.flag} />
       <Text style={styles.name}>{item.name}</Text>
+      <Text style={styles.code}>{item.dial_code}</Text>
     </TouchableOpacity>
   );
 
   return (
-    <Modal visible={visible} animationType="fade" transparent>
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
-        <View
-          style={[
-            styles.modalContainer,
-            { top: position?.y + 40, left: position.x - 10, position: "absolute" },
-          ]}
-        >
+    <Modal visible={visible} animationType="slide" transparent>
+      <Pressable style={styles.overlay} onPress={onClose}>
+        {/* X Button */}
+        <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+          <View style={styles.closeCircle}>
+            <Ionicons name="close-outline" size={34} color="black" />
+          </View>
+        </TouchableOpacity>
+
+        {/* Bottom Modal */}
+        <View style={styles.bottomContainer}>
+          {/* Search */}
+          <View style={styles.searchContainer}>
+            <Ionicons
+              name="search"
+              size={24}
+              color="#fff"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              placeholder="Search"
+              placeholderTextColor="#FFF"
+              value={search}
+              onChangeText={setSearch}
+              style={styles.searchInput}
+            />
+          </View>
+
+          {/* List */}
           <FlatList
-            data={countryData}
+            data={filteredData}
             keyExtractor={(item) => item.code}
             renderItem={renderItem}
             keyboardShouldPersistTaps="handled"
-            style={{ maxHeight: 300 }}
+            showsVerticalScrollIndicator={false}
           />
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </Modal>
   );
 };
@@ -68,45 +102,68 @@ const SelectCountryModal: React.FC<SelectCountryModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
+    justifyContent: "flex-end",
+    paddingBottom: 0,
   },
-  modalContainer: {
-    width: "92%",
-    maxHeight: 350,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-
+  closeBtn: {
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  closeCircle: {
+    width: 50,
+    height: 50,
+    marginBottom: 10,
+    backgroundColor: "#D3F36B",
+    borderRadius: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bottomContainer: {
+    width: "100%",
+    backgroundColor: "#1E1E1E",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 16,
+    maxHeight: height * 0.45,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2C2C2E",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    color: "#fff",
+    fontSize: 16,
   },
   item: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    borderBottomColor: "#eee",
+    paddingVertical: 12,
+    borderBottomColor: "#333",
     borderBottomWidth: 1,
   },
   flag: {
-    width: 32,
-    height: 24,
-    marginRight: 12,
+    width: 28,
+    height: 20,
+    marginRight: 14,
     borderRadius: 4,
   },
   name: {
+    flex: 1,
+    color: "#fff",
     fontSize: 16,
   },
-  closeBtn: {
-    marginTop: 10,
-    alignSelf: "center",
-    padding: 10,
-    backgroundColor: "#eee",
-    borderRadius: 6,
-  },
-  closeText: {
+  code: {
     fontSize: 16,
-    color: "#333",
+    color: "#ccc",
   },
 });
 
