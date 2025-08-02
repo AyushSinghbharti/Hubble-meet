@@ -4,9 +4,9 @@ const colourPalette = {
   backgroundSecondary: "#1E1E1E",
 
   buttonPrimary: "#BBCF8D",
-  buttonPrimaryDisabled: "#D0D0D0",
+  buttonPrimaryDisabled: "#66704F",
   buttonPrimaryBorder: "#BBCF8D",
-  buttonPrimaryBorderDisabled: "#D0D0D0",
+  buttonPrimaryBorderDisabled: "#66704F",
 
   buttonSecondary: "#F97316",
   buttonSecondaryDisabled: "#92400E",

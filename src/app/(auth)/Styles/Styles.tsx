@@ -82,10 +82,9 @@ export const loginStyles = StyleSheet.create({
   },
   loginBtn: {
     elevation: 5,
-    shadowColor: "white",
     borderWidth: 1,
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 90,
     alignItems: "center",
     marginBottom: 35,
   },
@@ -103,6 +102,7 @@ export const loginStyles = StyleSheet.create({
   },
   signupLink: {
     fontFamily: "InterBold",
+    textDecorationLine: "underline",
   },
   orContainer: {
     flexDirection: "row",

@@ -225,7 +225,7 @@ export default function Login() {
   };
 
   return (
-    <RandomBackgroundImages style={styles.container}>
+    <RandomBackgroundImages style={styles.container} type="SemiDark">
       <Image
         source={require("../../../assets/logo/logo2.png")}
         style={styles.logo}
@@ -290,26 +290,20 @@ export default function Login() {
               borderColor: phoneNumber
                 ? colourPalette.buttonPrimaryBorder
                 : colourPalette.buttonPrimaryBorderDisabled,
+              shadowColor: phoneNumber
+                ? colourPalette.buttonPrimary
+                : colourPalette.buttonPrimaryDisabled,
             },
           ]}
           onPress={handleLogin}
         >
-          <Text
-            style={[
-              styles.loginText,
-              {
-                color: phoneNumber ? "#000" : "#64748B",
-              },
-            ]}
-          >
-            Verify
-          </Text>
+          <Text style={[styles.loginText]}>Verify</Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
 
       <TouchableOpacity onPress={handleSignup} style={styles.signupText}>
         <Text style={styles.signupText}>
-          Don’t have an account? <Text style={styles.signupLink}>Sign up</Text>
+          Don’t have an account? <Text style={styles.signupLink}>Register</Text>
         </Text>
       </TouchableOpacity>
 

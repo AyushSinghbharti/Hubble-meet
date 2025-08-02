@@ -1,4 +1,10 @@
-import React, { ReactNode, useEffect, useState, useImperativeHandle, forwardRef } from "react";
+import React, {
+  ReactNode,
+  useEffect,
+  useState,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import {
   View,
   StyleSheet,
@@ -39,47 +45,49 @@ const gradientColour: {
 } = {
   Dark: ["transparent", "#00000033", "#00000040", "#000000", "#000000"],
   Light: ["#00000066", "#00000033", "#00000040", "#00000066", "#000000E6"],
-  SemiDark: ["#000000CC", "#00000033", "#000000"],
+  SemiDark: ["#000000CC", "#02020233", "#000000"],
   none: ["transparent", "transparent"],
 };
 
-const RandomBackgroundImages = forwardRef<RandomBGImagesRef, RandomBGImages>(({
-  children,
-  style,
-  type = "Light",
-  blur = 0,
-}, ref) => {
-  const [backgroundImageNumber, setBackgroundImageNumber] = useState(0);
+const RandomBackgroundImages = forwardRef<RandomBGImagesRef, RandomBGImages>(
+  ({ children, style, type = "Light", blur = 0 }, ref) => {
+    const [backgroundImageNumber, setBackgroundImageNumber] = useState(0);
 
-  // Initialize with random image
-  useEffect(() => {
-    const imageNumber = Math.floor(Math.random() * backgroundImages.length);
-    setBackgroundImageNumber(imageNumber);
-  }, []);
+    // Initialize with random image
+    useEffect(() => {
+      const imageNumber = Math.floor(Math.random() * backgroundImages.length);
+      setBackgroundImageNumber(imageNumber);
+    }, []);
 
-  // Expose newImage function through ref
-  useImperativeHandle(ref, () => ({
-    newImage: () => {
-      setBackgroundImageNumber(prev => (prev + 1) % backgroundImages.length);
-    }
-  }));
+    // Expose newImage function through ref
+    useImperativeHandle(ref, () => ({
+      newImage: () => {
+        setBackgroundImageNumber(
+          (prev) => (prev + 1) % backgroundImages.length
+        );
+      },
+    }));
 
-  return (
-    <ImageBackground
-      resizeMode="cover"
-      source={backgroundImages[backgroundImageNumber]}
-      style={CompStyles.container}
-      blurRadius={blur}
-    >
-      <StatusBar style="light" />
-      <LinearGradient colors={gradientColour[type]} style={{flex: 1, width: "100%"}}>
-        <LinearGradient colors={gradientColour["SemiDark"]} style={style}>
-          {children}
+    return (
+      <ImageBackground
+        resizeMode="cover"
+        source={backgroundImages[backgroundImageNumber]}
+        style={CompStyles.container}
+        blurRadius={blur}
+      >
+        <StatusBar style="light" />
+        <LinearGradient
+          colors={gradientColour[type]}
+          style={{ flex: 1, width: "100%" }}
+        >
+          <LinearGradient colors={gradientColour["SemiDark"]} style={style}>
+            {children}
+          </LinearGradient>
         </LinearGradient>
-      </LinearGradient>
-    </ImageBackground>
-  );
-});
+      </ImageBackground>
+    );
+  }
+);
 
 const CompStyles = StyleSheet.create({
   container: {
