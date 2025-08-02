@@ -5,9 +5,11 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  Modal,
   ImageBackground,
   ImageSourcePropType,
   KeyboardAvoidingView,
+  Dimensions,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
@@ -17,7 +19,6 @@ import { useRouter } from "expo-router";
 import TermDetailModal from "../../components/termDetailModal";
 import colourPalette from "../../theme/darkPaletter";
 import { LinearGradient } from "expo-linear-gradient";
-import { loginStyles as styles } from "./Styles/Styles";
 import ManualBlur from "../../components/BlurComp";
 import RandomBackgroundImages from "../../components/RandomBGImage";
 import { useSignup, useSocialLogin } from "../../hooks/useAuth";
@@ -25,60 +26,59 @@ import { SocialUserPayload, useSocialAuth } from "@/src/hooks/useSocialAuth";
 import { fetchUserProfile } from "@/src/api/profile";
 import { useAuthStore } from "@/src/store/auth";
 
-type Country = {
-  name: string;
-  flag: string;
-  code: string;
-  dial_code: string;
+const GOOGLE_ICON = "https://img.icons8.com/color/512/google-logo.png";
+const APPLE_ICON = "https://img.icons8.com/ios-filled/512/mac-os.png";
+const MICROSOFT_ICON = "https://img.icons8.com/color/512/microsoft.png";
+
+type Props = {
+  visible: boolean;
+  onClose: () => void;
 };
 
-const GOOGLE_ICON = "https://img.icons8.com/color/512/google-logo.png";
-const FACEBOOK_ICON =
-  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSy0dDdi3KJgMq_87aJt9us_0yh69ewaKgUzg&s";
+const defaultCountry = {
+  code: "IN",
+  name: "India",
+  dial_code: "+91",
+  flag: "https://flagcdn.com/w2560/in.png",
+};
 
-export default function SignUp() {
+const { width } = Dimensions.get("window");
+
+const RegisterModal = ({ visible, onClose }: Props) => {
   const router = useRouter();
-  const [phoneNumber, setPhoneNumber] = useState<string>("");
-  const [termAccept, toogleTerm] = useState<boolean>(false);
-  const [email, setEmail] = useState<string>("");
-  const [selectedFlag, setSelectedFlag] = useState<Country>({
-    code: "IN",
-    name: "India",
-    dial_code: "+91",
-    flag: "https://flagcdn.com/w2560/in.png",
-  });
-  const [termModalVisible, setTermModalVisible] = useState(false);
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedFlag, setSelectedFlag] = useState(defaultCountry);
+  const [termAccept, toggleTerm] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [termModalVisible, setTermModalVisible] = useState(false);
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef<View>(null);
   const [error, setError] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
-  const { mutate: signup, isPending } = useSignup();
+  const { mutate: signup } = useSignup();
   const { mutate: socialLogin } = useSocialLogin();
-  const { signInWithGoogle, loading } = useSocialAuth();
+  const { signInWithGoogle } = useSocialAuth();
+  const setUser = useAuthStore((s) => s.setUser);
 
   const handleSignUp = () => {
-    if (!termAccept) {
-      setError("Please accept the Terms & Conditions to proceed");
-      setTermModalVisible(!modalVisible);
-      return;
-    }
     if (!email) {
-      setError("Email is required");
       setEmailError(true);
+      setError("Email is required");
       return;
     }
     if (!phoneNumber) {
-      setError("Phone number is required");
       setPhoneError(true);
+      setError("Phone number is required");
       return;
     }
 
     signup(
-      { phone: selectedFlag.dial_code + phoneNumber, email: email },
+      { phone: selectedFlag.dial_code + phoneNumber, email },
       {
         onSuccess: (res) => {
+          onClose();
           router.push({
             pathname: "/otpVerify",
             params: {
@@ -89,90 +89,19 @@ export default function SignUp() {
           });
         },
         onError: (err: any) => {
-          console.log(err);
-          setError(
-            err?.response?.data?.message || "Login failed. Please try again"
-          );
+          setError(err?.response?.data?.message || "Signup failed");
         },
       }
     );
   };
 
-  const handleLogin = () => {
-    router.replace("/login");
-  };
-
-  const handleAgreeTerm = () => {
-    setTermModalVisible(false);
-    toogleTerm(true);
-  };
-
   const handleTermLogic = () => {
-    if (!termAccept) {
-      setTermModalVisible(!termModalVisible);
-    } else {
-      toogleTerm(!termAccept);
-    }
+    if (!termAccept) setTermModalVisible(true);
+    else toggleTerm(false);
   };
-
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<SocialUserPayload | null>(
-    null
-  );
-  const setUser = useAuthStore((s) => s.setUser);
-
-  useEffect(() => {
-    const fetchProfileAndNavigate = async () => {
-      if (!userId) return;
-      try {
-        const profile = await fetchUserProfile(userId);
-        if (profile) {
-          setUser(profile);
-          router.replace("/connect");
-        } else {
-          setUser({
-            email: userProfile?.email,
-            profile_picture_url: userProfile?.photoURL || undefined,
-            full_name: userProfile?.displayName || "",
-            phone: userProfile?.phoneNumber || "",
-          });
-          router.push("/profileSetup");
-        }
-      } catch (err: any) {
-        const status = err?.response?.status;
-
-        if (status === 404) {
-          setUser({
-            email: userProfile?.email,
-            profile_picture_url: userProfile?.photoURL || undefined,
-            full_name: userProfile?.displayName || "",
-            phone: userProfile?.phoneNumber || "",
-          });
-
-          router.push("/profileSetup");
-        } else {
-          console.error("Failed to fetch user profile after social login", err);
-          setError("Failed to complete login. Please try again.");
-        }
-      }
-    };
-
-    fetchProfileAndNavigate();
-  }, [userId]);
 
   const handleGoogleButtonPress = async () => {
-    if (!termAccept) {
-      setError("Please accept the Terms & Conditions to proceed");
-      setTermModalVisible(!modalVisible);
-      return;
-    }
-
-    setUserId(null);
-    setUserProfile(null);
     const payload = await signInWithGoogle();
-    const currentUser = payload;
-    console.log("payload", JSON.stringify(payload, null, 4));
-
     socialLogin(
       {
         provider: "google",
@@ -181,221 +110,334 @@ export default function SignUp() {
       },
       {
         onSuccess: async (res) => {
-          setUserId(res.user.id);
-          setUserProfile(currentUser);
+          const profile = await fetchUserProfile(res.user.id);
+          if (profile) {
+            setUser(profile);
+            router.replace("/connect");
+          } else {
+            setUser(payload);
+            router.push("/profileSetup");
+          }
         },
-        onError: (err: any) => {
-          console.log(err);
-          setError(
-            err?.response?.data?.message || "Login failed. Please try again"
-          );
+        onError: () => {
+          setError("Social signup failed");
         },
       }
     );
   };
 
   return (
-    <RandomBackgroundImages
-      style={[
-        styles.container,
-        { justifyContent: "flex-end", paddingBottom: 65 },
-      ]}
+    <Modal
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+      transparent
     >
-      <Image
-        source={require("../../../assets/logo/logo2.png")}
-        style={styles.logoAbsolute}
-      />
+      <KeyboardAvoidingView behavior="padding" style={styles.modalWrapper}>
+        <View style={styles.modalContainer}>
+          {error && <ErrorAlert message={error} onClose={() => setError("")} />}
 
-      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
+          {/* Register Header */}
+          <Text style={styles.registerHeader}>Register</Text>
 
-      <KeyboardAvoidingView behavior="padding" style={styles.form}>
-        <ManualBlur
-          style={[
-            styles.emailContainer,
-            styles.phoneInput,
-            {
-              flex: 0,
-              borderColor: emailError
-                ? colourPalette.errorButton
-                : colourPalette.inputBorder,
-            },
-          ]}
-        >
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Email"
-            placeholderTextColor="#fff"
-            keyboardType="email-address"
-            style={[styles.phoneText, { flex: 1 }]}
-          />
-        </ManualBlur>
+          {/* Email Input */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={email}
+              onChangeText={(t) => {
+                setEmail(t);
+                setEmailError(false);
+              }}
+              placeholder="Email ID"
+              placeholderTextColor="#FFF"
+              keyboardType="email-address"
+              style={styles.textInput}
+            />
+          </View>
 
-        <View style={[styles.phoneContainer, { marginBottom: 20 }]}>
-          <ManualBlur style={styles.flagBox}>
+          {/* Phone Input Row */}
+          <View style={styles.phoneContainer}>
             <TouchableOpacity
-              onPress={() => {
-                flagBoxRef.current?.measureInWindow((x, y, width, height) => {
+              style={styles.flagBox}
+              onPress={() =>
+                flagBoxRef.current?.measureInWindow((x, y) => {
                   setFlagBoxPosition({ x, y });
                   setModalVisible(true);
-                });
-              }}
+                })
+              }
             >
-              <View
-                ref={flagBoxRef}
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-around",
-                  alignItems: "center",
-                }}
-              >
+              <View ref={flagBoxRef} style={styles.flagContent}>
                 <Image
                   source={{ uri: selectedFlag.flag }}
                   style={styles.flagIcon}
                 />
                 <Text style={styles.countryCode}>{selectedFlag.dial_code}</Text>
-                <FontAwesome name="chevron-down" size={12} color="#fff" />
+                <FontAwesome name="chevron-down" size={12} color="#9CA3AF" />
               </View>
             </TouchableOpacity>
-          </ManualBlur>
-          <ManualBlur
-            style={[
-              styles.phoneInput,
-              {
-                borderColor: phoneError
-                  ? colourPalette.errorButton
-                  : colourPalette.inputBorder,
-              },
-            ]}
-          >
-            <TextInput
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              placeholder="Phone number"
-              placeholderTextColor="#fff"
-              keyboardType="phone-pad"
-              style={[styles.phoneText]}
-            />
-          </ManualBlur>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            paddingTop: 8,
-            marginBottom: 20,
-          }}
-        >
+
+            <View style={styles.phoneInputContainer}>
+              <TextInput
+                value={phoneNumber}
+                onChangeText={(t) => {
+                  setPhoneNumber(t);
+                  setPhoneError(false);
+                }}
+                placeholder="Phone Number"
+                placeholderTextColor="#FFF"
+                keyboardType="phone-pad"
+                style={styles.textInput}
+              />
+            </View>
+          </View>
+
+          {/* Terms Text */}
+          <View style={styles.termsContainer}>
+            <Text style={styles.termsText}>
+              By continuing, you agree to our{" "}
+              <Text
+                style={styles.linkText}
+                onPress={() => setTermModalVisible(true)}
+              >
+                Privacy Policy
+              </Text>{" "}
+              and{" "}
+              <Text
+                style={styles.linkText}
+                onPress={() => setTermModalVisible(true)}
+              >
+                Terms of Service
+              </Text>
+            </Text>
+          </View>
+
+          {/* Verify Button */}
           <TouchableOpacity
-            onPress={handleTermLogic}
             style={[
-              styles.termCheckBox,
+              styles.verifyButton,
               {
-                backgroundColor: !termAccept
-                  ? colourPalette.surface
-                  : colourPalette.buttonTritary,
+                backgroundColor:
+                  phoneNumber && email
+                    ? colourPalette.buttonPrimary
+                    : colourPalette.buttonPrimaryDisabled,
               },
             ]}
+            onPress={handleSignUp}
           >
-            {termAccept && <FontAwesome name="check" size={16} color="#fff" />}
+            <Text style={styles.verifyButtonText}>Verify</Text>
           </TouchableOpacity>
-          <Text
-            style={styles.termFont}
-            onPress={() => setTermModalVisible(!termModalVisible)}
-          >
-            I agree with{" "}
-            <Text
-              style={{
-                textDecorationLine: "underline",
-                fontFamily: "InterBold",
-              }}
-            >
-              Private Policy{" "}
+
+          {/* Divider */}
+          <View style={styles.orContainer}>
+            <View style={styles.line} />
+            <Text style={styles.orText}>
+              Or <Text style={styles.signupBold}>Signup</Text> with
             </Text>
-            and{" "}
-            <Text
-              style={{
-                textDecorationLine: "underline",
-                fontFamily: "InterBold",
-              }}
+            <View style={styles.line} />
+          </View>
+
+          {/* Social Login Buttons */}
+          <View style={styles.socialContainer}>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={handleGoogleButtonPress}
             >
-              Terms and Conditions
+              <Image source={{ uri: GOOGLE_ICON }} style={styles.socialIcon} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialButton}>
+              <FontAwesome name="apple" size={24} color="#000" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialButton}>
+              <Image
+                source={{ uri: MICROSOFT_ICON }}
+                style={styles.socialIcon}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Footer */}
+          <View style={styles.footerContainer}>
+            <Text style={styles.footerText}>
+              Already have an account?{" "}
+              <Text style={styles.loginLink} onPress={onClose}>
+                Login
+              </Text>
             </Text>
-          </Text>
+          </View>
+
+          {/* Modals */}
+          <SelectCountryModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            onSelect={(flag) => {
+              setSelectedFlag(flag);
+              setModalVisible(false);
+            }}
+          />
+
+          <TermDetailModal
+            visible={termModalVisible}
+            onClose={() => setTermModalVisible(false)}
+            onAgree={() => {
+              toggleTerm(true);
+              setTermModalVisible(false);
+            }}
+          />
         </View>
-
-        <TouchableOpacity
-          style={[
-            styles.loginBtn,
-            {
-              marginBottom: 20,
-              backgroundColor:
-                phoneNumber && termAccept && email
-                  ? colourPalette.buttonPrimary
-                  : colourPalette.buttonPrimaryDisabled,
-              borderColor:
-                phoneNumber && termAccept && email
-                  ? colourPalette.buttonPrimaryBorder
-                  : colourPalette.buttonPrimaryBorderDisabled,
-            },
-          ]}
-          onPress={handleSignUp}
-        >
-          <Text
-            style={[
-              styles.loginText,
-              {
-                color: phoneNumber && termAccept && email ? "#000" : "#64748B",
-              },
-            ]}
-          >
-            Verify
-          </Text>
-        </TouchableOpacity>
       </KeyboardAvoidingView>
-
-      <Text style={styles.signupText} onPress={handleLogin}>
-        Already have an account? <Text style={styles.signupLink}>Log In</Text>
-      </Text>
-
-      <View style={[styles.orContainer]}>
-        <View style={styles.line} />
-        <Text style={styles.orText}>
-          Or <Text style={styles.orBold}>Signup</Text> with
-        </Text>
-        <View style={styles.line} />
-      </View>
-
-      <View style={styles.socialContainer}>
-        <TouchableOpacity
-          style={styles.iconBtn}
-          onPress={handleGoogleButtonPress}
-        >
-          <Image source={{ uri: GOOGLE_ICON }} style={styles.icon} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn}>
-          <FontAwesome name="apple" size={24} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn}>
-          <Image source={{ uri: FACEBOOK_ICON }} style={styles.icon} />
-        </TouchableOpacity>
-      </View>
-
-      {/*Modal*/}
-      <SelectCountryModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onSelect={(code) => {
-          setSelectedFlag(code);
-          setModalVisible(false);
-        }}
-        position={flagBoxPosition}
-      />
-
-      <TermDetailModal
-        visible={termModalVisible}
-        onClose={() => setTermModalVisible(!termModalVisible)}
-        onAgree={handleAgreeTerm}
-      />
-    </RandomBackgroundImages>
+    </Modal>
   );
-}
+};
+
+export default RegisterModal;
+
+const styles = StyleSheet.create({
+  modalWrapper: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  modalContainer: {
+    backgroundColor: "#1E1E1E",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    width: "100%",
+  },
+  registerHeader: {
+    fontSize: 18,
+    color: "#FFFFFF",
+    marginBottom: 24,
+    fontFamily: "InterSemiBold",
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  textInput: {
+    backgroundColor: "#4B4B4B",
+    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: "#FFFFFF",
+    fontFamily: "InterRegular",
+    borderWidth: 1,
+    borderColor: "#6B7280",
+  },
+  phoneContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+    gap: 8,
+  },
+  flagBox: {
+    backgroundColor: "#4B4B4B",
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+    minWidth: 75,
+    borderWidth: 1,
+    borderColor: "#6B7280",
+  },
+  flagContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  flagIcon: {
+    width: 18,
+    height: 13,
+    resizeMode: "contain",
+  },
+  countryCode: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontFamily: "InterMedium",
+    marginRight: 2,
+  },
+  phoneInputContainer: {
+    flex: 1,
+  },
+  termsContainer: {
+    marginBottom: 20,
+  },
+  termsText: {
+    color: "#D1D5DB",
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: "InterRegular",
+  },
+  linkText: {
+    color: "#FFFFFF",
+    textDecorationLine: "underline",
+    fontFamily: "InterMedium",
+  },
+  verifyButton: {
+    paddingVertical: 14,
+    borderRadius: 25,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  verifyButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "600",
+    fontFamily: "InterSemiBold",
+  },
+  orContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#6B7280",
+  },
+  orText: {
+    color: "#D1D5DB",
+    fontSize: 13,
+    marginHorizontal: 12,
+    fontFamily: "InterRegular",
+  },
+  signupBold: {
+    color: "#FFFFFF",
+    fontFamily: "InterSemiBold",
+  },
+  socialContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 16,
+    marginBottom: 24,
+  },
+  socialButton: {
+    backgroundColor: "#FFFFFF",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  socialIcon: {
+    width: 20,
+    height: 20,
+    resizeMode: "contain",
+  },
+  socialButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#000000",
+  },
+  footerContainer: {
+    alignItems: "center",
+  },
+  footerText: {
+    color: "#D1D5DB",
+    fontSize: 14,
+    fontFamily: "InterRegular",
+  },
+  loginLink: {
+    color: "#FFFFFF",
+    fontFamily: "InterSemiBold",
+    textDecorationLine: "underline",
+  },
+});

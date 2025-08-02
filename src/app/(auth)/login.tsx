@@ -23,6 +23,7 @@ import { SocialUserPayload, useSocialAuth } from "@/src/hooks/useSocialAuth";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { fetchUserProfile } from "@/src/api/profile";
 import { useAuthStore } from "@/src/store/auth";
+import RegisterModal from "./signup";
 
 type Country = {
   name: string;
@@ -60,6 +61,8 @@ export default function Login() {
     dial_code: "+91",
     flag: "https://flagcdn.com/w2560/in.png",
   });
+  const [registerVisible, setRegisterVisible] = useState(false);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef<View>(null);
@@ -221,7 +224,7 @@ export default function Login() {
   };
 
   const handleSignup = () => {
-    router.replace("/signup");
+    setRegisterVisible(true);
   };
 
   return (
@@ -331,7 +334,11 @@ export default function Login() {
           setSelectedFlag(code);
           setModalVisible(false);
         }}
-        position={flagBoxPosition}
+      />
+
+      <RegisterModal
+        visible={registerVisible}
+        onClose={() => setRegisterVisible(false)}
       />
     </RandomBackgroundImages>
   );
