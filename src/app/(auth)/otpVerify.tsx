@@ -1,51 +1,125 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
+  Modal,
+  Pressable,
+  Dimensions,
   Image,
-  KeyboardAvoidingView,
 } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
-import { SimpleLineIcons, Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import colourPalette from "../../theme/darkPaletter";
-import RandomBackgroundImages from "../../components/RandomBGImage";
-import ErrorAlert from "../../components/errorAlert";
+import { Ionicons } from "@expo/vector-icons";
 import { useVerifyOTP, useResendOTP } from "../../hooks/useAuth";
+import colourPalette from "@/src/theme/darkPaletter";
+import { FONT } from "@/assets/constants/fonts";
+import { ActivityIndicator } from "react-native-paper";
+import { BlurView } from "expo-blur";
 
-const OtpVerificationUI = () => {
-  const params = useLocalSearchParams();
-  let { phone, res, type } = params;
-  if (Array.isArray(phone)) {
-    phone = phone[0];
-  }
-  const data = JSON.parse(res as string);
+const { width, height } = Dimensions.get("window");
 
-  const router = useRouter();
-  const [error, setError] = useState<String | null>();
-  const [otp, setOTP] = useState<string>();
+interface OtpModalProps {
+  visible: boolean;
+  onClose: () => void;
+  phone: string;
+  type: "login" | "signup";
+  maskedPhone?: string;
+  selectedFlag: any;
+}
+
+const OtpModal: React.FC<OtpModalProps> = ({
+  visible,
+  onClose,
+  phone,
+  selectedFlag,
+  type,
+  maskedPhone = "***38",
+}) => {
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [otp, setOTP] = useState<string>("");
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(30);
+  const [timerExpired, setTimerExpired] = useState(false);
   const { mutate: verifyOTP, isPending } = useVerifyOTP();
   const { mutate: resendOTP } = useResendOTP();
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Initialize timer when modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      startTimer();
+    } else {
+      // Clear timer when modal is closed
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [visible]);
+
+  // Start countdown timer
+  const startTimer = () => {
+    setRemainingTime(30);
+    setTimerExpired(false);
+
+    // Clear existing timer if any
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+
+    timerRef.current = setInterval(() => {
+      setRemainingTime((prevTime) => {
+        if (prevTime <= 1) {
+          setTimerExpired(true);
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+  };
+
+  useEffect(() => {
+    handleVerify();
+  }, [otp]);
 
   const handleVerify = () => {
     if (!otp || otp?.length < 4) {
-      setError("Please Enter valid OTP");
       return;
     }
 
+    const phoneNumber = selectedFlag.dial_code + phone;
+
     verifyOTP(
-      { phone: phone, otp: otp },
+      { phone: phoneNumber, otp: otp },
       {
         onSuccess: (res) => {
-          if (type === "login") router.push("/connect");
-          else router.push("/profileSetup");
+          setOTP("");
+          setError(null);
+          setIsSuccess(true);
+          // Clear timer on successful verification
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
         },
         onError: (err: any) => {
           console.log(err?.response?.data?.message);
           setError(
-            err?.response?.data?.message || "Login failed. Please try again"
+            err?.response?.data?.message ||
+              "Verification failed. Please try again"
           );
         },
       }
@@ -53,158 +127,259 @@ const OtpVerificationUI = () => {
   };
 
   const handleResendOTP = () => {
+    const phoneNumber = selectedFlag.dial_code + phone;
+
     resendOTP(
-      { phone: phone },
+      { phone: phoneNumber },
       {
         onSuccess: (res) => {
-          setError(res.message);
+          setError(null);
+          startTimer();
+          setMessage("OTP sent successfully");
+          setTimeout(() => setMessage(null), 3000);
         },
         onError: (err: any) => {
           console.log(err);
           setError(
-            err?.response?.data?.message || "Login failed. Please try again"
+            err?.response?.data?.message ||
+              "Failed to resend OTP. Please try again"
           );
         },
       }
     );
   };
 
+  const handleClose = () => {
+    setOTP("");
+    setError(null);
+    setIsSuccess(false);
+    setTimerExpired(false);
+    setRemainingTime(30);
+
+    // Clear timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    onClose();
+  };
+
+  // Format time display
+  const formatTime = (seconds: number) => {
+    return `${seconds}s`;
+  };
+
   return (
-    <RandomBackgroundImages style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Image
-          source={require("../../../assets/logo/logo2.png")}
-          style={{ aspectRatio: 31 / 5, width: 248 }}
-        />
-      </View>
-      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
-
-      {/* Main Content */}
-      <KeyboardAvoidingView
-        behavior="height"
-        style={{
-          flex: 1,
-          justifyContent: "flex-end",
-          marginBottom: 140,
-        }}
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={handleClose}
+    >
+      <BlurView
+        experimentalBlurMethod="dimezisBlurView"
+        intensity={10}
+        style={styles.overlay}
       >
-        <Text style={styles.mailText}>
-          Enter the verification code sent to ***38
-        </Text>
-
-        <OtpInput
-          secureTextEntry={false}
-          numberOfDigits={4}
-          focusStickBlinkingDuration={500}
-          theme={{
-            containerStyle: styles.otpContainer,
-            pinCodeContainerStyle: styles.pinCodeContainer,
-            pinCodeTextStyle: styles.pinCodeText,
-          }}
-          onTextChange={(text) => setOTP(text)}
-          autoFocus={false}
-        />
-
-        <TouchableOpacity style={styles.continueBtn} onPress={handleVerify}>
-          <Text style={styles.continueText}>Verify</Text>
-        </TouchableOpacity>
-
-        <View style={styles.resendView}>
-          <Text
-            onPress={handleResendOTP}
-            style={[
-              styles.resendText,
-              {
-                color: colourPalette.textSecondary,
-              },
-            ]}
-          >
-            Didn't receive an OTP?
-          </Text>
-          <TouchableOpacity onPress={handleResendOTP}>
-            <Text
-              style={[
-                styles.resendText,
-                {
-                  // color: "Black",
-                  color: colourPalette.textPrimary,
-                  fontFamily: "InterBold",
-                },
-              ]}
-            >
-              Resend
-            </Text>
+        {/* Bottom OTP Section */}
+        <View style={styles.bottomSection}>
+          {/* Close Button */}
+          <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+            <View style={styles.closeButtonCircle}>
+              <Ionicons name="close" size={24} color="#000" />
+            </View>
           </TouchableOpacity>
+          {/* Message Icon */}
+          <View style={styles.messageIconContainer}>
+            <Image
+              source={require("../../../assets/icons/message.png")}
+              style={{ height: 45, width: 45 }}
+            />
+          </View>
+
+          {/* OTP Content */}
+          <View style={styles.otpContent}>
+            <Text style={styles.instructionText}>
+              Enter the verification code sent to{" "}
+              <Text style={{ fontSize: 16, fontFamily: FONT.SEMIBOLD }}>
+                {maskedPhone}
+              </Text>
+            </Text>
+            <OtpInput
+              secureTextEntry={false}
+              numberOfDigits={4}
+              focusStickBlinkingDuration={500}
+              theme={{
+                containerStyle: styles.otpContainer,
+                pinCodeContainerStyle: [
+                  styles.pinCodeContainer,
+                  error && styles.pinCodeErrorBorder,
+                  isSuccess && styles.pinCodeSuccessBorder,
+                ],
+                pinCodeTextStyle: styles.pinCodeText,
+              }}
+              onTextChange={(text) => setOTP(text)}
+              autoFocus={true}
+            />
+            {error && <Text style={styles.inlineErrorText}>{error}</Text>}
+            {message && <Text style={styles.inlineMessageText}>{message}</Text>}
+            {/* Bottom Row with Timer and Auto Capturing */}
+            <View style={styles.bottomRow}>
+              {timerExpired ? (
+                <>
+                  <Text
+                    style={[styles.resendText, { textDecorationLine: "none" }]}
+                  >
+                    Didn't receive an OTP?
+                  </Text>
+                  <TouchableOpacity onPress={handleResendOTP}>
+                    <Text style={styles.resendText}>Resend</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.timerText}>
+                    Remaining time: {formatTime(remainingTime)}
+                  </Text>
+                  <View style={styles.autoCapturingContainer}>
+                    <View style={styles.autoCapturingDot}>
+                      <ActivityIndicator size={12} color="#4A90E2" />
+                    </View>
+                    <Text style={styles.autoCapturingText}>Auto capturing</Text>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
         </View>
-      </KeyboardAvoidingView>
-    </RandomBackgroundImages>
+      </BlurView>
+    </Modal>
   );
 };
 
-export default OtpVerificationUI;
+export default OtpModal;
 
 const styles = StyleSheet.create({
-  container: {
+  overlay: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 115,
+    justifyContent: "flex-end",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
+  closeButton: {
+    position: "absolute",
+    top: -60,
+    left: "50%",
+    zIndex: 1000,
+  },
+  closeButtonCircle: {
+    width: 45,
+    height: 45,
+    elevation: 10,
+    borderRadius: "100%",
+    backgroundColor: colourPalette.buttonPrimary,
     justifyContent: "center",
-    marginBottom: 28,
+    alignItems: "center",
   },
-  emailText: {
-    color: colourPalette.textPrimary,
-    fontSize: 32,
-    fontFamily: "InterBold",
-    textAlign: "center",
-    marginBottom: 34,
+  bottomSection: {
+    backgroundColor: "#1a1a1a",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 30,
+    paddingBottom: 15,
+    position: "relative",
   },
-  mailText: {
-    color: colourPalette.textSecondary,
+  messageIconContainer: {
+    alignSelf: "center",
+    marginVertical: 5,
+    marginBottom: 20,
+  },
+  otpContent: {
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingBottom: 20,
+  },
+  bottomRow: {
+    // marginTop: height * 0.115,
+    marginTop: 15,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 10,
+  },
+  instructionText: {
+    color: "#FFFFFF",
+    fontSize: 15,
     textAlign: "center",
-    fontSize: 14,
-    fontFamily: "Inter",
     marginBottom: 30,
+    fontFamily: "Inter",
   },
   otpContainer: {
-    marginBottom: 10,
+    marginBottom: 25,
+    justifyContent: "space-around",
   },
   pinCodeContainer: {
-    backgroundColor: "#ffffff4D",
-    width: "18%",
-    aspectRatio: 1,
+    backgroundColor: "#333333",
+    borderWidth: 1,
+    borderColor: "#444444",
+    borderRadius: 8,
+    width: 60,
+    height: 60,
+    marginHorizontal: 8,
   },
   pinCodeText: {
-    color: colourPalette.inputText,
-    fontSize: 32,
+    color: "#FFFFFF",
+    fontSize: 28,
     fontFamily: "InterBold",
   },
-  resendView: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
-  },
-  resendText: {
-    color: colourPalette.inputText,
+  timerText: {
+    color: "#FFF",
     fontSize: 14,
     fontFamily: "Inter",
-    marginLeft: 5,
   },
-  continueBtn: {
-    marginTop: 30,
-    backgroundColor: colourPalette.buttonPrimary,
-    paddingVertical: 14,
-    borderRadius: 8,
+  autoCapturingContainer: {
+    flexDirection: "row",
     alignItems: "center",
   },
-  continueText: {
-    color: "#000",
-    fontFamily: "InterBold",
-    fontSize: 16,
+  autoCapturingDot: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 6,
+  },
+  autoCapturingText: {
+    color: "#4A90E2",
+    fontSize: 14,
+    fontFamily: "Inter",
+  },
+  pinCodeErrorBorder: {
+    borderColor: "red",
+  },
+  inlineErrorText: {
+    color: "red",
+    marginTop: -20,
+    marginBottom: 25,
+    fontFamily: "Inter",
+    fontSize: 13,
+    alignSelf: "flex-start",
+    paddingHorizontal: 20,
+  },
+  inlineMessageText: {
+    color: "#BBCF8D",
+    marginTop: -20,
+    marginBottom: 25,
+    fontFamily: FONT.ITALICMEDIUM,
+    fontSize: 13,
+    alignSelf: "flex-start",
+    paddingHorizontal: 20,
+  },
+  resendText: {
+    fontFamily: "Inter",
+    fontSize: 14,
+    color: "#FFFFFF",
+    textDecorationLine: "underline",
+  },
+  pinCodeSuccessBorder: {
+    borderColor: "#a5ff76",
   },
 });

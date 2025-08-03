@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import countryData from "../dummyData/countryData";
+import { BlurView, ExperimentalBlurMethod } from "expo-blur";
 
 type Country = {
   name: string;
@@ -58,43 +59,49 @@ const SelectCountryModal: React.FC<SelectCountryModalProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <Pressable style={styles.overlay} onPress={onClose}>
-        {/* X Button */}
-        <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-          <View style={styles.closeCircle}>
-            <Ionicons name="close-outline" size={34} color="black" />
-          </View>
-        </TouchableOpacity>
+      <BlurView
+        style={{ flex: 1 }}
+        experimentalBlurMethod="dimezisBlurView"
+        intensity={10}
+      >
+        <Pressable style={styles.overlay} onPress={onClose}>
+          {/* X Button */}
+          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+            <View style={styles.closeCircle}>
+              <Ionicons name="close-outline" size={34} color="black" />
+            </View>
+          </TouchableOpacity>
 
-        {/* Bottom Modal */}
-        <View style={styles.bottomContainer}>
-          {/* Search */}
-          <View style={styles.searchContainer}>
-            <Ionicons
-              name="search"
-              size={24}
-              color="#fff"
-              style={styles.searchIcon}
-            />
-            <TextInput
-              placeholder="Search"
-              placeholderTextColor="#FFF"
-              value={search}
-              onChangeText={setSearch}
-              style={styles.searchInput}
+          {/* Bottom Modal */}
+          <View style={styles.bottomContainer}>
+            {/* Search */}
+            <View style={styles.searchContainer}>
+              <Ionicons
+                name="search"
+                size={24}
+                color="#fff"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                placeholder="Search"
+                placeholderTextColor="#FFF"
+                value={search}
+                onChangeText={setSearch}
+                style={styles.searchInput}
+              />
+            </View>
+
+            {/* List */}
+            <FlatList
+              data={filteredData}
+              keyExtractor={(item) => item.code}
+              renderItem={renderItem}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
             />
           </View>
-
-          {/* List */}
-          <FlatList
-            data={filteredData}
-            keyExtractor={(item) => item.code}
-            renderItem={renderItem}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-      </Pressable>
+        </Pressable>
+      </BlurView>
     </Modal>
   );
 };

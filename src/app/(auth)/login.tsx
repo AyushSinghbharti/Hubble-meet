@@ -24,6 +24,8 @@ import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { fetchUserProfile } from "@/src/api/profile";
 import { useAuthStore } from "@/src/store/auth";
 import RegisterModal from "./signup";
+import OtpModal from "./otpVerify";
+import { ActivityIndicator } from "react-native-paper";
 
 type Country = {
   name: string;
@@ -62,6 +64,7 @@ export default function Login() {
     flag: "https://flagcdn.com/w2560/in.png",
   });
   const [registerVisible, setRegisterVisible] = useState(false);
+  const [viewOtpModal, setOtpModal] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
@@ -204,14 +207,7 @@ export default function Login() {
       { phone: selectedFlag.dial_code + phoneNumber },
       {
         onSuccess: (res) => {
-          router.push({
-            pathname: "/otpVerify",
-            params: {
-              phone: selectedFlag.dial_code + phoneNumber,
-              res: JSON.stringify(res),
-              type: "login",
-            },
-          });
+          setOtpModal(true);
         },
         onError: (err: any) => {
           console.log(err);
@@ -233,8 +229,6 @@ export default function Login() {
         source={require("../../../assets/logo/logo2.png")}
         style={styles.logo}
       />
-      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
-
       <KeyboardAvoidingView behavior="position" style={styles.form}>
         <View style={[styles.phoneContainer]}>
           <ManualBlur style={styles.flagBox}>
@@ -263,26 +257,33 @@ export default function Login() {
               </View>
             </TouchableOpacity>
           </ManualBlur>
-          <ManualBlur
-            style={[
-              styles.phoneInput,
-              {
-                borderColor: error
-                  ? colourPalette.errorButton
-                  : colourPalette.inputBorder,
-              },
-            ]}
-          >
-            <TextInput
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              placeholder="Phone number"
-              placeholderTextColor="#fff"
-              keyboardType="phone-pad"
-              style={[styles.phoneText]}
-            />
-          </ManualBlur>
+          <View style={{ flex: 1 }}>
+            <ManualBlur
+              style={[
+                styles.phoneInput,
+                {
+                  borderColor: error
+                    ? colourPalette.errorButton
+                    : colourPalette.inputBorder,
+                },
+              ]}
+            >
+              <TextInput
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                placeholder="Phone number"
+                placeholderTextColor="#fff"
+                keyboardType="phone-pad"
+                style={[styles.phoneText]}
+              />
+            </ManualBlur>
+          </View>
         </View>
+        {error && (
+          <Text style={{ position: "absolute", top: 45, color: "red" }}>
+            {error}
+          </Text>
+        )}
         <TouchableOpacity
           style={[
             styles.loginBtn,
@@ -298,9 +299,13 @@ export default function Login() {
                 : colourPalette.buttonPrimaryDisabled,
             },
           ]}
-          onPress={handleLogin}
+          onPress={!isPending ? handleLogin : () => {}}
         >
-          <Text style={[styles.loginText]}>Verify</Text>
+          {!isPending ? (
+            <Text style={[styles.loginText]}>Login</Text>
+          ) : (
+            <ActivityIndicator size={"small"} color="#666" />
+          )}
         </TouchableOpacity>
       </KeyboardAvoidingView>
 
@@ -339,6 +344,15 @@ export default function Login() {
       <RegisterModal
         visible={registerVisible}
         onClose={() => setRegisterVisible(false)}
+      />
+
+      <OtpModal
+        visible={viewOtpModal}
+        onClose={() => setOtpModal(false)}
+        selectedFlag={selectedFlag}
+        phone={phoneNumber}
+        type="login"
+        maskedPhone="***38"
       />
     </RandomBackgroundImages>
   );
