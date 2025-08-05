@@ -24,7 +24,7 @@ export default function NavHeader({
   showBackButton = true,
   onBackPress,
   style,
-  mode="light",
+  mode = "light",
 }: NavHeaderProps) {
   const router = useRouter();
 
@@ -36,7 +36,7 @@ export default function NavHeader({
             style={styles.backButton}
             onPress={onBackPress || (() => router.back())}
           >
-            {}
+            { }
             <Ionicons
               name="arrow-back"
               size={24}

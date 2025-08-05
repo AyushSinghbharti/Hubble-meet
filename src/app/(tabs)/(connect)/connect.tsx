@@ -74,6 +74,8 @@ const Connect = () => {
   const user = useAuthStore((s) => s.user);
   const userId = useAuthStore((s) => s.user?.user_id);
   const recommendations = useConnectionStore((s) => s.recommendations);
+  console.log(JSON.stringify(recommendations, null, 2));
+
   const addRecommendation = useConnectionStore((s) => s.addRecommendation);
   const recommendationsId = useConnectionStore((s) => s.recommendationsId);
   const { currentPitchUser, clearCurrentPitchUser } = usePitchStore();
@@ -282,10 +284,9 @@ const Connect = () => {
         visible={undoVisible && rejectedStack.length > 0}
         onClose={() => {
           setUndoVisible(false);
-
         }}
-        imageSource={require("../../../../assets/icons/cross.png")}
-        label="Profile Rejected"
+        name={rejectedStack[0]?.full_name ?? ""}
+        label="Rejected"
         buttonText="Undo"
         viewButton
         onButtonPress={handleUndoReject}

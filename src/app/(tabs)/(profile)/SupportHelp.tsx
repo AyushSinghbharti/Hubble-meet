@@ -6,15 +6,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
-  Switch,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import NavHeader from "../../../components/NavHeader";
-import SupportModal from "../../../components/Modal/SupportModal";
-import Button from "../../../components/Button";
 import { FONT } from "../../../../assets/constants/fonts";
 import { postFeedback } from "@/src/api/connection";
 import { getUserIdFromStorage } from "@/src/store/localStorage";
+import BottomFormModal from "@/src/components/Modal/BottomFormModal";
 
 export default function SettingsScreen() {
   const [supportModalType, setSupportModalType] = useState<
@@ -41,19 +39,18 @@ export default function SettingsScreen() {
 
   const handleSendFeedback = async (message: string) => {
     const userId = await getUserIdFromStorage();
-    console.log(`${supportModalType}: ${message}`);
     const data = {
       message,
       type: supportModalType,
-      userId: userId, // User ID from the logged in user
-    }
-    console.log(data);
+      userId,
+    };
     try {
       await postFeedback(data);
       console.log("Feedback sent successfully");
     } catch (error) {
       console.error("Error sending feedback:", error);
     }
+    setSupportModalType(null);
   };
 
   return (
@@ -75,20 +72,16 @@ export default function SettingsScreen() {
         />
       </View>
 
-      <Text style={styles.sectionHeader}>My App</Text>
-      <View style={styles.card}>
-        <SupportItem label="HubbleMeet Demo" onPress={() => { }} />
-        <Divider />
-        {/* <SupportItem label="Contact Us" onPress={() => {}} /> */}
-      </View>
-
-      <Button label="Save settings" onPress={() => { }} />
-
-      <SupportModal
+      {/* Updated Modal */}
+      <BottomFormModal
         visible={!!supportModalType}
+        title={
+          supportModalType === "problem"
+            ? "Report a problem"
+            : "Feedback & Suggestions"
+        }
         onClose={() => setSupportModalType(null)}
-        onSend={handleSendFeedback}
-        type={supportModalType}
+        onSubmit={handleSendFeedback}
       />
     </ScrollView>
   );
@@ -97,20 +90,18 @@ export default function SettingsScreen() {
 const SupportItem = ({ label, onPress }: any) => (
   <TouchableOpacity style={styles.settingItem} onPress={onPress}>
     <Text style={styles.settingLabel}>{label}</Text>
-    <Ionicons name="chevron-forward" size={20} color="#333" />
+    <Ionicons name="chevron-forward" size={20} color="#BBCF8D" />
   </TouchableOpacity>
 );
 
-const Divider = () => {
-  return (
-    <View
-      style={{
-        borderBottomWidth: 1,
-        borderBottomColor: "#eee",
-      }}
-    />
-  );
-};
+const Divider = () => (
+  <View
+    style={{
+      borderBottomWidth: 1,
+      borderBottomColor: "gray",
+    }}
+  />
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -120,7 +111,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3E3E3E",
   },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: "#1E1E1E",
     borderRadius: 12,
     marginBottom: 16,
     shadowColor: "#000",
@@ -146,19 +137,7 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    fontFamily: FONT.MEDIUM,
-    color: "#111",
-  },
-  button: {
-    backgroundColor: "#000",
-    paddingVertical: 16,
-    alignItems: "center",
-    borderRadius: 12,
-    marginHorizontal: 16,
-  },
-  buttonText: {
+    fontFamily: FONT.MONSERRATMEDIUM,
     color: "#fff",
-    fontSize: 16,
-    fontFamily: FONT.SEMIBOLD,
   },
 });

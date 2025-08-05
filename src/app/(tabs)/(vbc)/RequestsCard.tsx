@@ -36,12 +36,18 @@ const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = height * 0.4;
 const SWIPE_THRESHOLD = 120;
 
+
+
+
+
 interface ProfileCardProps {
   profile: ConnectionRequest;
   setError: any;
   onSwipeComplete: (id: string) => void;
   onAcceptSuccess: (profile: ConnectionRequest) => void; // Changed to pass full profile
 }
+
+
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   profile,
@@ -56,6 +62,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const [isSwiped, setIsSwiped] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
+
+  const requestsFromStore = useConnectionStore((state) => state.requests);
+  const requests = requestsFromStore.length > 0 ? requestsFromStore : dummyRequests;
+
 
   const router = useRouter();
 
@@ -232,7 +242,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   );
 };
 
-const ProfileList = ({}) => {
+const ProfileList = ({ }) => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const [swipedIds, setSwipedIds] = useState<string[]>([]);
@@ -259,14 +269,14 @@ const ProfileList = ({}) => {
     // console.log(selectedProfile, "Selected profile data with all details");
     // ✅ Now you have access to all profile data:
     // selectedProfile.full_name, selectedProfile.job_title, selectedProfile.bio, etc.
-    
+
     setMatchModalVisible(false);
-    
+
     if (selectedProfile) {
-      await resolveChatAndNavigate({ 
-        currentUser: currentUser, 
+      await resolveChatAndNavigate({
+        currentUser: currentUser,
         targetUser: selectedProfile, // ✅ Pass full profile object
-        isRoutingEnable: true 
+        isRoutingEnable: true
       });
     }
   };

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   Image,
@@ -11,92 +10,34 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import NavHeader from "../../../components/NavHeader";
-import { FONT } from "../../../../assets/constants/fonts";
 import Button from "../../../components/Button";
-import { useAuthStore } from "@/src/store/auth";
-import { UserProfile } from "@/src/interfaces/profileInterface";
+import DeleteAccountModal from "@/src/components/DeleteAccountModal";
 
 export default function SettingsScreen() {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const profileData: UserProfile | null = useAuthStore((state) => state.user);
 
-  const phoneNumber = profileData?.phone;
-  const email = profileData?.email;
+  const handleDelete = () => {
+    // TODO: Implement delete logic
+    console.log("Account deleted");
+    setDeleteModalVisible(false);
+  };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.container}>
       <NavHeader title="Account" />
 
-      {/* Avatar */}
-      <View style={styles.avatarContainer}>
-        <Image
-          source={{
-            uri:
-              profileData?.profile_picture_url ||
-              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
-          }}
-          style={styles.avatar}
-        />
-      </View>
-
-      {/* Phone number (read-only) */}
-      <Text style={styles.label}>Phone number</Text>
-      <View style={styles.readOnlyInput}>
-        <Text style={styles.readOnlyPhone}>{phoneNumber}</Text>
-      </View>
-      <Text style={styles.note}>* You can not edit mobile number</Text>
-
-      {/* Email address (read-only) */}
-      <Text style={[styles.label, { marginTop: 24 }]}>Email address</Text>
-      <View style={styles.readOnlyInput}>
-        <Text style={styles.readOnlyEmail}>{email}</Text>
-      </View>
-      <Text style={styles.note}>* You can not edit email address</Text>
-
       {/* Delete account button */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={() => setDeleteModalVisible(true)}
         style={styles.deleteButton}
       >
         <Text style={styles.deleteButtonText}>Delete account</Text>
         <Ionicons name="chevron-forward" size={20} color="#e53935" />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Delete confirmation modal */}
-      <Modal
-        visible={deleteModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDeleteModalVisible(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setDeleteModalVisible(false)}
-        >
-          <View style={styles.modalContent}>
-            <TouchableOpacity
-              onPress={() => setDeleteModalVisible(false)}
-              style={styles.modalClose}
-            >
-              <Ionicons name="close" size={24} color="#000" />
-            </TouchableOpacity>
-            <Image
-              style={styles.trashIcon}
-              source={require("../../../../assets/icons/Delete1.png")}
-            />
-            <Text style={styles.modalTitle}>
-              Thinking about deleting your account?
-            </Text>
-            <Text style={styles.modalText}>
-              Your account will be permanently removed after a 30-day grace
-              period.
-            </Text>
-
-            <Button label="Delete account" onPress={() => {}} width="80%" />
-          </View>
-        </Pressable>
-      </Modal>
-    </ScrollView>
+      <DeleteAccountModal onDelete={() => deleteModalVisible} />
+    </View>
   );
 }
 
@@ -104,48 +45,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#3E3E3E",
-  },
-  content: {
     padding: 20,
-    paddingBottom: 60,
-  },
-  avatarContainer: {
-    alignItems: "center",
-    marginTop: 16,
-    marginBottom: 24,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-  },
-  label: {
-    color: "#fff",
-    fontSize: 14,
-    marginBottom: 6,
-    fontFamily: FONT.MEDIUM,
-  },
-  readOnlyInput: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  readOnlyPhone: {
-    fontSize: 16,
-    color: "rgba(0, 0, 0, 0.5)",
-    fontFamily: FONT.ITALICMEDIUM,
-  },
-  readOnlyEmail: {
-    fontSize: 16,
-    fontFamily: FONT.SEMIBOLD,
-    color: "rgba(0, 0, 0, 0.5)",
-  },
-  note: {
-    color: "#aaa",
-    fontSize: 12,
-    marginTop: 6,
-    fontFamily: FONT.MEDIUM,
+    paddingTop: 60,
   },
   deleteButton: {
     flexDirection: "row",
@@ -156,7 +57,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#ffe0e0",
-    marginTop: 40,
+    marginTop: 20,
   },
   deleteButtonText: {
     color: "#e53935",

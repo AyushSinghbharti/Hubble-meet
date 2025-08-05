@@ -61,7 +61,7 @@ export default function SettingsScreen() {
         style={{
           flex: 1,
           paddingHorizontal: 15,
-          backgroundColor: "#fff",
+          backgroundColor: "#121212",
           marginVertical: 20,
           marginHorizontal: 20,
           borderRadius: 20,
@@ -71,6 +71,7 @@ export default function SettingsScreen() {
       >
         <Text style={styles.sectionHeader}>Notifications</Text>
         <SettingItem
+
           label="New Pending Requests"
           value={toggles.pendingRequests}
           onValueChange={() => toggleSwitch("pendingRequests")}
@@ -113,7 +114,7 @@ export default function SettingsScreen() {
       </View>
 
       <View style={{ alignItems: "center" }}>
-        <Button label="Save settings" onPress={() => {}} width={"90%"} />
+        <Button label="Save settings" onPress={() => { }} width={"90%"} />
       </View>
     </ScrollView>
   );
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    color: "#111",
+    color: "#fff",
   },
   settingSubLabel: {
     fontSize: 12,

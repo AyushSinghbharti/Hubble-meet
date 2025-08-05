@@ -35,6 +35,7 @@ import { ConnectionUser } from "../interfaces/connectionInterface";
 import { getStableColor } from "../utility/getStableColor";
 import { usePitchStore } from "../store/pitchStore";
 import PopUpNotification from "./chatScreenComps/popUpNotification";
+import { FONT } from "@/assets/constants/fonts";
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
@@ -72,6 +73,9 @@ const VbcCard = ({
     : connections.filter(
       (connection) => connection.connection_status !== "BLOCKED"
     );
+
+  console.log("VBC DATA", JSON.stringify(connections, null, 2));
+
   const currentUser = useAuthStore((state) => state.user);
   const userId = useAuthStore((s) => s.userId);
   const { mutate: sendConnection } = useSendConnection();
@@ -180,7 +184,11 @@ const VbcCard = ({
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.user_id}
-        contentContainerStyle={[styles.listContainer, { spacing }]}
+        contentContainerStyle={[
+          styles.listContainer,
+          { spacing },
+          users?.length === 0 && { flex: 1, justifyContent: "center", alignItems: "center" }, // center if empty
+        ]}
         columnWrapperStyle={styles.row}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
@@ -188,6 +196,15 @@ const VbcCard = ({
           isLoadingMore ? (
             <ActivityIndicator style={{ marginVertical: 16 }} size="small" />
           ) : null
+        }
+        ListEmptyComponent={
+          <View style={{ alignItems: "center", marginTop: 50 }}>
+            <Text style={{ color: "#999", fontSize: 16, fontFamily: FONT.MEDIUM }}>
+              You have no Connections yet
+            </Text>
+
+
+          </View>
         }
         renderItem={({ item, index }) => {
           const cardColor = item.color ?? getStableColor(item.user_id);
@@ -214,27 +231,29 @@ const VbcCard = ({
                   id={item.user_id}
                   name={item.full_name}
                   role={item.job_title || ""}
-                  location={item.city || ""}
+                  location={item.city}
                   isBlocked={
                     item.status === "BLOCKED" ||
-                    item.connection_status === "BLOCKED" ||
-                    false
+                    item.connection_status === "BLOCKED"
                   }
-                  backgroundColor={cardColor}
+                  company={item.current_company}
+
+                  cardColor={cardColor}
                   status={item.status || item.connection_status}
                   avatar={{ uri: item.profile_picture_url }}
-                  onChatPress={() => handleChatPress(item)}
-                  onSharePress={() => handleSharePress(item)}
+                  onChat={() => handleChatPress(item)}
+                  onShare={() => handleSharePress(item)}
                   onBlockPress={() => handleBlockPress(item)}
-                  onBagPress={() => handleBagPress(item)}
+                  onHandshake={() => handleBagPress(item)}
                   onProfilePress={() => handleProfilePress(item)}
-                  handlePress={() => handlePitchPress(item)}
+                  onVideo={() => handlePitchPress(item)}
                 />
               )}
             </View>
           );
         }}
       />
+>
 
       <BlockUserModal
         visible={blockModal}

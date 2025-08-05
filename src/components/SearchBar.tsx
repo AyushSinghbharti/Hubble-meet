@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface CustomSearchBarProps {
@@ -17,9 +17,8 @@ const SearchBar: React.FC<CustomSearchBarProps> = ({
 }) => {
   return (
     <View style={styles.row}>
-
       <View style={styles.container}>
-        <Ionicons name="search" size={20} color="#898989" style={styles.icon} />
+        <Ionicons name="search" size={20} color="#BBCF8D" style={styles.icon} />
         <TextInput
           style={styles.input}
           value={value}
@@ -28,6 +27,12 @@ const SearchBar: React.FC<CustomSearchBarProps> = ({
           placeholderTextColor="#898989"
         />
       </View>
+
+
+      <TouchableOpacity style={styles.filterButton} onPress={onFilterPress}>
+        <Image style={{ height: 25, width: 25 }} source={require('../../assets/mage_filter.png')} />
+      </TouchableOpacity>
+
     </View>
   );
 };
@@ -42,10 +47,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#121212',
     borderRadius: 30,
     paddingHorizontal: 12,
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: '#CBD5E1',
   },
   icon: {
@@ -54,15 +59,14 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    fontFamily: "InterMedium",
-    color: '#000',
+    fontFamily: 'InterMedium',
+    color: '#FFFFFF',
   },
   filterButton: {
     marginLeft: 10,
-
+    backgroundColor: '#121212',
     padding: 10,
     borderRadius: 30,
-
 
   },
 });
