@@ -33,21 +33,20 @@ const Setting = () => {
 
       <ScrollView contentContainerStyle={[styles.content]}>
         {/* Section 1 */}
-        <Text style={styles.sectionTitle}>MY DETAILS</Text>
+        <Text style={styles.sectionTitle}></Text>
         <SettingsCard
+          section={'My Details'}
           items={[
-            { label: "Profile", onPress: () => router.push("/Profile1") },
+            { label: "Edit Profile", onPress: () => router.push("/Profile1") },
             {
-              label: "Account",
+              label: "Account Settings",
               onPress: () => router.push("/Account"),
               showArrow: true,
             },
           ]}
         />
-
-        {/* Section 2 */}
-        <Text style={styles.sectionTitle}>OTHER SETTINGS</Text>
         <SettingsCard
+          section={'Other Settings'}
           items={[
             {
               label: "Permissions",
@@ -62,8 +61,9 @@ const Setting = () => {
         />
 
         {/* Section 3 */}
-        <Text style={styles.sectionTitle}>LEGAL</Text>
+        {/* <Text style={styles.sectionTitle}>LEGAL</Text> */}
         <SettingsCard
+          section={'Legal'}
           items={[
             {
               label: "Security & Privacy",
@@ -75,10 +75,10 @@ const Setting = () => {
               showArrow: true,
             },
             {
-              label: "Logout account",
+              label: "Logout",
               onPress: () => setLogoutModalVisible(true),
               showArrow: false,
-              color: "red",
+              color: "#F87171",
             },
           ]}
         />
@@ -132,7 +132,7 @@ export default Setting;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#3E3E3E",
+    backgroundColor: "#121212",
     paddingTop: Platform.OS === "ios" ? 10 : 30,
   },
   content: {

@@ -45,6 +45,15 @@ export default function RootLayout() {
     InterBold: require("../../assets/fonts/Interfont/static/Inter_18pt-Bold.ttf"),
     InterItalicBold: require("../../assets/fonts/Interfont/static/Inter_18pt-BoldItalic.ttf"),
     InterItalic: require("../../assets/fonts/Interfont/Inter-Italic-VariableFont.ttf"),
+    
+    MontserratRegular: require("../../assets/fonts/Montserrat/static/Montserrat-Regular.ttf"),
+    MontserratSemiBold: require("../../assets/fonts/Montserrat/static/Montserrat-SemiBold.ttf"),
+    MontserratBold: require("../../assets/fonts/Montserrat/static/Montserrat-Bold.ttf"),
+    MontserratMedium: require("../../assets/fonts/Montserrat/static/Montserrat-Medium.ttf"),
+    MontserratItalic: require("../../assets/fonts/Montserrat/static/Montserrat-BlackItalic.ttf"),
+    MontserratItalicMedium: require("../../assets/fonts/Montserrat/static/Montserrat-MediumItalic.ttf"),
+    MontserratItalicSemiBold: require("../../assets/fonts/Montserrat/static/Montserrat-SemiBoldItalic.ttf"),
+    MontserratItalicBold: require("../../assets/fonts/Montserrat/static/Montserrat-BoldItalic.ttf"),
     ...FontAwesome.font,
   });
 
@@ -86,7 +95,7 @@ function RootLayoutNav() {
         if (token) {
           setToken(token);
         }
-        if(userId){
+        if (userId) {
           setUserId(userId);
         }
         await checkFirstLaunch();
@@ -104,9 +113,14 @@ function RootLayoutNav() {
 
   return (
     <PaperProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <StatusBar style="light" />
-        <Stack initialRouteName="(splash)">
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#121212" }}>
+        <StatusBar style="dark" />
+        <Stack
+          initialRouteName="(splash)"
+          screenOptions={{
+            contentStyle: { backgroundColor: "#121212" },
+          }}
+        >
           <Stack.Screen name="(splash)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

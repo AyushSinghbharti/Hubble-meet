@@ -1,80 +1,65 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  StatusBar,
-} from "react-native";
+import { View, Text, StyleSheet, StatusBar, Image } from "react-native";
 import colourPalette from "../../theme/darkPaletter";
 import RandomBackgroundImages from "../RandomBGImage";
+import { FONT } from "@/assets/constants/fonts";
 
-const FinalSetupPage: React.FC = () => {
+const FinalSetupPage: React.FC = ({ name }: { name: string }) => {
   return (
     <RandomBackgroundImages
-      type="Dark"
+      type="Light"
+      imageNumber={2}
       blur={5}
       style={{
         flex: 1,
         alignItems: "center",
-        paddingTop: 40,
+        // justifyContent: "center",
+        paddingTop: 100,
       }}
     >
-      <StatusBar barStyle="dark-content" />
-      {/* <SplashScreenSecond /> */}
-      <Image
-        source={require("../../../assets/images/logo.png")}
-        style={{ width: 248, height: 40, marginTop: 50, marginBottom: 205 }}
-      />
-      <Text
-        style={{
-          fontSize: 16,
-          fontFamily: "InterMediumItalic",
-          // color: "#000",
-          color: colourPalette.textPrimary,
-          textAlign: "center",
-          marginBottom: 21,
-        }}
-      >
-        Your profile is 100% ready.
-      </Text>
-      <Text
-        style={{
-          fontSize: 30,
-          fontFamily: "InterMediumItalic",
-          color: "#A3C25B",
-          textAlign: "center",
-        }}
-      >
-        Swipe. Flip. Connect
-      </Text>
+      <StatusBar barStyle="light-content" />
+
+      {/* Main Content Card */}
+      <View style={styles.contentCard}>
+        <Image
+          source={require("@/assets/icons/successCelebrate.png")}
+          style={{ height: 168, width: 202 }}
+        />
+        <Text style={styles.mainTitle}>You're all set</Text>
+        <Text style={styles.userName}>{name || ""}</Text>
+        <Text style={styles.subtitle}>Now go Swipe. Flip. Connect.</Text>
+      </View>
     </RandomBackgroundImages>
   );
 };
 
-const splashButton = {
-  position: "absolute",
-  bottom: 50,
-  alignSelf: "center",
-  width: "90%",
-  height: 50,
-  borderRadius: 8,
-  justifyContent: "center",
-  alignItems: "center",
-};
-
-const splashButtonText = {
-  color: "#fff",
-  fontFamily: "InterSemiBold",
-  fontSize: 16,
-};
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
+  contentCard: {
+    backgroundColor: "#121212",
+    borderRadius: 16,
+    paddingHorizontal: 40,
+    paddingVertical: 60,
     alignItems: "center",
+    marginHorizontal: 20,
+    minWidth: 300,
+  },
+  mainTitle: {
+    fontSize: 24,
+    fontFamily: FONT.MONSERRATMEDIUM,
+    color: "#A3C25B",
+    textAlign: "center",
+  },
+  userName: {
+    fontSize: 24,
+    fontFamily: FONT.MONSERRATITALICMEDIUM,
+    color: "#A3C25B",
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: "InterMedium",
+    color: "rgba(255, 255, 255, 0.7)",
+    textAlign: "center",
   },
 });
 

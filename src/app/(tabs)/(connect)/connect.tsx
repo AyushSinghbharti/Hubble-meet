@@ -5,64 +5,31 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Dimensions,
-  FlatList,
-  TouchableOpacity,
-  ScrollView,
-  ImageBackground,
-} from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  runOnJS,
-  withTiming,
-  interpolate,
-} from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
-import { AntDesign } from "@expo/vector-icons";
+import { View, Dimensions, FlatList } from "react-native";
 import { useRouter } from "expo-router";
 import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
 import logo from "../../../../assets/logo/logo.png";
-import { FONT } from "../../../../assets/constants/fonts";
 import styles from "./Styles/Styles";
-import BlockUserModal from "../../../components/Modal/BlockUserModal";
 import ProfilePrompt from "../../../components/Modal/ProfilePromptModal";
-import ShareModal from "../../../components/Share/ShareBottomSheet";
-import {
-  useAcceptConnection,
-  useSendConnection,
-} from "@/src/hooks/useConnection";
 import { useAuthStore } from "@/src/store/auth";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useConnectionStore } from "@/src/store/connectionStore";
-import { useInAppNotify } from "@/src/hooks/useInAppNotify";
 import { fetchUserProfile } from "@/src/api/profile";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { AxiosError } from "axios";
-import { useAppState } from "@/src/store/appState"; // Import the updated store
-import { MotiView } from "moti";
+import { useAppState } from "@/src/store/appState";
 import ConnectCard from "@/src/components/skeletons/connectCard";
 import ProfileCard from "./ProfileCard";
 
-const { width, height } = Dimensions.get("window");
-const CARD_HEIGHT = height * 0.4;
-const SWIPE_THRESHOLD = width * 0.25;
-const ROTATION_DEGREE = 30;
-const MAX_RIGHT_SWIPES = 10;
 const UNDO_DURATION = 2000; // 2 seconds for undo window
 
 const Connect = () => {
   const [rightSwipeCount, setRightSwipeCount] = useState(0);
-  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null);
+  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [undoVisible, setUndoVisible] = useState(false); // Manage undo alert here
@@ -74,6 +41,7 @@ const Connect = () => {
   const user = useAuthStore((s) => s.user);
   const userId = useAuthStore((s) => s.user?.user_id);
   const recommendations = useConnectionStore((s) => s.recommendations);
+
   const addRecommendation = useConnectionStore((s) => s.addRecommendation);
   const recommendationsId = useConnectionStore((s) => s.recommendationsId);
   const { currentPitchUser, clearCurrentPitchUser } = usePitchStore();
@@ -93,7 +61,6 @@ const Connect = () => {
   useEffect(() => {
     initializeAppState();
   }, [initializeAppState]);
-
 
   useEffect(() => {
     if (!user || typeof user !== "object") {
@@ -115,7 +82,6 @@ const Connect = () => {
       setProfilePromptShown(true);
     }
   }, [user, hasShownProfilePrompt, setProfileComplete, setProfilePromptShown]);
-
 
   useEffect(() => {
     const fetchAndStore = async () => {
@@ -143,20 +109,17 @@ const Connect = () => {
   }, [recommendationsId]);
 
   // New handler for when a profile is rejected (left swipe)
-  const handleProfileRejectSwipe = useCallback(
-    (profile: UserProfile) => {
-      setRejectedStack((prev) => [profile, ...prev]);
-      setUndoVisible(true); // Show the undo alert for the *next* profile
-      if (undoTimeoutRef.current) {
-        clearTimeout(undoTimeoutRef.current);
-      }
-      undoTimeoutRef.current = setTimeout(() => {
-        setUndoVisible(false); // Hide after UNDO_DURATION
-        // No need to call onSwipeComplete here, as it's already called when the card fully animates off
-      }, UNDO_DURATION);
-    },
-    []
-  );
+  const handleProfileRejectSwipe = useCallback((profile: UserProfile) => {
+    setRejectedStack((prev) => [profile, ...prev]);
+    setUndoVisible(true); // Show the undo alert for the *next* profile
+    if (undoTimeoutRef.current) {
+      clearTimeout(undoTimeoutRef.current);
+    }
+    undoTimeoutRef.current = setTimeout(() => {
+      setUndoVisible(false); // Hide after UNDO_DURATION
+      // No need to call onSwipeComplete here, as it's already called when the card fully animates off
+    }, UNDO_DURATION);
+  }, []);
 
   // Called when a swipe completes.
   const handleSwipeComplete = useCallback(
@@ -169,7 +132,6 @@ const Connect = () => {
       if (direction === "right") {
         setRightSwipeCount((prev) => prev + 1);
       } else if (direction === "left") {
-
       }
 
       await addSwipedProfileId(user_id);
@@ -250,7 +212,7 @@ const Connect = () => {
     <View style={styles.container}>
       {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
 
-      <Header logoSource={logo} onSearch={() => { }} />
+      <Header logoSource={logo} onSearch={() => {}} />
 
       <FlatList
         data={visibleProfileData}
@@ -282,10 +244,9 @@ const Connect = () => {
         visible={undoVisible && rejectedStack.length > 0}
         onClose={() => {
           setUndoVisible(false);
-
         }}
-        imageSource={require("../../../../assets/icons/cross.png")}
-        label="Profile Rejected"
+        name={rejectedStack[0]?.full_name ?? ""}
+        label="Rejected"
         buttonText="Undo"
         viewButton
         onButtonPress={handleUndoReject}

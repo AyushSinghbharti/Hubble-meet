@@ -26,6 +26,7 @@ import requestAndSavePermission from "@/utils/requestAndSavePermission";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthStore } from "@/src/store/auth";
 import { useUpdateUserProfile } from "@/src/hooks/useProfile";
+import { FONT } from "@/assets/constants/fonts";
 
 export default function SettingsScreen() {
   const user = useAuthStore((s) => s.user);
@@ -289,13 +290,13 @@ export default function SettingsScreen() {
     const subscription =
       Platform.OS === "ios"
         ? require("react-native").AppState.addEventListener(
-            "change",
-            handleAppStateChange
-          )
+          "change",
+          handleAppStateChange
+        )
         : require("react-native").AppState.addEventListener(
-            "change",
-            handleAppStateChange
-          );
+          "change",
+          handleAppStateChange
+        );
 
     return () => {
       if (subscription?.remove) {
@@ -347,10 +348,12 @@ export default function SettingsScreen() {
 
       <View style={styles.cardContainer}>
         <SettingItem
-          label="Allow Matched Users to Share My VBC"
+          label="Allow VBC "
           value={toggles.shareVBC}
           onValueChange={() => toggleSwitch("shareVBC")}
+          subLabel={<Text>Allow Matched Users to Share Your {'\n'} VBCs to their Connections in the App</Text>}
           bottomWidth={1}
+
         />
         <SettingItem
           label="Access Contacts from Phone"
@@ -417,7 +420,7 @@ const SettingItem = ({
       {subLabel && <Text style={styles.settingSubLabel}>{subLabel}</Text>}
     </View>
     <Switch
-      trackColor={{ false: "#EEEEE", true: "#596C2D" }}
+      trackColor={{ false: "#EEEEE", true: "#BBCF8D" }}
       thumbColor={"#fff"}
       value={value}
       onValueChange={onValueChange}
@@ -433,7 +436,7 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "ios" ? 10 : 30,
   },
   cardContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: "#121212",
     borderRadius: 20,
     padding: 16,
     shadowColor: "#000",
@@ -452,15 +455,14 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ddd",
   },
   settingLabel: {
-    width: "90%",
     fontSize: 15,
-    fontWeight: "800",
-    color: "#111",
+    fontFamily: FONT.MONSERRATMEDIUM,
+    color: "#fff",
   },
   settingSubLabel: {
     fontSize: 12,
-    fontFamily: "Inter",
-    color: "#888",
+    fontFamily: FONT.MONSERRATREGULAR,
+    color: "#fff",
     marginTop: 4,
   },
   button: {

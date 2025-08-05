@@ -194,6 +194,19 @@ const MainCardWrapper = ({
             {Intl.NumberFormat().format(pitch.likes + (isLiked ? 1 : 0))}
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.likeSection} >
+          <Image
+            source={
+
+              require("../../../assets/share.png")
+
+            }
+            style={{ height: 40, width: 30 }}
+          />
+          {/* <Text style={styles.likeCount}>
+            {Intl.NumberFormat().format(pitch.likes + (isLiked ? 1 : 0))}
+          </Text> */}
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={{ zIndex: 2 }}
@@ -258,7 +271,7 @@ const styles = StyleSheet.create({
   cardWrapper: {
     flex: 1,
     marginTop: 18,
-    borderRadius: 20,
+    width: "100%",
     overflow: "hidden",
     backgroundColor: "#e5e7eb",
   },

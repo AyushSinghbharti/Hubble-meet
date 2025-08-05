@@ -24,7 +24,7 @@ export default function VBCScreen() {
   return (
     <View style={styles.container}>
       {selectedTab !== "Requests" && (
-        <View style={{ marginTop: 40 }}>
+        <View style={{ marginTop: 40, width: '100%' }}>
           <SearchBar
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -92,11 +92,10 @@ export default function VBCScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#121212",
     paddingHorizontal: 16,
   },
   tabRow: {
-    backgroundColor: "#fff",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -107,21 +106,21 @@ const styles = StyleSheet.create({
   tabButton: {
     paddingVertical: 10,
     borderRadius: 30,
-    backgroundColor: "#FFF",
+
     justifyContent: "center",
     alignItems: "center",
     flex: 1,
   },
   activeTab: {
-    backgroundColor: "#BBCF8D",
+    backgroundColor: "#1E1E1E",
   },
   tabText: {
-    color: "#111827",
+    color: "#fff",
     fontFamily: "InterSemiBold",
     textAlign: "center",
   },
   activeTabText: {
-    color: "#1F2937",
+    color: "#fff",
   },
   tabWithBadge: {
     gap: 4,

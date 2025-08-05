@@ -21,16 +21,13 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import ProfileCard from "../../components/profileSetupComps/profileCard";
 import FinalSetupPage from "../../components/profileSetupComps/finalScreen";
 import TagDropdown from "../../components/TagDropdown";
-import colourPalette from "../../theme/darkPaletter";
 import RandomBackgroundImages, {
   RandomBGImagesRef,
 } from "../../components/RandomBGImage";
 import { useAuthStore } from "@/src/store/auth";
 import { useCreateUserProfile } from "@/src/hooks/useProfile";
-import ErrorAlert from "@/src/components/errorAlert";
 import { uploadFileToS3 } from "@/src/api/aws";
 import {
   industriesChipData,
@@ -44,6 +41,7 @@ import OtpModal from "./otpVerify";
 import { FONT } from "@/assets/constants/fonts";
 import ProfileSummary from "@/src/components/ProfileSummary";
 import { UserProfile } from "@/src/interfaces/profileInterface";
+import colourPalette from "@/src/theme/darkPaletter";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -151,6 +149,7 @@ const SubChipInput = ({
 };
 
 export default function ProfileSetup() {
+
   const router = useRouter();
 
   // Fetch Local info
@@ -181,6 +180,8 @@ export default function ProfileSetup() {
   const [showEmailVerify, setEmailVerify] = useState(false);
   const [showPhoneVerify, setPhoneVerify] = useState(false);
 
+  const [backgroundImageNumber, setBackgroundImageNumber] = useState(8);
+
   const backgroundRef = useRef<RandomBGImagesRef>(null);
   const translateX = useRef(new Animated.Value(0)).current;
 
@@ -201,21 +202,6 @@ export default function ProfileSetup() {
 
     hideDatePicker();
   };
-
-  const progress = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(progress, {
-      toValue: step,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-
-    const handleChangeBackground = () => {
-      backgroundRef.current?.newImage();
-    };
-
-    handleChangeBackground();
-  }, [step]);
 
   // Swipe gesture handler
   const onGestureEvent = Animated.event(
@@ -293,9 +279,13 @@ export default function ProfileSetup() {
       return;
     }
     setStep((s) => Math.min(5, s + 1));
+    setBackgroundImageNumber((s) => Math.min(12, s + 1));
   };
 
-  const prev = () => setStep((s) => Math.max(0, s - 1));
+  const prev = () => {
+    setStep((s) => Math.max(0, s - 1));
+    setBackgroundImageNumber((s) => Math.max(8, s - 1));
+  };
   const skip = () => setStep(4);
 
   const {
@@ -653,7 +643,7 @@ export default function ProfileSetup() {
       submit();
     }, 3000);
 
-    return <FinalSetupPage />;
+    return <FinalSetupPage name={name} />;
   }
 
   if (step === 5) {
@@ -694,8 +684,9 @@ export default function ProfileSetup() {
     <View style={styles.container}>
       {/* Background Image */}
       <RandomBackgroundImages
+        imageNumber={backgroundImageNumber}
         style={styles.backgroundContainer}
-        blur={5}
+        blur={0}
         type="VeryLight"
         ref={backgroundRef}
       />
@@ -793,6 +784,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    backgroundColor: "#000",
+    opacity: 0.25,
   },
 
   headerContainer: {
@@ -812,7 +805,7 @@ const styles = StyleSheet.create({
 
   greetingText: {
     fontSize: 32,
-    fontFamily: "InterBold",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
     color: "#BBCF8D",
     textShadowColor: "rgba(0, 0, 0, 0.3)",
     textShadowOffset: { width: 1, height: 1 },
@@ -832,7 +825,7 @@ const styles = StyleSheet.create({
 
   topSkipText: {
     color: "#A2BF71",
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATMEDIUM,
     fontSize: 14,
     marginRight: 4,
   },
@@ -860,7 +853,7 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 16,
-    fontFamily: "InterBold",
+    fontFamily: FONT.MONSERRATMEDIUM,
     marginBottom: 12,
     color: "#FFFFFF",
     lineHeight: 22,
@@ -868,14 +861,14 @@ const styles = StyleSheet.create({
 
   miniLabel: {
     fontSize: 14,
-    fontFamily: "InterBold",
+    fontFamily: FONT.MONSERRATITALICMEDIUM,
     marginBottom: 10,
-    color: "#FFFFFF",
+    color: colourPalette.textPrimary,
   },
 
   subLabel: {
     fontSize: 14,
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATITALICMEDIUM,
     color: "rgba(255, 255, 255, 0.7)",
     lineHeight: 20,
   },
@@ -894,7 +887,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.2)",
     borderWidth: 1,
     color: "#FFFFFF",
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATREGULAR,
     fontSize: 16,
   },
 
@@ -906,7 +899,7 @@ const styles = StyleSheet.create({
 
   dateText: {
     color: "#FFFFFF",
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATREGULAR,
     fontSize: 16,
   },
 
@@ -916,7 +909,7 @@ const styles = StyleSheet.create({
 
   helperText: {
     fontSize: 12,
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATITALICMEDIUM,
     color: "rgba(255, 255, 255, 0.6)",
     marginBottom: 8,
     marginTop: -8,
@@ -948,9 +941,9 @@ const styles = StyleSheet.create({
   },
 
   genderText: {
-    color: "#FFFFFF",
-    fontFamily: "InterMedium",
-    fontSize: 14,
+    color: colourPalette.textPrimary,
+    fontFamily: FONT.MONSERRATREGULAR,
+    fontSize: 12,
     flex: 1,
   },
 
@@ -971,7 +964,7 @@ const styles = StyleSheet.create({
 
   bioInput: {
     color: "#FFF",
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATREGULAR,
     fontSize: 14,
     flex: 1,
     textAlignVertical: "top",
@@ -993,8 +986,8 @@ const styles = StyleSheet.create({
 
   enhanceText: {
     color: "#BBCF8D",
+    fontFamily: FONT.MONSERRATREGULAR,
     fontSize: 12,
-    fontFamily: "InterSemiBold",
   },
 
   inputWithButton: {
@@ -1012,7 +1005,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     fontSize: 14,
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATREGULAR,
     color: "#FFF",
   },
 
@@ -1131,22 +1124,6 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
 
-  finishButton: {
-    backgroundColor: "#A2BF71",
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 24,
-    flex: 1,
-    alignItems: "center",
-    marginLeft: 16,
-  },
-
-  finishButtonText: {
-    color: "#000",
-    fontFamily: "InterBold",
-    fontSize: 16,
-  },
-
   subHeadingRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1159,8 +1136,8 @@ const styles = StyleSheet.create({
   },
 
   subLabelBold: {
-    fontFamily: "InterBoldItalic",
-    fontStyle: "italic",
+    fontSize: 12,
+    fontFamily: FONT.MONSERRATREGULAR,
     color: "rgba(255, 255, 255, 0.7)",
   },
 

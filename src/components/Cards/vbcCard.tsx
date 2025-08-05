@@ -1,35 +1,19 @@
-import React, { memo } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   ImageBackground,
   TouchableOpacity,
-  Image,
   Dimensions,
-  Pressable,
+  Image,
 } from "react-native";
-import { Ionicons, Feather, SimpleLineIcons } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 
-interface User {
-  id: string;
-  name: string;
-  role: string;
-  location: string;
-  avatar: any;
-  status: "BLOCKED" | "CLOSE_CONNECTION" | "CONNECTED";
-  isBlocked?: boolean;
-  backgroundColor: string | null;
-}
-
-interface CardProps extends User {
-  onChatPress: () => void;
-  onSharePress: () => void;
-  onBlockPress: () => void; // Updated prop name for clarity
-  onBagPress: () => void;
-  onProfilePress: () => void;
-  handlePress: () => void;
-}
+const { width } = Dimensions.get("window");
+const CARD_GAP = 16;
+const CARD_WIDTH = (width - CARD_GAP * 3) / 2;
+const AVATAR_HEIGHT = 180;
 
 const cardColors = ["#FDF0A6", "#FBC8C9", "#C9FBC8", "#F6F6F6", "#E0EAF3"];
 const iconColorMap: Record<string, string> = {
@@ -47,207 +31,170 @@ const getTextColor = (hex: string): string => {
   const g = (rgb >> 8) & 0xff;
   const b = rgb & 0xff;
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 155 ? "#000" : "#fff";
+  return brightness > 155 ? "#222" : "#fff";
 };
 
-const CustomCard = memo(
-  ({
-    name,
-    role,
-    location,
-    avatar,
-    isBlocked = false,
-    backgroundColor,
-    status,
-    onChatPress,
-    onSharePress,
-    onBlockPress,
-    onBagPress,
-    onProfilePress,
-    handlePress,
-  }: CardProps) => {
-    const bgColor = cardColors[Math.floor(Math.random() * cardColors.length)];
-    const iconBgColor = iconColorMap[backgroundColor || bgColor];
-    const textColor = getTextColor(backgroundColor || bgColor);
-    const iconColor = getTextColor(backgroundColor || iconBgColor);
+interface CardProps {
+  name: string;
+  role: string;
+  company: string[];
+  location: string;
+  avatar: any;
+  cardColor?: string; // Optional to allow external control or random internally
+  onHandshake: () => void;
+  onVideo: () => void;
+  onChat: () => void;
+  onShare: () => void;
+}
 
-    return (
-      <Pressable style={styles.card} onPress={onProfilePress}>
-        <ImageBackground
-          source={avatar}
-          style={styles.imageSection}
-          imageStyle={styles.image}
-        >
-          <View style={styles.topIcons}>
-            <TouchableOpacity style={styles.roundIcon} onPress={onBagPress}>
-              {status === "CLOSE_CONNECTION" ? (
-                <Image
-                  source={require("@/assets/icons/suitcase.png")}
-                  style={{ height: 16, width: 16 }}
-                />
-              ) : (
-                <SimpleLineIcons name="bag" size={13} color="#000" />
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.roundIcon} onPress={handlePress}>
-              <Image
-                source={require("../../../assets/icons/pitch2.png")}
-                style={{ width: 15, height: 24 }}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-          </View>
-        </ImageBackground>
+const Card = ({
+  name,
+  role,
+  company,
+  location,
+  avatar,
+  cardColor,
+  onHandshake,
+  onVideo,
+  onChat,
+  onShare,
+}: CardProps) => {
+  const bgColor = cardColor || cardColors[Math.floor(Math.random() * cardColors.length)];
+  const iconBgColor = iconColorMap[bgColor];
+  const textColor = getTextColor(bgColor);
+  const iconColor = getTextColor(iconBgColor);
 
-        <View
-          style={[
-            styles.bottomSection,
-            { backgroundColor: backgroundColor || bgColor },
-          ]}
-        >
-          <View style={styles.nameRow}>
-            <Text style={[styles.name, { color: textColor }]}>{name}</Text>
-          </View>
-          <Text style={[styles.role, { color: textColor }]}>{role}</Text>
-          <Text style={[styles.location, { color: textColor }]}>
-            {location}
-          </Text>
-
-          <View style={styles.actionIcons}>
-            {/* Chat button - only show if user is not blocked */}
-            {!isBlocked ? (
-              <TouchableOpacity
-                style={[styles.iconButton, { backgroundColor: iconBgColor }]}
-                onPress={onChatPress}
-              >
-                <Ionicons
-                  name="chatbubble-ellipses-outline"
-                  size={15}
-                  color={iconColor}
-                />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[styles.iconButton, { backgroundColor: iconBgColor }]}
-              ></TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={[styles.iconButton, { backgroundColor: iconBgColor }]}
-              onPress={onSharePress}
-            >
-              <Feather name="share-2" size={18} color={iconColor} />
-            </TouchableOpacity>
-
-            {/* Block/Unblock button */}
-            <TouchableOpacity
-              style={[styles.iconButton, { backgroundColor: iconBgColor }]}
-              onPress={onBlockPress}
-            >
-              {isBlocked ? (
-                // Show unblock icon when user is blocked
-                <Image
-                  source={require("../../../assets/icons/unblock.png")} // You'll need to add this icon
-                  style={{ width: 24, height: 24, tintColor: iconColor }}
-                  resizeMode="contain"
-                />
-              ) : (
-                // Show block icon when user is not blocked
-                <Image
-                  source={require("../../../assets/icons/block2.png")}
-                  style={{ width: 15, height: 24, tintColor: iconColor }}
-                  resizeMode="contain"
-                />
-              )}
-            </TouchableOpacity>
-          </View>
+  return (
+    <View style={[styles.card, { backgroundColor: "#181818" }]}>
+      <ImageBackground
+        source={avatar}
+        style={styles.avatar}
+        imageStyle={styles.avatarImg}
+      >
+        <View style={styles.actionIconsTop}>
+          <TouchableOpacity
+            style={[styles.circleBtn, { backgroundColor: "#fff" }]}
+            onPress={onHandshake}
+          >
+            <Image
+              source={require("../../../assets/handshake.png")}
+              style={{ width: 26, height: 26 }}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.circleBtn, { backgroundColor: "#fff" }]} onPress={onVideo}>
+            <Ionicons name="videocam-outline" size={24} color="#2d7d46" />
+          </TouchableOpacity>
         </View>
-      </Pressable>
-    );
-  }
-);
+      </ImageBackground>
 
-CustomCard.displayName = "CustomCard";
-export default CustomCard;
+      <View style={[styles.infoSection, { backgroundColor: bgColor }]}>
+        <Text style={[styles.name, { color: textColor }]}>{name}</Text>
+        <Text style={[styles.role, { color: textColor }]}>{role}</Text>
+        <Text style={[styles.company, { color: textColor }]}>
+          @{company?.join(", ") ?? ""}
+        </Text>
 
-const { width } = Dimensions.get("window");
-const CARD_GAP = 16;
-const CARD_WIDTH = (width - CARD_GAP * 3) / 2;
+        <Text style={[styles.location, { color: textColor }]}>{location}</Text>
+      </View>
+      <View style={[styles.bottomBar, { backgroundColor: "#181818" }]}>
+        <TouchableOpacity
+          style={[styles.bottomBtn]}
+          onPress={onChat}
+        >
+          <Ionicons name="chatbubble-ellipses-outline" size={26} color={'#BBFFBB'} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.bottomBtn]}
+          onPress={onShare}
+        >
+          <Feather name="share-2" size={26} color={'#BBFFBB'} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    overflow: "hidden",
-    backgroundColor: "#fff",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    backgroundColor: "#181818",
     borderRadius: 20,
+    overflow: "hidden",
     marginHorizontal: 4,
+    marginVertical: 8,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
   },
-
-  imageSection: {
-    height: 180,
-    padding: 10,
+  avatar: {
+    width: "100%",
+    height: AVATAR_HEIGHT,
     justifyContent: "space-between",
   },
-
-  image: {
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+  avatarImg: {
+    width: "100%",
+    height: AVATAR_HEIGHT,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
-  topIcons: {
+  actionIconsTop: {
     flexDirection: "row",
     justifyContent: "space-between",
+    padding: 10,
+    position: "absolute",
+    width: "100%",
+    top: 0,
+    zIndex: 2,
   },
-  roundIcon: {
+  circleBtn: {
     backgroundColor: "#fff",
-    width: 28,
-    height: 28,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+    elevation: 2,
   },
-  bottomSection: {
-    padding: 12,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  infoSection: {
+    paddingVertical: 18,
+    paddingHorizontal: 14,
   },
   name: {
+    fontSize: 18,
     fontWeight: "bold",
-    fontSize: 10,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    backgroundColor: "#0f0",
-    borderRadius: 4,
   },
   role: {
-    fontSize: 13,
-    marginTop: 2,
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  company: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginTop: 1,
   },
   location: {
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 15,
+    fontWeight: "bold",
+    marginTop: 5,
   },
-  actionIcons: {
+  bottomBar: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 12,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    height: 54,
+    borderTopWidth: 1,
+    borderTopColor: "#242424",
   },
-  iconButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 20,
+  bottomBtn: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 20,
   },
 });
+
+export default Card;

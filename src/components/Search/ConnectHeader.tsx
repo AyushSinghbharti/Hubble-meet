@@ -103,7 +103,7 @@ const Header = ({ logoSource, onSearch }) => {
             <Feather
               name={searchActive ? "x" : "search"}
               size={20}
-              color="#94A3B8"
+              color="#BBCF8D"
               style={searchActive ? styles.iconExpanded : styles.iconCentered}
             />
           </TouchableOpacity>
@@ -111,7 +111,7 @@ const Header = ({ logoSource, onSearch }) => {
           <TouchableOpacity onPress={onBagPress} style={styles.bagBtn}>
             <Image
               style={{ height: 25, width: 25 }}
-              source={require("../../../assets/icons/briefcase.png")}
+              source={require("../../../assets/bag.png")}
             />
           </TouchableOpacity>
         </View>
@@ -129,20 +129,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#121212",
     position: "relative",
   },
   logoWrapper: {
     position: "absolute",
     left: 0,
     right: 0,
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "center",
     zIndex: 1,
+    marginLeft: 22
   },
   logo: {
     height: 24,
     width: 148,
+
   },
   rightSection: {
     flexDirection: "row",
@@ -152,9 +154,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 2,
     borderRadius: 20,
-    backgroundColor: "#fff",
     zIndex: 5,
   },
   searchExpanded: {
@@ -183,5 +183,6 @@ const styles = StyleSheet.create({
   bagBtn: {
     padding: 6,
     zIndex: 10,
+
   },
 });

@@ -34,6 +34,11 @@ const backgroundImages: ImageSourcePropType[] = [
   require("../../assets/images/backgrounds/bg05.jpg"),
   require("../../assets/images/backgrounds/bg06.jpg"),
   require("../../assets/images/backgrounds/bg07.png"),
+  require("../../assets/images/backgrounds/bg08.png"),
+  require("../../assets/images/backgrounds/bg09.png"),
+  require("../../assets/images/backgrounds/bg10.png"),
+  require("../../assets/images/backgrounds/bg11.png"),
+  require("../../assets/images/backgrounds/bg12.png"),
 ];
 
 const gradientColour: {

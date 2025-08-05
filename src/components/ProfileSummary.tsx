@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { UserProfile } from "../interfaces/profileInterface";
 import QRNotch from "./ProfileQRBackground";
+import { FONT } from "@/assets/constants/fonts";
 
 const { width } = Dimensions.get("window");
 
@@ -66,7 +67,7 @@ const ProfileSummary = ({
         {/* Profile Image with share button overlay */}
         <View style={styles.imageContainer}>
           <Image
-            source={{uri: profile_picture_url}}
+            source={{ uri: profile_picture_url }}
             style={styles.profileImage}
           />
           <TouchableOpacity style={styles.shareButton}>
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: "#fff",
     fontSize: 17,
-    fontWeight: "600",
+    fontFamily: FONT.MONSERRATBOLD,
     marginLeft: 16,
     flex: 1,
   },
@@ -229,17 +230,15 @@ const styles = StyleSheet.create({
   name: {
     color: "#C7F649",
     fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 4,
+    fontFamily: FONT.MONSERRATMEDIUM,
   },
   location: {
-    color: "#8E8E93",
+    color: "#FFF",
     fontSize: 15,
-    marginBottom: 20,
+    fontFamily: FONT.MONSERRATMEDIUM,
+    paddingBottom: 12,
   },
-  gridContainer: {
-    marginBottom: 24,
-  },
+  gridContainer: {},
   gridRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -253,21 +252,25 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     color: "#8E8E93",
+    fontFamily: FONT.MONSERRATMEDIUM,
     fontSize: 13,
     marginBottom: 4,
   },
   infoValue: {
     color: "#FFFFFF",
+    fontFamily: FONT.MONSERRATREGULAR,
     fontSize: 15,
     fontWeight: "500",
   },
   sectionLabel: {
     color: "#8E8E93",
+    fontFamily: FONT.MONSERRATREGULAR,
     fontSize: 15,
     marginBottom: 8,
     marginTop: 20,
   },
   bio: {
+    fontFamily: FONT.MONSERRATMEDIUM,
     color: "#FFFFFF",
     fontSize: 15,
     lineHeight: 22,
@@ -275,6 +278,7 @@ const styles = StyleSheet.create({
   },
   contact: {
     color: "#FFFFFF",
+    fontFamily: FONT.MONSERRATMEDIUM,
     fontSize: 15,
     marginBottom: 4,
   },
@@ -303,13 +307,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#1C1C1E",
+    backgroundColor: "#121212",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 20,
-    paddingBottom: 34, // Safe area for home indicator
+    paddingBottom: 55, // Safe area for home indicator
     borderTopWidth: 1,
     borderTopColor: "#2C2C2E",
   },
@@ -363,6 +367,6 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
 });
