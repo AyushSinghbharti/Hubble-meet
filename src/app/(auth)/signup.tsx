@@ -25,6 +25,7 @@ import { useSignup, useSocialLogin } from "../../hooks/useAuth";
 import { SocialUserPayload, useSocialAuth } from "@/src/hooks/useSocialAuth";
 import { fetchUserProfile } from "@/src/api/profile";
 import { useAuthStore } from "@/src/store/auth";
+import OtpModal from "./otpVerify";
 
 const GOOGLE_ICON = "https://img.icons8.com/color/512/google-logo.png";
 const APPLE_ICON = "https://img.icons8.com/ios-filled/512/mac-os.png";
@@ -52,11 +53,11 @@ const RegisterModal = ({ visible, onClose }: Props) => {
   const [termAccept, toggleTerm] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [termModalVisible, setTermModalVisible] = useState(false);
-  const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
   const flagBoxRef = useRef<View>(null);
   const [error, setError] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
+  const [viewOtpModal, setOtpModal] = useState(false);
   const { mutate: signup } = useSignup();
   const { mutate: socialLogin } = useSocialLogin();
   const { signInWithGoogle } = useSocialAuth();
@@ -78,26 +79,14 @@ const RegisterModal = ({ visible, onClose }: Props) => {
       { phone: selectedFlag.dial_code + phoneNumber, email },
       {
         onSuccess: (res) => {
-          onClose();
-          router.push({
-            pathname: "/otpVerify",
-            params: {
-              phone: selectedFlag.dial_code + phoneNumber,
-              res: JSON.stringify(res),
-              type: "signup",
-            },
-          });
+          setOtpModal(true);
+          console.log(res);
         },
         onError: (err: any) => {
           setError(err?.response?.data?.message || "Signup failed");
         },
       }
     );
-  };
-
-  const handleTermLogic = () => {
-    if (!termAccept) setTermModalVisible(true);
-    else toggleTerm(false);
   };
 
   const handleGoogleButtonPress = async () => {
@@ -159,12 +148,7 @@ const RegisterModal = ({ visible, onClose }: Props) => {
           <View style={styles.phoneContainer}>
             <TouchableOpacity
               style={styles.flagBox}
-              onPress={() =>
-                flagBoxRef.current?.measureInWindow((x, y) => {
-                  setFlagBoxPosition({ x, y });
-                  setModalVisible(true);
-                })
-              }
+              onPress={() => setModalVisible(true)}
             >
               <View ref={flagBoxRef} style={styles.flagContent}>
                 <Image
@@ -285,6 +269,14 @@ const RegisterModal = ({ visible, onClose }: Props) => {
           />
         </View>
       </KeyboardAvoidingView>
+
+      <OtpModal
+        visible={viewOtpModal}
+        onClose={() => setOtpModal(false)}
+        selectedFlag={selectedFlag}
+        phone={phoneNumber}
+        type="signup"
+      />
     </Modal>
   );
 };
@@ -298,8 +290,8 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: "#1E1E1E",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
     paddingHorizontal: 24,
     paddingVertical: 32,
     width: "100%",

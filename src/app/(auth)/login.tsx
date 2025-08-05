@@ -352,7 +352,6 @@ export default function Login() {
         selectedFlag={selectedFlag}
         phone={phoneNumber}
         type="login"
-        maskedPhone="***38"
       />
     </RandomBackgroundImages>
   );

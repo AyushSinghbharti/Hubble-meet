@@ -18,7 +18,7 @@ import { StatusBar } from "expo-status-bar";
 interface RandomBGImages {
   children?: ReactNode;
   style?: ViewStyle | ViewStyle[];
-  type?: "Dark" | "Light" | "SemiDark" | "none";
+  type?: "Dark" | "Light" | "SemiDark" | "VeryLight" | "none";
   blur?: number;
 }
 
@@ -39,11 +39,13 @@ const backgroundImages: ImageSourcePropType[] = [
 
 const gradientColour: {
   Dark: [string, string, string, string, string];
+  VeryLight: [string, string, string, string, string];
   Light: [string, string, string, string, string];
   SemiDark: [string, string, string];
   none: [string, string];
 } = {
   Dark: ["transparent", "#00000033", "#00000040", "#000000", "#000000"],
+  VeryLight: ["#1E1E1E", "transparent", "transparent", "#1E1E1E", "#000000"],
   Light: ["#00000066", "#00000033", "#00000040", "#00000066", "#000000E6"],
   SemiDark: ["#000000CC", "#02020233", "#000000"],
   none: ["transparent", "transparent"],
@@ -80,7 +82,14 @@ const RandomBackgroundImages = forwardRef<RandomBGImagesRef, RandomBGImages>(
           colors={gradientColour[type]}
           style={{ flex: 1, width: "100%" }}
         >
-          <LinearGradient colors={gradientColour["SemiDark"]} style={style}>
+          <LinearGradient
+            colors={
+              type !== "VeryLight" && type !== "none"
+                ? gradientColour["SemiDark"]
+                : gradientColour["none"]
+            }
+            style={style}
+          >
             {children}
           </LinearGradient>
         </LinearGradient>

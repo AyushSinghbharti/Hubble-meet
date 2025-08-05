@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  Modal,
   LayoutChangeEvent,
 } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import colourPalette from "../theme/darkPaletter";
 import { FONT } from "@/assets/constants/fonts";
+import { BlurView } from "expo-blur";
 
 type TagDropdownProps = {
   options: string[];
@@ -18,6 +20,7 @@ type TagDropdownProps = {
   onChange: (tags: string[]) => void;
   placeholder?: string;
   mode?: "Dark" | "Light" | "Transparent";
+  isSingleSelection?: boolean;
 };
 
 export default function TagDropdown({
@@ -25,73 +28,63 @@ export default function TagDropdown({
   selected,
   onChange,
   placeholder = "Add",
-  mode = "Light",
+  mode = "Transparent",
+  isSingleSelection = false,
 }: TagDropdownProps) {
-  const [input, setInput] = useState("");
-  const [inputLayout, setInputLayout] = useState({
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  });
-  const containerRef = useRef<View>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
 
   const handleAddTag = (tag: string) => {
-    if (!selected.includes(tag)) {
-      onChange([...selected, tag]);
+    if (isSingleSelection) {
+      onChange([tag]);
+    } else {
+      if (!selected.includes(tag)) {
+        onChange([...selected, tag]);
+      }
     }
-    setInput("");
+    setSearchInput("");
+    setModalVisible(false);
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
     onChange(selected.filter((tag) => tag !== tagToRemove));
   };
 
-  const onLayoutInput = (e: LayoutChangeEvent) => {
-    const { x, y, width, height } = e.nativeEvent.layout;
-    setInputLayout({ x, y, width, height });
-  };
-
   const filteredOptions = options
     .filter(
       (option) =>
-        option.toLowerCase().includes(input.toLowerCase()) &&
+        option.toLowerCase().includes(searchInput.toLowerCase()) &&
         !selected.includes(option)
     )
-    .slice(0, 3); // ⬅️ only top 3 matches
+    .slice(0, 20);
 
   const showAddCustomOption =
-    input.length > 0 &&
-    !options.some((option) => option.toLowerCase() === input.toLowerCase()) &&
-    !selected.includes(input);
+    searchInput.length > 0 &&
+    !options.some(
+      (option) => option.toLowerCase() === searchInput.toLowerCase()
+    ) &&
+    !selected.includes(searchInput);
 
   const dropdownData = [
-    ...(showAddCustomOption ? [`__ADD__${input}`] : []),
+    ...(showAddCustomOption ? [`__ADD__${searchInput}`] : []),
     ...filteredOptions,
   ];
 
+  const openModal = () => {
+    // For single selection, if an item is already selected, don't show the add button.
+    if (isSingleSelection && selected.length > 0) return;
+    setModalVisible(true);
+    setSearchInput("");
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSearchInput("");
+  };
+
   return (
     <View>
-      <View
-        style={[
-          styles.container,
-          {
-            backgroundColor:
-              mode === "Dark"
-                ? colourPalette.inputBackground
-                : mode === "Light"
-                ? "#fff"
-                : "transparent",
-            borderWidth: mode ? 2 : 0,
-            borderColor:
-              mode === "Dark" || mode === "Light"
-                ? colourPalette.inputBorder
-                : "#cfd4dc",
-          },
-        ]}
-        onLayout={onLayoutInput}
-        ref={containerRef}
-      >
+      <View style={styles.container}>
         <View style={styles.tagRow}>
           {selected.map((tag) => (
             <View key={tag} style={styles.tag}>
@@ -107,66 +100,115 @@ export default function TagDropdown({
               </TouchableOpacity>
             </View>
           ))}
-          <TextInput
-            value={input}
-            onChangeText={setInput}
-            placeholder={placeholder}
-            placeholderTextColor="#aaa"
-            style={[
-              styles.input,
-              {
-                color: mode === "Light" ? "#000" : colourPalette.textPrimary,
-                fontFamily: "InterMedium",
-              },
-            ]}
-          />
+
+          {selected.length === 0 && (
+            <TouchableOpacity onPress={openModal} style={styles.addButton}>
+              <Text style={styles.addButtonText}>{placeholder}</Text>
+              <Entypo name="plus" size={16} color="#B2CD82" />
+            </TouchableOpacity>
+          )}
+
+          {selected.length > 0 && !isSingleSelection && (
+            <TouchableOpacity onPress={openModal} style={styles.shortAddButton}>
+              <Entypo name="plus" size={16} color="#B2CD82" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
-      {input.length > 0 && dropdownData.length > 0 && (
-        <View
-          style={[
-            styles.dropdown,
-            {
-              top: inputLayout.y + inputLayout.height + 4,
-              left: inputLayout.x,
-              width: inputLayout.width,
-              position: "absolute",
-              zIndex: 999,
-            },
-          ]}
+      {/* Search Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={closeModal}
+      >
+        <BlurView
+          style={styles.modalOverlay}
+          intensity={15}
+          experimentalBlurMethod="dimezisBlurView"
+          tint="systemChromeMaterialLight"
         >
-          <FlatList
-            data={dropdownData}
-            keyExtractor={(item) => item}
-            renderItem={({ item }) => {
-              const isAddItem = item.startsWith("__ADD__");
-              const tagLabel = isAddItem ? item.replace("__ADD__", "") : item;
+          <TouchableOpacity style={styles.closeWrapper} onPress={closeModal}>
+            <View style={styles.closeButton}>
+              <Entypo name="cross" size={24} color="#000" />
+            </View>
+          </TouchableOpacity>
 
-              return (
-                <TouchableOpacity
-                  onPress={() => handleAddTag(tagLabel)}
-                  style={styles.dropdownItem}
-                >
-                  <Text>{isAddItem ? `Add "${tagLabel}"` : tagLabel}</Text>
-                </TouchableOpacity>
-              );
-            }}
-            keyboardShouldPersistTaps="handled"
-          />
-        </View>
-      )}
+          <View style={styles.bottomSheet}>
+            {/* Search + Options */}
+            <View style={styles.searchContainer}>
+              <Entypo
+                name="magnifying-glass"
+                size={20}
+                color="#aaa"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                value={searchInput}
+                onChangeText={setSearchInput}
+                placeholder="Search options..."
+                placeholderTextColor="#aaa"
+                style={styles.searchInput}
+                autoFocus
+              />
+            </View>
+
+            {/* Options List */}
+            <View style={styles.optionsContainer}>
+              {searchInput.length > 0 && dropdownData.length > 0 ? (
+                <FlatList
+                  data={dropdownData}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => {
+                    const isAddItem = item.startsWith("__ADD__");
+                    const tagLabel = isAddItem
+                      ? item.replace("__ADD__", "")
+                      : item;
+
+                    return (
+                      <TouchableOpacity
+                        onPress={() => handleAddTag(tagLabel)}
+                        style={styles.optionItem}
+                      >
+                        <Text style={styles.optionText}>
+                          {isAddItem ? `Add "${tagLabel}"` : tagLabel}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  }}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                />
+              ) : (
+                <FlatList
+                  data={options
+                    .filter((option) => !selected.includes(option))
+                    .slice(0, 50)}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      onPress={() => handleAddTag(item)}
+                      style={styles.optionItem}
+                    >
+                      <Text style={styles.optionText}>{item}</Text>
+                    </TouchableOpacity>
+                  )}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                />
+              )}
+            </View>
+          </View>
+        </BlurView>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#cfd4dc",
-    borderRadius: 8,
-    backgroundColor: "#fff",
+    backgroundColor: "transparent",
     padding: 8,
   },
   tagRow: {
@@ -179,45 +221,129 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#B2CD82",
-    borderRadius: 8,
+    borderRadius: 15,
     paddingHorizontal: 10,
     paddingVertical: 4,
     alignSelf: "flex-start",
   },
   tagText: {
     color: "#000",
-    fontFamily: FONT.ITALIC,
-    fontWeight: "600",
+    fontFamily: FONT.ITALICMEDIUM,
     flexShrink: 1,
   },
   remove: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#333",
-    paddingHorizontal: 5,
+    paddingLeft: 5,
   },
-  input: {
-    minWidth: 60,
-    fontFamily: "InterMedium",
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: "#B2CD82",
+    borderRadius: 25,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  shortAddButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: "#B2CD82",
+    borderRadius: 25,
     padding: 4,
-    fontSize: 16,
-    flexGrow: 1,
-    flexShrink: 1,
   },
-  dropdown: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    maxHeight: 180,
-    borderWidth: 1,
-    borderColor: "#ccc",
+  addButtonText: {
+    color: "#B2CD82",
+    fontSize: 14,
+    fontFamily: "InterMedium",
+    marginRight: 8,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+
+  bottomSheet: {
+    backgroundColor: "#1E1E1E",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 24,
+    paddingHorizontal: 20,
+    maxHeight: "80%",
+  },
+
+  closeWrapper: {
+    alignItems: "center",
+    top: -15,
+    zIndex: 10,
+  },
+
+  modalContainer: {
+    flex: 1,
+    verticalAlign: "bottom",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#B2CD82",
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 2 },
   },
-  dropdownItem: {
-    padding: 10,
-    borderBottomColor: "#eee",
-    borderBottomWidth: 1,
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#3a3a3a",
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    marginBottom: 20,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "InterMedium",
+  },
+  optionsContainer: {
+    flexGrow: 1,
+    minHeight: 100,
+    maxHeight: 300, // or adjust to your design
+    paddingBottom: 20,
+  },
+  optionItem: {
+    backgroundColor: "#3a3a3a",
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    marginBottom: 2,
+    borderRadius: 8,
+  },
+  optionText: {
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "InterMedium",
   },
 });

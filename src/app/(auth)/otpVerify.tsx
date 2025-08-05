@@ -16,25 +16,26 @@ import colourPalette from "@/src/theme/darkPaletter";
 import { FONT } from "@/assets/constants/fonts";
 import { ActivityIndicator } from "react-native-paper";
 import { BlurView } from "expo-blur";
+import { useRouter } from "expo-router";
 
 const { width, height } = Dimensions.get("window");
 
 interface OtpModalProps {
   visible: boolean;
   onClose: () => void;
-  phone: string;
-  type: "login" | "signup";
-  maskedPhone?: string;
-  selectedFlag: any;
+  email?: string;
+  phone?: string;
+  type: "login" | "signup" | "email" | "phone";
+  selectedFlag?: any;
 }
 
 const OtpModal: React.FC<OtpModalProps> = ({
   visible,
   onClose,
   phone,
+  email = "xxx****xx@gmail.com",
   selectedFlag,
   type,
-  maskedPhone = "***38",
 }) => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -45,6 +46,12 @@ const OtpModal: React.FC<OtpModalProps> = ({
   const { mutate: verifyOTP, isPending } = useVerifyOTP();
   const { mutate: resendOTP } = useResendOTP();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const maskedPhone = `**${phone?.slice(phone.length - 2, phone.length)}`;
+  const maskedEmail = `${email?.slice(0, 2)}**${email?.slice(
+    email.length - 11,
+    email.length
+  )}`;
+  const router = useRouter();
 
   // Initialize timer when modal becomes visible
   useEffect(() => {
@@ -106,6 +113,7 @@ const OtpModal: React.FC<OtpModalProps> = ({
       { phone: phoneNumber, otp: otp },
       {
         onSuccess: (res) => {
+          onClose();
           setOTP("");
           setError(null);
           setIsSuccess(true);
@@ -114,6 +122,9 @@ const OtpModal: React.FC<OtpModalProps> = ({
             clearInterval(timerRef.current);
             timerRef.current = null;
           }
+
+          if (type === "login") router.push("/connect");
+          else router.push("/profileSetup");
         },
         onError: (err: any) => {
           console.log(err?.response?.data?.message);
@@ -192,20 +203,36 @@ const OtpModal: React.FC<OtpModalProps> = ({
           </TouchableOpacity>
           {/* Message Icon */}
           <View style={styles.messageIconContainer}>
-            <Image
-              source={require("../../../assets/icons/message.png")}
-              style={{ height: 45, width: 45 }}
-            />
+            {type === "email" ? (
+              <Image
+                source={require("../../../assets/icons/email.png")}
+                style={{ height: 45, aspectRatio: 47 / 33 }}
+              />
+            ) : (
+              <Image
+                source={require("../../../assets/icons/message.png")}
+                style={{ height: 45, width: 45 }}
+              />
+            )}
           </View>
 
           {/* OTP Content */}
           <View style={styles.otpContent}>
-            <Text style={styles.instructionText}>
-              Enter the verification code sent to{" "}
-              <Text style={{ fontSize: 16, fontFamily: FONT.SEMIBOLD }}>
-                {maskedPhone}
+            {type === "email" ? (
+              <Text style={styles.instructionText}>
+                Enter the verification code sent to you at{"\n"}
+                <Text style={{ fontSize: 16, fontFamily: FONT.SEMIBOLD }}>
+                  {maskedEmail}
+                </Text>
               </Text>
-            </Text>
+            ) : (
+              <Text style={styles.instructionText}>
+                Enter the verification code sent to{" "}
+                <Text style={{ fontSize: 16, fontFamily: FONT.SEMIBOLD }}>
+                  {maskedPhone}
+                </Text>
+              </Text>
+            )}
             <OtpInput
               secureTextEntry={false}
               numberOfDigits={4}
