@@ -4,6 +4,7 @@ import { View, StyleSheet } from "react-native";
 import { MotiView } from "moti";
 import { LinearGradient } from "expo-linear-gradient";
 import { Easing } from "react-native-reanimated";
+import colourPalette from "@/src/theme/darkPaletter";
 
 export default function ChatCardSkeleton() {
   return (
@@ -21,7 +22,7 @@ export default function ChatCardSkeleton() {
           style={StyleSheet.absoluteFill}
         >
           <LinearGradient
-            colors={["#ddd", "#f1f1f1", "#ddd"]}
+            colors={["#1E1E1E", "#000", "#121212"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.shimmer}
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: "#fff",
+    backgroundColor: "#1E1E1E",
   },
   avatar: {
     width: 48,
@@ -68,13 +69,13 @@ const styles = StyleSheet.create({
     width: "50%",
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#ddd",
+    backgroundColor: colourPalette.textDescription,
     marginBottom: 6,
   },
   messageLine: {
     width: "80%",
+    backgroundColor: colourPalette.textPlaceholder,
     height: 10,
     borderRadius: 6,
-    backgroundColor: "#eee",
   },
 });

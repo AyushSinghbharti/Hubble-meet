@@ -1,3 +1,4 @@
+import colourPalette from "@/src/theme/darkPaletter";
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 
@@ -52,15 +53,17 @@ const styles = StyleSheet.create({
   icon: {
     height: 24,
     aspectRatio: 1,
-    tintColor: "#7A7A7A",
+    tintColor: colourPalette.textPrimary,
   },
   container: {
-    backgroundColor: "white",
+    backgroundColor: colourPalette.backgroundSecondary,
     flexDirection: "row",
     justifyContent: "space-around",
     paddingVertical: 15,
     paddingHorizontal: 10,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colourPalette.borderColor,
     shadowColor: "#000",
     shadowOffset: { width: 2, height: 4 },
     shadowOpacity: 0.2,
@@ -76,6 +79,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter",
     fontSize: 12,
     marginTop: 5,
-    color: "#7A7A7A",
+    color: colourPalette.textPrimary,
   },
 });

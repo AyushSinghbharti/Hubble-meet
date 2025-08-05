@@ -20,6 +20,7 @@ import { UserProfile } from "@/src/interfaces/profileInterface";
 import { useChatStore } from "@/src/store/chatStore";
 import moment from "moment";
 import MediaViewer from "@/src/components/chatScreenComps/mediaViewer";
+import colourPalette from "@/src/theme/darkPaletter";
 
 const { width } = Dimensions.get("window");
 const GRID_GAP = 8;
@@ -203,7 +204,7 @@ export default function SharedAssets() {
         numColumns={3}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => openMediaViewerAt(item.globalIndex)}>
-          {/* No more Linking.openURL here */}
+            {/* No more Linking.openURL here */}
             <Image
               source={{ uri: item.uri }}
               style={styles.mediaThumb}
@@ -279,7 +280,6 @@ export default function SharedAssets() {
           {title}
         </Text>
       )}
-      ItemSeparatorComponent={() => <View style={styles.separator} />}
       contentContainerStyle={{ paddingBottom: 32 }}
     />
   );
@@ -327,14 +327,18 @@ export default function SharedAssets() {
 
   return (
     <Modal
-      style={styles.container}
+      backdropColor={colourPalette.backgroundPrimary}
       animationType="slide"
       onRequestClose={() => router.back()}
     >
       <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
         <TouchableOpacity hitSlop={500} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={colourPalette.textPrimary}
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{item.full_name}</Text>
         <View style={{ width: 24 }} />
@@ -364,28 +368,35 @@ export default function SharedAssets() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "white" },
   header: {
     flexDirection: "row",
     paddingHorizontal: 16,
     paddingTop: 28,
     paddingBottom: 12,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: colourPalette.backgroundSecondary,
   },
   headerTitle: {
     paddingHorizontal: 16,
     fontFamily: "InterBold",
     textAlign: "center",
     fontSize: 16,
+    color: colourPalette.textPrimary,
   },
   tabBar: {
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: "#F7F7F7",
+    backgroundColor: colourPalette.backgroundSecondary,
   },
   tabBtn: { flex: 1, alignItems: "center", paddingBottom: 12 },
-  tabText: { fontSize: 14, color: "#6f6f6f", fontFamily: "Inter" },
-  tabTextActive: { color: "black", fontFamily: "Inter" },
+  tabText: {
+    fontSize: 14,
+    color: colourPalette.textSecondary,
+    fontFamily: "Inter",
+  },
+  tabTextActive: {
+    color: colourPalette.textPrimary,
+    fontFamily: "Inter",
+  },
   tabUnderline: {
     position: "absolute",
     bottom: 0,
@@ -403,13 +414,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter",
     marginBottom: 8,
-    color: "#000",
+    color: colourPalette.textPrimary,
   },
 
   /* Media */
   mediaThumb: {
     width: THUMB_SIZE,
     height: THUMB_SIZE,
+    borderRadius: 5,
     backgroundColor: "#ccc",
   },
 
@@ -419,18 +431,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderBottomWidth: 1,
+    marginTop: 3,
+    borderColor: colourPalette.borderColor,
   },
   docTextWrap: { flex: 1, marginLeft: 12 },
-  docName: { fontSize: 14, fontFamily: "Inter", color: "#222" },
+  docName: {
+    fontSize: 14,
+    fontFamily: "Inter",
+    color: colourPalette.textPrimary,
+  },
   docMeta: {
     fontSize: 12,
-    color: "#7B7B7B",
+    color: colourPalette.textSecondary,
     marginTop: 2,
     fontFamily: "Inter",
   },
   docDate: {
     fontSize: 12,
-    color: "#7B7B7B",
+    color: colourPalette.textSecondary,
     fontFamily: "Inter",
     alignSelf: "flex-end",
   },
@@ -449,12 +468,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
     marginRight: 12,
   },
-  linkText: { flex: 1, fontSize: 12, color: "#000", fontFamily: "Inter" },
+  linkText: { flex: 1, fontSize: 12, color: colourPalette.textPrimary, fontFamily: "Inter" },
 
   /* Separators */
   separator: {
-    marginLeft: 56,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: "#e4e4e4",
+    height: 1,
+    marginTop: 3,
+    backgroundColor: colourPalette.borderColor,
   },
 });

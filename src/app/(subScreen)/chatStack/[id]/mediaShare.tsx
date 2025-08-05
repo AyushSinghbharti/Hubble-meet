@@ -7,18 +7,15 @@ import {
   StyleSheet,
   Modal,
   TextInput,
-  ScrollView,
   FlatList,
   Dimensions,
 } from "react-native";
-import { Ionicons, MaterialIcons, Entypo } from "@expo/vector-icons";
-import { useEvent } from "expo";
+import { Ionicons } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import ContactCard from "../../../../components/ContactCard";
 import PopUpOption from "../../../../components/chatScreenComps/popUpOption";
-import { useRouter } from "expo-router";
 import { FONT } from "@/assets/constants/fonts";
-import { useChatStore } from "@/src/store/chatStore";
+import colourPalette from "@/src/theme/darkPaletter";
 
 type MediaType = "image" | "video" | "doc" | "contact" | "other";
 
@@ -232,8 +229,8 @@ const MediaShare: React.FC<MediaShareProps> = ({
             {mediaType === "contact"
               ? "Contacts"
               : media.length === 1
-                ? media[0].fileName || media[0].name
-                : `${media.length} files`}
+              ? media[0].fileName || media[0].name
+              : `${media.length} files`}
           </Text>
         </View>
 
@@ -298,7 +295,7 @@ const MediaShare: React.FC<MediaShareProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colourPalette.backgroundPrimary,
     paddingTop: 16,
   },
   header: {

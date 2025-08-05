@@ -18,7 +18,7 @@ export default function ChatBodyLoader() {
       style={StyleSheet.absoluteFill}
     >
       <LinearGradient
-        colors={["#e1e1e1", "#f2f2f2", "#e1e1e1"]}
+        colors={["#1E1E1E", "#121212", "#000"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={StyleSheet.absoluteFill}
@@ -55,6 +55,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     paddingBottom: 12,
     gap: 12,
+    backgroundColor: "#1E1E1E",
   },
   leftBubble: {
     width: width * 0.55,

@@ -1,3 +1,4 @@
+import colourPalette from "@/src/theme/darkPaletter";
 import React from "react";
 import {
   View,
@@ -65,7 +66,6 @@ const styles = StyleSheet.create({
     height: 217,
     width: 278,
     position: "absolute",
-    backgroundColor: "white",
     borderRadius: 10,
     elevation: 15,
     shadowColor: "#000",
@@ -76,14 +76,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     zIndex: 999,
     justifyContent: "space-evenly",
+    backgroundColor: colourPalette.backgroundPrimary,
+    borderColor: colourPalette.borderColor,
+    borderWidth: 2,
   },
   option: {
     paddingLeft: 19,
     paddingVertical: 8,
   },
   text: {
+    color: colourPalette.textPrimary,
     fontFamily: "Inter",
     fontSize: 16,
-    color: "#111",
   },
 });
