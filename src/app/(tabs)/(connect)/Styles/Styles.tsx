@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     // backgroundColor: "#fff",
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#121212",
   },
   flatListContent: {
     paddingHorizontal: 10,
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   expandThumb: {
     position: "absolute",
     top: 10,
-    right: 10,
+    right: 270,
     borderRadius: 10,
     overflow: "hidden",
     width: 80,
@@ -149,6 +149,7 @@ const styles = StyleSheet.create({
   },
   backCardScrollContent: {
     flexGrow: 1,
+
   },
   backCardContent: {
     width: "100%",
@@ -166,6 +167,7 @@ const styles = StyleSheet.create({
   },
   detailContent: {
     paddingBottom: 0,
+
   },
   section: {
     marginTop: 16,

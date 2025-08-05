@@ -36,7 +36,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ onBackPress, showBack = fal
 const styles = StyleSheet.create({
   wrapper: {
     marginTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 30,
-   
+
   },
   headerContainer: {
     height: 60,
@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     justifyContent: 'space-between',
+    backgroundColor: "#121212",
   },
   side: {
     width: 40,

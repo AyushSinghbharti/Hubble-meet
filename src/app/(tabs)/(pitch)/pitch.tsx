@@ -18,6 +18,7 @@ import { useConnectionStore } from "@/src/store/connectionStore";
 import { getUserPitch } from "@/src/api/pitch";
 import PitchScreenLoader from "@/src/components/skeletons/pitchCard";
 import axios from "axios";
+import { FONT } from "@/assets/constants/fonts";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const TAB_BAR_HEIGHT = 70; // was 100 → decreased
@@ -246,10 +247,10 @@ export default function PitchScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={navigateToMyPitch}>
+        <TouchableOpacity style={{ backgroundColor: "#323231", borderRadius: 30, height: 50, width: 50, alignItems: "center", justifyContent: "center", marginHorizontal: 10 }} onPress={navigateToMyPitch}>
           <View style={styles.iconContainer}>
             <Image
-              source={require("../../../../assets/icons/pitch2.png")}
+              source={require("../../../../assets/myPitch.png")}
               style={styles.pitchIcon}
             />
             <Text style={styles.headerText}>My Pitch</Text>
@@ -334,9 +335,8 @@ export default function PitchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    paddingHorizontal: 18,
-    paddingTop: 16,
+    backgroundColor: "#121212",
+    paddingTop: 36,
     paddingBottom: 100,
   },
   headerContainer: {
@@ -354,12 +354,20 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   pitchIcon: {
-    height: 24,
-    aspectRatio: 1,
+    height: 35,
+    width: 35,
+
+
+
+
+
   },
   headerText: {
-    fontSize: 10,
-    color: "#64748B",
+    fontSize: 12,
+    color: "#fff",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
+    top: 10
+
   },
   cardArea: {
     flex: 1,

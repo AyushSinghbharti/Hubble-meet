@@ -46,6 +46,9 @@ export default function RootLayout() {
     InterBold: require("../../assets/fonts/Interfont/static/Inter_18pt-Bold.ttf"),
     InterItalicBold: require("../../assets/fonts/Interfont/static/Inter_18pt-BoldItalic.ttf"),
     InterItalic: require("../../assets/fonts/Interfont/Inter-Italic-VariableFont.ttf"),
+    MontserratSemiBold: require("../../assets/fonts/Montserrat/static/Montserrat-SemiBold.ttf"),
+    MontserratRegular: require('../../assets/fonts/Montserrat/static/Montserrat-Regular.ttf'),
+    MontserratMedium: require('../../assets/fonts/Montserrat/static/Montserrat-Medium.ttf'),
     ...FontAwesome.font,
   });
 
@@ -87,7 +90,7 @@ function RootLayoutNav() {
         if (token) {
           setToken(token);
         }
-        if(userId){
+        if (userId) {
           setUserId(userId);
         }
         await checkFirstLaunch();
@@ -105,9 +108,11 @@ function RootLayoutNav() {
 
   return (
     <PaperProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#121212" }}>
         <StatusBar style="dark" />
-        <Stack initialRouteName="(splash)">
+        <Stack initialRouteName="(subScreen)" screenOptions={{
+          contentStyle: { backgroundColor: "#121212" },
+        }}>
           <Stack.Screen name="(splash)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

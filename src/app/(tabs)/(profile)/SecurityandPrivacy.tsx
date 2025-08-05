@@ -2,348 +2,228 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
+  StyleSheet,
   ScrollView,
-  Platform,
-  Modal,
-  SafeAreaView,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import NavHeader from "../../../components/NavHeader";
-import Button from "../../../components/Button";
-import { FONT } from "../../../../assets/constants/fonts";
-import { router } from "expo-router";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import BlockModal from "@/src/components/Alerts/BlockModal";
+import InfoModal from "@/src/components/Modal/InfoModal";
 
 const loginAlerts = [
   {
     device: "iPhone 15",
-    date: "04/16/2025 2:19 am",
-    location: "Surat, India",
+    location: "Bangalore, India",
+    time: "09:12 AM",
+    date: "16/07/2025",
     current: true,
   },
   {
-    device: "iPhone 14 pro max",
-    date: "03/12/2024 5:22 am",
+    device: "iPhone 15",
     location: "Ahmedabad, India",
+    time: "09:12 AM",
+    date: "16/07/2025",
     current: false,
   },
 ];
 
-const options = [
-  "Blocked Users",
-  "Terms & Conditions",
-  "Privacy Policy",
-  "Data Compliance",
+const otherPrivacyItems = [
+  { label: "Blocked Users" },
+  { label: "Terms & Conditions" },
+  { label: "Privacy policy" },
+  { label: "Data compliance" },
 ];
 
-const privacyPolicyContent = `A privacy policy explains how your website, products, and services collect, use, and protect user information. It outlines the types of data gathered, why it is collected, and how it is stored or shared, ensuring compliance with privacy laws.
-This document is sometimes referred to as a data protection policy or a privacy statement. Its purpose remains the same: to inform users of their rights and how their personal information is handled.
-By using your website, products, or services, customers acknowledge and agree to your your privacy `;
+export default function PrivacySettings() {
+  const [selectedModal, setSelectedModal] = useState<string | null>(null);
 
-const termsAndConditionsContent = `Terms and conditions outline what users can and cannot do with your website, products, and services. They lay out the rules to protect you in case of misuse and enable you to take action if it becomes necessary.
-
-It's also referred to by other names such as terms of service (ToS) and terms of use (ToU). Even though they have different names, in fact – there is no difference.
-
-In order to use your website, products, or services, your customers usually must agree to abide by your terms and conditions first.`;
-
-export default function PrivacySettingsScreen() {
-  const [isPrivacyModalVisible, setIsPrivacyModalVisible] = useState(false);
-  const [isTermsModalVisible, setIsTermsModalVisible] = useState(false);
-
-  const handleOptionPress = (option) => {
-    switch (option) {
-      case "Privacy Policy":
-        setIsPrivacyModalVisible(true);
-        break;
-      case "Terms & Conditions":
-        setIsTermsModalVisible(true);
-        break;
+  const renderModalContent = (label: string | null) => {
+    switch (label) {
       case "Blocked Users":
-        router.push('/BlockedUsers')
-        break;
-      case "Data Compliance":
-        console.log("Navigating to Data Compliance screen");
-        break;
+        return (
+          <BlockModal
+            onClose={() => setSelectedModal(null)}
+            visible={!!selectedModal}
+          />
+        );
+      case "Terms & Conditions":
+        return (
+          <InfoModal
+            visible={!!selectedModal}
+            title="Terms & Conditions"
+            content={`Terms and conditions outline what users can and cannot do with your website, products, and services. They lay out the rules to protect you in case of misuse and enable you to take action if it becomes necessary.
+It’s also referred to by other names such as terms of service (ToS) and terms of use (ToU). Even though they have different names, in fact – there is no difference. 
+In order to use your website, products, or services, your customers usually must agree to abide by your terms and conditions first.`}
+            onClose={() => setSelectedModal(null)}
+          />
+        );
+      case "Privacy policy":
+        return (
+          <InfoModal
+            visible={!!selectedModal}
+            title="Privacy Policy"
+            content={`A privacy policy explains how your website, products, and services collect, use, and protect user information. It outlines the types of data gathered, why it is collected, and how it is stored or shared, ensuring compliance with privacy laws.
+This document is sometimes referred to as a data protection policy or a privacy statement. Its purpose remains the same: to inform users of their rights and how their personal information is handled.
+By using your website, products, or services, customers acknowledge and agree to your your privacy policy.`}
+            onClose={() => setSelectedModal(null)}
+          />
+        );
+      case "Data compliance":
+        return (
+          <InfoModal
+            visible={!!selectedModal}
+            title="Data Compliance"
+            content={`Lorem ipsum dolor sit amet. Non officia nisi vel quis pariatur ea dolorem similique 33 nihil tempora sit quia inventore ut soluta sequi a voluptatibus delectus. Aut modi quia ut quia quod vel vero omnis aut quia consequatur!
+Qui aliquid fuga id quibusdam autem sit voluptatem quia. Ut velit quis id tempora architecto est quas obcaecati ut quas ratione sed rerum enim et deserunt unde a consequuntur explicabo. Ab impedit architecto non iure perferendis ut rerum rerum.`}
+            onClose={() => setSelectedModal(null)}
+          />
+        );
       default:
-        console.log(`Pressed: ${option}`);
+        return null;
     }
   };
 
-
-  const closePrivacyModal = () => {
-    setIsPrivacyModalVisible(false);
-  };
-
-  const closeTermsModal = () => {
-    setIsTermsModalVisible(false);
-  };
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
-      <NavHeader title="Security & Privacy" />
-
-      <Text style={styles.sectionTitle}>Login Alerts</Text>
-
-      <View style={styles.card}>
-        {loginAlerts.map((item, idx) => (
-          <View key={idx}>
-            <View style={styles.row}>
-              <View style={styles.iconBox}>
-                <MaterialIcons name="phone-iphone" size={20} color="#000" />
-              </View>
-              <View style={styles.deviceInfo}>
-                <View style={styles.rowBetween}>
-                  <Text style={styles.deviceName}>{item.device}</Text>
-                  <Text style={styles.time}>{item.date}</Text>
+    <>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Login Alerts Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Login Alerts</Text>
+          <View>
+            {loginAlerts.map((item, idx) => (
+              <View key={idx} style={styles.alertCard}>
+                <Ionicons
+                  name="phone-portrait-outline"
+                  size={28}
+                  color="#E7F7BA"
+                  style={{ marginRight: 12 }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.deviceTitle}>{item.device}</Text>
+                  <Text style={styles.locationText}>{item.location}</Text>
                 </View>
-                <Text style={styles.location}>
-                  {item.location}
+                <View style={{ alignItems: "flex-end", minWidth: 120 }}>
                   {item.current && (
-                    <Text style={styles.currentText}> | This device</Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginBottom: 2,
+                      }}
+                    >
+                      <Text style={styles.currentDevice}>Current Device</Text>
+                      <FontAwesome
+                        name="circle"
+                        size={12}
+                        color="#54AE47"
+                        style={{ marginLeft: 4 }}
+                      />
+                    </View>
                   )}
-                </Text>
+                  <View style={{ flexDirection: "row" }}>
+                    <Text style={styles.timeText}>{item.time}</Text>
+                    <Text style={styles.timeText}>{item.date}</Text>
+                  </View>
+
+
+                </View>
               </View>
-            </View>
-            {idx !== loginAlerts.length - 1 && <View style={styles.divider} />}
-          </View>
-        ))}
-      </View>
-
-      <Text style={styles.sectionTitle}>OTHER PRIVACY</Text>
-
-      <View style={styles.card}>
-        {options.map((item, idx) => (
-          <TouchableOpacity
-            key={idx}
-            style={styles.listItem}
-            onPress={() => handleOptionPress(item)}
-          >
-            <Text style={styles.listText}>{item}</Text>
-            <MaterialIcons name="chevron-right" size={24} color="#555" />
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Button label="Save settings" onPress={() => { }} />
-
-      {/* Privacy Policy Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isPrivacyModalVisible}
-        onRequestClose={closePrivacyModal}
-        presentationStyle="overFullScreen"
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Privacy Policy</Text>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={closePrivacyModal}
-              >
-                <MaterialIcons name="close" size={24} color="#000" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              style={styles.modalContent}
-              contentContainerStyle={styles.modalContentContainer}
-              showsVerticalScrollIndicator={true}
-              nestedScrollEnabled={true}
-            >
-              <Text style={styles.modalText}>{privacyPolicyContent}</Text>
-            </ScrollView>
+            ))}
           </View>
         </View>
-      </Modal>
 
-      {/* Terms & Conditions Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isTermsModalVisible}
-        onRequestClose={closeTermsModal}
-        presentationStyle="overFullScreen"
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Terms & Conditions</Text>
+        {/* Other Privacy Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Other Privacy</Text>
+          <View>
+            {otherPrivacyItems.map((item, idx) => (
               <TouchableOpacity
-                style={styles.closeButton}
-                onPress={closeTermsModal}
+                key={idx}
+                style={[
+                  styles.privacyItem,
+                  idx === otherPrivacyItems.length - 1 && { borderBottomWidth: 0 },
+                ]}
+                onPress={() => setSelectedModal(item.label)}
+                activeOpacity={0.7}
               >
-                <MaterialIcons name="close" size={24} color="#000" />
+                <Text style={styles.privacyItemText}>{item.label}</Text>
+                <Ionicons name="chevron-forward" size={20} color="#B2CD82" />
               </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              style={styles.modalContent}
-              contentContainerStyle={styles.modalContentContainer}
-              showsVerticalScrollIndicator={true}
-              nestedScrollEnabled={true}
-            >
-              <Text style={styles.modalText}>{termsAndConditionsContent}</Text>
-            </ScrollView>
+            ))}
           </View>
         </View>
-      </Modal>
-    </ScrollView>
+      </ScrollView>
+      {renderModalContent(selectedModal)}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: "#181818",
     flex: 1,
-    padding: 16,
-    paddingTop: Platform.OS === "ios" ? 10 : 30,
-    backgroundColor: "#3E3E3E",
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontFamily: FONT.BOLD,
-    color: "#fff",
-    marginTop: 16,
-    marginBottom: 8,
-    textTransform: "uppercase",
   },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: "#191C19",
+    margin: 16,
+    borderRadius: 20,
+    padding: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.17,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  cardTitle: {
+    color: "#C6E18E",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
+    marginLeft: 2,
+  },
+  alertCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#242424",
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 24,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-  },
-  rowBetween: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  iconBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  deviceInfo: {
-    flex: 1,
-  },
-  deviceName: {
-    fontSize: 15,
-    fontFamily: FONT.BOLD,
-    color: "#111",
-  },
-  time: {
-    fontSize: 12,
-    fontFamily: FONT.REGULAR,
-    color: "#999",
-  },
-  location: {
-    fontSize: 13,
-    fontFamily: FONT.MEDIUM,
-    color: "#444",
-    marginTop: 2,
-  },
-  currentText: {
-    color: "green",
-    fontFamily: FONT.SEMIBOLD,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#eee",
-    marginVertical: 10,
-  },
-  listItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderBottomColor: "#eee",
-    borderBottomWidth: 1,
-  },
-  listText: {
-    fontSize: 15,
-    fontFamily: FONT.MEDIUM,
-    color: "#222",
-  },
-  saveButton: {
-    backgroundColor: "#CDDC39",
-    paddingVertical: 16,
-    borderRadius: 10,
-    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 12,
     marginTop: 10,
   },
-  saveButtonText: {
+  deviceTitle: {
+    color: "#FFF",
+    fontWeight: "600",
     fontSize: 16,
-    fontFamily: FONT.SEMIBOLD,
-    color: "#000",
+    marginBottom: 1,
   },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+  locationText: {
+    color: "#A7B88E",
+    fontSize: 13,
+    fontWeight: "400",
   },
-  modalContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    width: '100%',
-    height: '80%', // Changed from maxHeight to height
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  currentDevice: {
+    color: "#B3DF66",
+    fontSize: 13,
+    fontWeight: "500",
   },
-  modalHeader: {
+  timeText: {
+    color: "#A6A89B",
+    fontSize: 13,
+    textAlign: "right",
+    fontWeight: "400",
+  },
+  privacyItem: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    justifyContent: "space-between",
+    paddingVertical: 18,
+    borderBottomColor: "#313A22",
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    paddingHorizontal: 2,
   },
-  modalTitle: {
-    fontSize: 18,
-    fontFamily: FONT.BOLD,
-    color: "#000",
-  },
-  closeButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-  },
-  modalContent: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  modalContentContainer: {
-    padding: 20,
-    paddingBottom: 40,
-    flexGrow: 1, // Added this
-  },
-  modalText: {
-    fontSize: 16,
-    fontFamily: FONT.REGULAR,
-    color: "#333",
-    lineHeight: 24,
-    textAlign: 'justify', // Added this for better text formatting
+  privacyItemText: {
+    color: "#F3F3EB",
+    fontSize: 15,
+    fontWeight: "400",
   },
 });

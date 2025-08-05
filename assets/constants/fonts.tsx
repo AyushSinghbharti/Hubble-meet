@@ -6,4 +6,9 @@ export const FONT = {
   ITALIC: "InterItalic",
   ITALICMEDIUM: "InterMediumItalic",
   ITALICBOLD: "InterItalicBold",
+  MONSERRATSEMIBOLD: "Montserrat-SemiBold",
+  MONSERRATMEDIUM: "Montserrat-Medium",
+  MONSERRATREGULAR: "Montserrat-Regular"
+
+
 };

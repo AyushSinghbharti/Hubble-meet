@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Modal,
-  StyleSheet,
   ImageBackground,
   TouchableOpacity,
   Image,
@@ -21,6 +20,7 @@ interface ProfileModalProps {
   onPressBlock?: () => void;
   onPressPitch?: () => void;
   onPressBag?: () => void;
+  onPressViewProfile?: () => void;
 }
 
 const ProfileCardVertical: React.FC<ProfileModalProps> = ({
@@ -32,6 +32,7 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
   onPressBlock,
   onPressPitch,
   onPressBag,
+  onPressViewProfile,
 }) => {
   const bgColor = "#cbeaa3";
   const lightBg = lightenColor(bgColor, 50);
@@ -43,77 +44,242 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
       transparent
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.card}>
-          <View style={styles.imageContainer}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "rgba(0, 0, 0, 0.6)",
+          padding: 20,
+        }}
+      >
+        {/* Close Button */}
+        <TouchableOpacity
+          onPress={onClose}
+          style={{
+            backgroundColor: "#333",
+            width: 40,
+            height: 40,
+            borderRadius: 30,
+            alignItems: "center",
+            justifyContent: "center",
+            position: "absolute",
+            top: 400,
+            zIndex: 1,
+          }}
+        >
+          <Entypo name="cross" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        {/* Profile Card Container with Black Background */}
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: "#000", // Black background here
+            justifyContent: "flex-end",
+            width: "100%",
+            alignItems: "center",
+            marginTop: 470,
+            borderRadius: 20,
+            overflow: "hidden",
+          }}
+        >
+          {/* Image Section */}
+          <View
+            style={{
+              width: 180,
+              height: 280,
+              overflow: "hidden",
+              alignItems: "center",
+              elevation: 6,
+            }}
+          >
             <ImageBackground
-              source={{ uri: selectedProfile.profile_picture_url || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s"}}
-              style={styles.image}
-              imageStyle={{ borderTopLeftRadius: 30, borderTopRightRadius: 30 }}
+              source={{
+                uri:
+                  selectedProfile.profile_picture_url ||
+                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
+              }}
+              style={{
+                width: "100%",
+                height: "100%",
+                justifyContent: "space-between",
+              }}
             >
-              <View style={styles.topIcons}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  padding: 12,
+                }}
+              >
+                {/* Bag Icon */}
                 <TouchableOpacity
-                  style={styles.iconWrapper}
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: 8,
+                    borderRadius: 20,
+                    justifyContent: "center",     // ✅ Center vertically
+                    alignItems: "center",         // ✅ Center horizontally
+                  }}
                   onPress={onPressBag}
                 >
                   <Image
-                    source={require("../../assets/icons/suitcase.png")}
-                    style={styles.icon}
+                    source={require("../../assets/icons/handshake.png")}
+                    style={{ width: 20, height: 20 }}
                   />
                 </TouchableOpacity>
+
+                {/* Pitch Icon */}
                 <TouchableOpacity
-                  style={styles.iconWrapper}
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: 8,
+                    borderRadius: 20,
+                    justifyContent: "center",     // ✅ Center vertically
+                    alignItems: "center",         // ✅ Center horizontally
+                  }}
                   onPress={onPressPitch}
                 >
                   <Image
-                    source={require("../../assets/icons/pitch2.png")}
-                    style={styles.icon}
+                    source={require("../../assets/myPitch.png")}
+                    style={{ width: 30, height: 30 }}
                   />
                 </TouchableOpacity>
               </View>
+
             </ImageBackground>
           </View>
-        </View>
 
-        <View style={[styles.profileInfo, { backgroundColor: bgColor }]}>
-          <Text style={styles.name}>{selectedProfile.full_name}</Text>
-          <Text style={styles.title}>{selectedProfile.job_title}</Text>
-          <Text style={styles.location}>{selectedProfile.city}</Text>
+          {/* Info Section */}
+          <View
+            style={{
+              paddingTop: 12,
+              paddingBottom: 20,
+              paddingHorizontal: 16,
+              width: 180,
+              height: 280,
+              backgroundColor: bgColor,
+              borderTopRightRadius: 20,
+              borderBottomRightRadius: 20,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 22,
+                fontFamily: "InterBold",
+                color: "#000",
+              }}
+            >
+              {selectedProfile.full_name}
+            </Text>
 
-          <View style={styles.actionRow}>
-            <TouchableOpacity
-              style={[styles.actionCircle, { backgroundColor: lightBg }]}
-              onPress={onPressChat}
+            <Text
+              style={{
+                fontSize: 16,
+                fontFamily: "InterSemiBold",
+                color: "#444",
+                marginTop: 4,
+              }}
             >
-              <Image
-                source={require("../../assets/icons/chat.png")}
-                style={styles.icon}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionCircle, { backgroundColor: lightBg }]}
-              onPress={onPressShare}
+              {selectedProfile.job_title}
+            </Text>
+
+            <Text
+              style={{
+                fontSize: 14,
+                fontFamily: "InterSemiBold",
+                color: "#5E5E5E",
+                marginTop: 2,
+              }}
             >
-              <MaterialCommunityIcons
-                name="share-variant"
-                size={22}
-                color="#000"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionCircle, { backgroundColor: lightBg }]}
-              onPress={onPressBlock}
+              {selectedProfile.city}
+            </Text>
+
+            {/* Action Buttons */}
+            <View
+              style={{
+                flexDirection: "row",
+                marginTop: 16,
+                justifyContent: "space-between",
+              }}
             >
-              <Image
-                source={require("../../assets/icons/block2.png")}
-                style={styles.icon}
-              />
-            </TouchableOpacity>
+              {/* Chat */}
+              <TouchableOpacity
+                style={{
+                  padding: 10,
+                  borderRadius: 30,
+                  backgroundColor: lightBg,
+                }}
+                onPress={onPressChat}
+              >
+                <Image
+                  source={require("../../assets/icons/chat.png")}
+                  style={{ width: 22, height: 22 }}
+                />
+              </TouchableOpacity>
+
+              {/* Share */}
+              <TouchableOpacity
+                style={{
+                  padding: 10,
+                  borderRadius: 30,
+                  backgroundColor: lightBg,
+                }}
+                onPress={onPressShare}
+              >
+                <MaterialCommunityIcons
+                  name="share-variant"
+                  size={22}
+                  color="#000"
+                />
+              </TouchableOpacity>
+
+              {/* Block */}
+              <TouchableOpacity
+                style={{
+                  padding: 10,
+                  borderRadius: 30,
+                  backgroundColor: lightBg,
+                }}
+                onPress={onPressBlock}
+              >
+                <Image
+                  source={require("../../assets/icons/block2.png")}
+                  style={{ width: 22, height: 22 }}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-          <Entypo name="cross" size={24} color="#fff" />
+        {/* View Profile Button */}
+        <TouchableOpacity
+          onPress={onPressViewProfile}
+          style={{
+            marginTop: 10,
+            backgroundColor: bgColor,
+            paddingVertical: 14,
+
+            borderRadius: 30,
+            alignItems: "center",
+            width: "100%",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 4,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 18,
+              fontFamily: "InterSemiBold",
+              color: "#000",
+            }}
+          >
+            View Profile →
+          </Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -121,90 +287,3 @@ const ProfileCardVertical: React.FC<ProfileModalProps> = ({
 };
 
 export default ProfileCardVertical;
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "#00000099",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  card: {
-    width: "85%",
-    backgroundColor: "#FEF9C3",
-    borderRadius: 30,
-    overflow: "hidden",
-    alignItems: "center",
-    elevation: 6,
-  },
-  imageContainer: {
-    width: "100%",
-    height: 280,
-    overflow: "hidden",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "space-between",
-  },
-  topIcons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 12,
-  },
-  iconWrapper: {
-    backgroundColor: "#fff",
-    padding: 8,
-    borderRadius: 20,
-  },
-  icon: {
-    width: 24,
-    height: 24,
-  },
-  profileInfo: {
-    paddingTop: 8,
-    paddingBottom: 20,
-    borderRadius: 30,
-    width: "85%",
-    paddingHorizontal: 16,
-    top: -50,
-  },
-  name: {
-    fontSize: 28,
-    fontFamily: "InterBold",
-    color: "#000",
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: "InterSemiBold",
-    color: "#444",
-  },
-  location: {
-    fontSize: 16,
-    fontFamily: "InterSemiBold",
-    color: "#5E5E5E",
-  },
-  actionRow: {
-    flexDirection: "row",
-    marginTop: 16,
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  actionCircle: {
-    padding: 12,
-    borderRadius: 30,
-  },
-  closeBtn: {
-    backgroundColor: "#333",
-    width: 40,
-    height: 40,
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "absolute",
-    bottom: 30,
-  },
-});

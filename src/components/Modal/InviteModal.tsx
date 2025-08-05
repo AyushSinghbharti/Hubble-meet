@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Modal,
   View,
@@ -6,13 +6,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  Clipboard,
   Alert,
   Pressable,
+  Dimensions,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
-import AlertModal from "../Alerts/AlertModal";
+import { FONT } from "@/assets/constants/fonts";
+
+const { width } = Dimensions.get("window");
 
 interface InviteModalProps {
   visible: boolean;
@@ -22,10 +24,9 @@ interface InviteModalProps {
 const INVITE_LINK = "http://www.sample.org/headhatsapp";
 
 export default function InviteModal({ visible, onClose }: InviteModalProps) {
-  // const [requestSentVisible, setRequestSentVisible] = useState(false);
-
   const handleCopy = () => {
-    Clipboard.setString(INVITE_LINK);
+    require("react-native").Clipboard.setString(INVITE_LINK);
+    Alert.alert("Copied", "Invite link copied to clipboard!");
   };
 
   const handleWhatsAppInvite = () => {
@@ -37,24 +38,24 @@ export default function InviteModal({ visible, onClose }: InviteModalProps) {
 
   return (
     <Modal visible={visible} animationType="fade" transparent>
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.modal} onPress={() => {}}>
-          {/* Close Icon */}
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color="#000" />
-          </TouchableOpacity>
+      <View style={styles.overlay}>
+        {/* Close button floating above modal */}
+        <TouchableOpacity onPress={onClose} style={styles.floatingCloseButton}>
+          <Ionicons name="close" size={24} color="#000" />
+        </TouchableOpacity>
+
+        {/* Modal at the bottom */}
+        <Pressable style={styles.modal} onPress={() => { }}>
+          {/* Illustration */}
+          <Image
+            source={require("../../../assets/invite.png")}
+            style={styles.illustration}
+          />
 
           {/* Title */}
           <Text style={styles.title}>Send an Invite</Text>
 
-          {/* Illustration */}
-          <Image
-            source={{
-              uri: "https://img.icons8.com/external-flaticons-lineal-color-flat-icons/64/000000/external-high-five-team-building-flaticons-lineal-color-flat-icons.png",
-            }}
-            style={styles.illustration}
-          />
-
+          {/* Link */}
           <View style={styles.linkContainer}>
             <Text style={styles.linkText}>{INVITE_LINK}</Text>
             <TouchableOpacity style={styles.copyButton} onPress={handleCopy}>
@@ -62,23 +63,16 @@ export default function InviteModal({ visible, onClose }: InviteModalProps) {
             </TouchableOpacity>
           </View>
 
+          {/* WhatsApp */}
           <TouchableOpacity
             style={styles.whatsappButton}
             onPress={handleWhatsAppInvite}
           >
             <FontAwesome name="whatsapp" size={20} color="#fff" />
-            <Text style={styles.whatsappText}> Invite via Whatsapp</Text>
+            <Text style={styles.whatsappText}> Invite via WhatsApp</Text>
           </TouchableOpacity>
         </Pressable>
-      </Pressable>
-      {/* <AlertModal
-        visible={requestSentVisible}
-        onClose={() => setRequestSentVisible(false)}
-        imageSource={require("../../../assets/icons/tick1.png")}
-        label="Request Sent"
-        onButtonPress={() => setRequestSentVisible(false)}
-        positionBottom
-      /> */}
+      </View>
     </Modal>
   );
 }
@@ -87,24 +81,33 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "#00000040",
-    justifyContent: "center",
+    justifyContent: "flex-end",
     alignItems: "center",
   },
   modal: {
-    width: "85%",
-    backgroundColor: "#fff",
-    borderRadius: 16,
+    width: "100%",
+    backgroundColor: "#1E1E1E",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     padding: 20,
     alignItems: "center",
     elevation: 5,
   },
-  closeButton: {
-    alignSelf: "flex-end",
+  floatingCloseButton: {
+    position: "absolute",
+    bottom: 380, // Adjust this based on modal height
+    right: 180,
+    backgroundColor: "#BBCF8D",
+    padding: 8,
+    borderRadius: 20,
+    zIndex: 100,
   },
   title: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "500",
     marginVertical: 12,
+    color: "#fff",
+    fontFamily: FONT.MONSERRATMEDIUM,
   },
   illustration: {
     width: 80,
@@ -114,21 +117,23 @@ const styles = StyleSheet.create({
   linkContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EEF4E6",
+    backgroundColor: "#323232",
     borderRadius: 10,
     padding: 10,
     marginBottom: 20,
     width: "100%",
     justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "gray",
   },
   linkText: {
     fontSize: 13,
     flex: 1,
-    color: "#333",
+    color: "#fff",
+    fontFamily: FONT.MONSERRATREGULAR,
   },
   copyButton: {
     marginLeft: 10,
-    backgroundColor: "#B2CD82",
     padding: 6,
     borderRadius: 6,
   },

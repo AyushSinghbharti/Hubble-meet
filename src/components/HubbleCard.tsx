@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Image,
@@ -8,8 +8,9 @@ import {
   Dimensions,
   Share,
   Alert,
+  Animated,
+  Easing,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import ProfileCardVertical from "./ProfileCardVertical";
 import { UserProfile } from "@/src/interfaces/profileInterface";
@@ -25,120 +26,44 @@ const CENTER = width / 2;
 
 const ProfileOrbit = () => {
   const router = useRouter();
-  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<UserProfile | boolean>(false);
   const connections = useConnectionStore((state) => state.connections);
   const user = useAuthStore((state) => state.user);
   const [addModal, setAddModal] = useState(false);
   const [blockModal, setBlockModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | boolean>(true);
   const [filteredConnections, setFilteredConnections] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const currentUser = useAuthStore((state) => state.user);
 
-  // ✅ New API call
-  const fetchCloseConnections = async ({
-    userId,
-    currentPage = 1,
-    pageSize = 10,
-  }: {
-    userId: string;
-    currentPage?: number;
-    pageSize?: number;
-  }): Promise<UserProfile[]> => {
-    try {
-      const res = await axios.post(
-        "https://d2aks9kyhua4na.cloudfront.net/api/connection/close-connections",
-        {
-          userId,
-          currentPage,
-          pageSize,
-        }
-      );
-
-      console.log(" Close Connections API response:", JSON.stringify(res.data, null, 2));
-
-      if (res.data?.success) return res.data.data;
-
-      throw new Error(res.data?.message || "Failed to fetch close connections");
-    } catch (error: any) {
-      console.error("Error in fetchCloseConnections:", error?.message || error);
-      throw error;
-    }
-  };
-
+  const scaleAnim = useRef(new Animated.Value(0.7)).current;
+  const orbitRotation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    let isCancelled = false;
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 700,
+      useNativeDriver: true,
+      easing: Easing.out(Easing.exp),
+    }).start();
 
-    const fetchCloseCircleData = async () => {
-      if (!currentUser?.user_id) {
-        if (!isCancelled) {
-          setFilteredConnections([]);
-          setLoading(false);
-        }
-        return;
-      }
+    Animated.loop(
+      Animated.timing(orbitRotation, {
+        toValue: 1,
+        duration: 20000,
+        useNativeDriver: true,
+        easing: Easing.linear,
+      })
+    ).start();
+  }, []);
 
-      try {
-        setLoading(true);
-        const result = await fetchCloseConnections({ userId: currentUser.user_id });
-        if (!isCancelled) {
-          setFilteredConnections(result);
-        }
-      } catch (err) {
-        console.error("Error fetching close circle data:", err);
-        if (!isCancelled) {
-          setFilteredConnections(
-            connections.filter(
-              (c) => c.connection_status?.toLowerCase() === "close_connection"
-            )
-          );
-        }
-      } finally {
-        if (!isCancelled) setLoading(false);
-      }
-    };
-
-    fetchCloseCircleData();
-    return () => {
-      isCancelled = true;
-    };
-  }, [connections, currentUser?.user_id]);
+  const rotateInterpolate = orbitRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
 
   const outerProfiles = filteredConnections.slice(0, 3);
   const innerProfiles = filteredConnections.slice(3);
-
-  const handleChatPress = async () => {
-    await resolveChatAndNavigate({ currentUser, targetUser: selectedProfile });
-  };
-
-  const handleSharePress = () => {
-    Share.share({
-      message: `Hey see my VBC card here ${selectedProfile?.full_name}`,
-    });
-  };
-
-  const handleBlockPress = () => {
-    setBlockModal(true);
-    setSelectedUser(selectedProfile);
-  };
-
-  const handleBagPress = () => {
-    setSelectedUser(selectedProfile);
-    setAddModal(true);
-  };
-
-  const handlePitchPress = () => {
-    router.push("/pitch");
-  };
-
-  const handleViewAll = () => {
-    router.push("/HubbleCircleViewAll");
-  };
-
-  const handleAvatarPress = (profile: UserProfile) => {
-    setSelectedProfile(profile);
-  };
 
   const renderOrbitAvatars = (radius: number, avatars: UserProfile[], length: number) =>
     avatars.map((avatar, index) => {
@@ -150,7 +75,7 @@ const ProfileOrbit = () => {
       return (
         <TouchableOpacity
           key={avatar.user_id}
-          onPress={() => handleAvatarPress(avatar)}
+          onPress={() => setSelectedProfile(avatar)}
           activeOpacity={0.8}
           style={[styles.avatarWrapper, { left: x, top: y }]}
         >
@@ -173,6 +98,70 @@ const ProfileOrbit = () => {
       );
     });
 
+  const fetchCloseConnections = async ({
+    userId,
+    currentPage = 1,
+    pageSize = 10,
+  }: {
+    userId: string;
+    currentPage?: number;
+    pageSize?: number;
+  }): Promise<UserProfile[]> => {
+    try {
+      const res = await axios.post(
+        "https://d2aks9kyhua4na.cloudfront.net/api/connection/close-connections",
+        {
+          userId,
+          currentPage,
+          pageSize,
+        }
+      );
+
+      if (res.data?.success) return res.data.data;
+
+      throw new Error(res.data?.message || "Failed to fetch close connections");
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchCloseCircleData = async () => {
+      if (!currentUser?.user_id) {
+        if (!isCancelled) {
+          setFilteredConnections([]);
+          setLoading(false);
+        }
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const result = await fetchCloseConnections({ userId: currentUser.user_id });
+        if (!isCancelled) {
+          setFilteredConnections(result);
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          setFilteredConnections(
+            connections.filter(
+              (c) => c.connection_status?.toLowerCase() === "close_connection"
+            )
+          );
+        }
+      } finally {
+        if (!isCancelled) setLoading(false);
+      }
+    };
+
+    fetchCloseCircleData();
+    return () => {
+      isCancelled = true;
+    };
+  }, [connections, currentUser?.user_id]);
+
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
@@ -183,63 +172,87 @@ const ProfileOrbit = () => {
 
   return (
     <View style={styles.container}>
-      {/* Gradients */}
-      <LinearGradient
-        colors={["#fff", "#BBCF8D"]}
-        start={{ x: 0.1, y: 0 }}
-        end={{ x: 0.1, y: 3 }}
-        style={[styles.gradientCircle, styles.outerGradient]}
-      >
-        <View style={styles.dashedBorderOuter} />
-      </LinearGradient>
+      {/* Only show orbit rings if there are close connections */}
+      {filteredConnections.length > 0 && (
+        <>
+          <Animated.View
+            style={[
+              styles.outerGradient,
+              styles.gradientCircle,
+              {
+                transform: [{ scale: scaleAnim }, { rotate: rotateInterpolate }],
+              },
+            ]}
+            pointerEvents="none"
+          >
+            <View style={styles.dashedBorderOuter} />
+          </Animated.View>
 
-      <LinearGradient
-        colors={["#B3C778", "#FFFFFF"]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={[styles.gradientCircle, styles.innerGradient]}
-      >
-        <View style={styles.dashedBorderInner} />
-      </LinearGradient>
+          <Animated.View
+            style={[
+              styles.innerGradient,
+              styles.gradientCircle,
+              {
+                transform: [{ scale: scaleAnim }, { rotate: rotateInterpolate }],
+              },
+            ]}
+            pointerEvents="none"
+          >
+            <View style={styles.dashedBorderInner} />
+          </Animated.View>
+        </>
+      )}
 
-      {/* Orbit Avatars */}
+      {/* Avatars always shown regardless of orbit rings */}
       {renderOrbitAvatars(165, outerProfiles, outerProfiles.length)}
       {renderOrbitAvatars(115, innerProfiles, outerProfiles.length + 1)}
 
-      {/* Center Avatar */}
-      {outerProfiles[0] && (
-        <Image
-          source={{
-            uri:
-              user?.profile_picture_url ||
-              "https://xsgames.co/randomusers/assets/images/favicon.png",
-          }}
-          style={[styles.centerAvatar, { left: CENTER - 50, top: CENTER - 50 }]}
-        />
-      )}
+      {/* Center Avatar - always show */}
+      <Image
+        source={{
+          uri:
+            user?.profile_picture_url ||
+            "https://xsgames.co/randomusers/assets/images/favicon.png",
+        }}
+        style={[styles.centerAvatar, { left: CENTER - 50, top: CENTER - 50 }]}
+      />
 
-      <TouchableOpacity style={styles.button} onPress={handleViewAll}>
+      {/* View All Button - always show */}
+      <TouchableOpacity style={styles.button} onPress={() => router.push("/HubbleCircleViewAll")}>
         <Text style={styles.buttonText}>View All</Text>
       </TouchableOpacity>
 
-      {filteredConnections.length === 0 && (
+      {/* Message if no connections */}
+      {/* {filteredConnections.length === 0 && (
         <View style={styles.noConnectionsContainer}>
           <Text style={styles.noConnectionsText}>
             No close circle connections found
           </Text>
         </View>
-      )}
+      )} */}
 
       {selectedProfile && (
         <ProfileCardVertical
           modalVisible={true}
           onClose={() => setSelectedProfile(null)}
           selectedProfile={selectedProfile}
-          onPressChat={handleChatPress}
-          onPressShare={handleSharePress}
-          onPressBlock={handleBlockPress}
-          onPressBag={handleBagPress}
-          onPressPitch={handlePitchPress}
+          onPressChat={async () =>
+            await resolveChatAndNavigate({ currentUser, targetUser: selectedProfile })
+          }
+          onPressShare={() => {
+            Share.share({
+              message: `Hey see my VBC card here ${selectedProfile?.full_name}`,
+            });
+          }}
+          onPressBlock={() => {
+            setBlockModal(true);
+            setSelectedUser(selectedProfile);
+          }}
+          onPressBag={() => {
+            setSelectedUser(selectedProfile);
+            setAddModal(true);
+          }}
+          onPressPitch={() => router.push("/pitch")}
         />
       )}
 
@@ -248,7 +261,6 @@ const ProfileOrbit = () => {
         userName={selectedUser?.full_name}
         onClose={() => setBlockModal(false)}
         onSubmit={(reason) => {
-          console.log("Blocked with reason:", reason);
           setBlockModal(false);
         }}
       />

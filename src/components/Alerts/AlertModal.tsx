@@ -19,6 +19,7 @@ interface AlertModalProps {
   positionBottom?: boolean;
   viewButton?: boolean;
   buttonText?: string;
+  name?: string;
 }
 
 const AlertModal: React.FC<AlertModalProps> = ({
@@ -30,7 +31,8 @@ const AlertModal: React.FC<AlertModalProps> = ({
   positionBottom = false,
   viewButton = false,
   buttonText,
-  onButtonPress
+  name,
+  onButtonPress,
 }) => {
   useEffect(() => {
     if (visible) {
@@ -57,27 +59,27 @@ const AlertModal: React.FC<AlertModalProps> = ({
     >
       <View style={[styles.overlay, positionStyle]}>
         <View style={styles.modalBox}>
-          <View style={styles.contentRow}>
+          {/* Left Side: icon + label + name (in same row) */}
+          <View style={styles.leftRow}>
             <Image
               source={imageSource}
               style={styles.iconImage}
               resizeMode="contain"
             />
-            <Text style={styles.labelText}>{label}</Text>
+            <Text style={[styles.labelText, { color: "#C0C0C0" }]}>{label}</Text>
+
+            {name ? (
+              <>
+
+                <Text style={styles.nameText}>{name}</Text>
+                <Text style={styles.separator}>|</Text>
+              </>
+            ) : null}
           </View>
 
+          {/* Right Side: optional button */}
           {viewButton && (
-            <Text
-              onPress={onButtonPress}
-              style={{
-                paddingHorizontal: 8,
-                backgroundColor: "#EEEEEE",
-                paddingVertical: 4,
-                marginRight: 6,
-                borderRadius: 10,
-                fontFamily: FONT.MEDIUM,
-              }}
-            >
+            <Text onPress={onButtonPress} style={styles.actionText}>
               {buttonText}
             </Text>
           )}
@@ -97,29 +99,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   modalBox: {
-    width: "100%",
+    width: "90%",
+    flexDirection: "row",
     justifyContent: "space-between",
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 4,
     alignItems: "center",
-    padding: 6,
-    paddingLeft: 8,
+    backgroundColor: "#2D2D2D",
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderLeftWidth: 5,
-    borderLeftColor: "#F87171",
   },
-  contentRow: {
+  leftRow: {
     flexDirection: "row",
     alignItems: "center",
+    flexShrink: 1,
+    flex: 1,
+    flexWrap: "nowrap",
   },
   iconImage: {
     width: 36,
     height: 36,
-    marginRight: 12,
+    marginRight: 8,
   },
   labelText: {
     fontSize: 16,
-    color: "#1F2937",
+    color: "#FFFFFF",
+    fontFamily: FONT.MEDIUM,
+    marginRight: 6,
+  },
+  separator: {
+    fontSize: 16,
+    color: "#C0C0C0",
+
+  },
+  nameText: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    fontFamily: FONT.MEDIUM,
     flexShrink: 1,
+  },
+  actionText: {
+    fontSize: 14,
+    color: "#DD4646",
+    fontFamily: FONT.MEDIUM,
+    paddingLeft: 10,
   },
 });
