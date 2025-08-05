@@ -350,7 +350,7 @@ export default ProfileList;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#1212",
   },
   flatList: {
     flex: 1,

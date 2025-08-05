@@ -1,4 +1,3 @@
-// screens/NotificationsScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -48,9 +47,9 @@ const NotificationsScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.backButton}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.title}>Notification</Text>
         <View style={styles.rightPlaceholder} />
@@ -77,7 +76,7 @@ const NotificationsScreen = () => {
         }
         ListEmptyComponent={
           !isLoading && !isFetching ? (
-            <Text style={{ textAlign: "center", marginTop: 40 }}>
+            <Text style={styles.emptyText}>
               No notifications found.
             </Text>
           ) : null
@@ -92,20 +91,28 @@ export default NotificationsScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#0E0E0E", // Dark background
     paddingTop: Platform.OS === "ios" ? 10 : 30,
   },
-  backButton: {
+  header: {
     padding: 16,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
   title: {
-    color: "#000",
+    color: "#FFFFFF", // Light title for dark bg
     fontSize: 18,
     fontFamily: "InterBold",
   },
   rightPlaceholder: {
     width: 32,
+  },
+  emptyText: {
+    color: "#999",
+    textAlign: "center",
+    marginTop: 40,
+    fontSize: 14,
+    fontFamily: "InterRegular",
   },
 });

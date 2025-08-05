@@ -12,6 +12,7 @@ import {
   Platform,
   StatusBar,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import BlockUserModal from "./Modal/BlockUserModal";
 import CustomCard from "./Cards/vbcCard";
@@ -36,6 +37,8 @@ import { getStableColor } from "../utility/getStableColor";
 import { usePitchStore } from "../store/pitchStore";
 import PopUpNotification from "./chatScreenComps/popUpNotification";
 import { FONT } from "@/assets/constants/fonts";
+import TapCard from "./TapCard";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get("window");
 const CARD_GAP = 10;
@@ -178,8 +181,14 @@ const VbcCard = ({
         </View>
       )}
 
+      <TapCard
+        title="Tap"
+        description={`To add your connections to \n your Hubble Circle`}
+        icon={<Image style={{ height: 23, width: 23 }} source={require('../../assets/handshake.png')} />}
+      />
       <FlatList
         data={users}
+
         numColumns={2}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
@@ -198,14 +207,49 @@ const VbcCard = ({
           ) : null
         }
         ListEmptyComponent={
-          <View style={{ alignItems: "center", marginTop: 50 }}>
-            <Text style={{ color: "#999", fontSize: 16, fontFamily: FONT.MEDIUM }}>
+          <View
+            style={{
+              flex: 1,
+              width: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+              marginTop: 150, // You can remove this if full vertical centering is needed
+            }}
+          >
+            <Text
+              style={{
+                color: "#999",
+                fontSize: 16,
+                fontFamily: FONT.MONSERRATMEDIUM,
+                marginBottom: 16,
+                lineHeight: 18
+              }}
+            >
               You have no Connections yet
             </Text>
 
-
+            <TouchableOpacity
+              style={{
+                backgroundColor: "#BBCF8D",
+                padding: 12,
+                borderRadius: 32,
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "row",
+                width: '60%',
+                columnGap: 30
+              }}
+            >
+              <Image
+                source={require("../../assets/swipe.png")}
+                resizeMode="contain"
+                style={{ width: 30, height: 30 }}
+              />
+              <Text>Start Swiping</Text>
+            </TouchableOpacity>
           </View>
         }
+
         renderItem={({ item, index }) => {
           const cardColor = item.color ?? getStableColor(item.user_id);
 

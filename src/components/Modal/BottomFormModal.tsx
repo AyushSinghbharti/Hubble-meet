@@ -1,4 +1,3 @@
-// components/BottomFormModal.tsx
 import React, { useState } from "react";
 import {
     Modal,
@@ -33,15 +32,16 @@ const BottomFormModal: React.FC<BottomFormModalProps> = ({
     return (
         <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
             <View style={styles.overlay}>
-                {/* Floating X button */}
-                <Pressable style={styles.closeButton} onPress={onClose}>
-                    <Ionicons name="close" size={24} color="#181818" />
-                </Pressable>
-
-                {/* Modal Content */}
                 <View style={styles.modalContainer}>
+                    {/* Close Button */}
+                    <Pressable style={styles.closeButton} onPress={onClose}>
+                        <Ionicons name="close" size={24} color="#181818" />
+                    </Pressable>
+
+                    {/* Title */}
                     <Text style={styles.title}>{title}</Text>
 
+                    {/* Text Input */}
                     <View style={styles.inputBox}>
                         <TextInput
                             style={styles.textInput}
@@ -87,21 +87,23 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(0,0,0,0.6)",
         justifyContent: "flex-end",
     },
-    closeButton: {
-        position: "absolute",
-        top: 540,
-        alignSelf: "center",
-        zIndex: 10,
-        backgroundColor: "#C6E18E",
-        padding: 10,
-        borderRadius: 50,
-    },
     modalContainer: {
         backgroundColor: "#181818",
         borderTopLeftRadius: 16,
         borderTopRightRadius: 16,
         padding: 20,
+        paddingTop: 50, // Space for close button
         width: "100%",
+        position: "relative",
+    },
+    closeButton: {
+        position: "absolute",
+        top: 10,
+        right: 10,
+        backgroundColor: "#C6E18E",
+        padding: 10,
+        borderRadius: 50,
+        zIndex: 10,
     },
     title: {
         color: "#fff",

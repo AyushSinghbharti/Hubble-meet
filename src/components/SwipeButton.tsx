@@ -106,15 +106,15 @@ export default SwipeToSubmitButton;
 const styles = StyleSheet.create({
   outerContainer: {
     padding: 5,
-    borderColor: "#fff",
+    borderColor: "#1E1E1E",
     borderWidth: 1,
     borderRadius: 100,
     elevation: 3,
-    backgroundColor: "#fff",
+    backgroundColor: "#1E1E1E",
   },
   container: {
     width: "100%",
-    backgroundColor: "#fff",
+    backgroundColor: "#1E1E1E",
     borderRadius: 100,
     justifyContent: "center",
     alignItems: "center",
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: "#000",
+    color: "#fff",
     fontFamily: "InterMedium",
     zIndex: 0,
   },

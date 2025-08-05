@@ -16,7 +16,7 @@ const CARD_WIDTH = (width - CARD_GAP * 3) / 2;
 const AVATAR_HEIGHT = 180;
 
 const cardColors = ["#FDF0A6", "#FBC8C9", "#C9FBC8", "#F6F6F6", "#E0EAF3"];
-const iconColorMap: Record<string, string> = {
+const iconColorMap = {
   "#FDF0A6": "#FFE36A",
   "#FBC8C9": "#F89CA1",
   "#C9FBC8": "#99E199",
@@ -24,7 +24,7 @@ const iconColorMap: Record<string, string> = {
   "#E0EAF3": "#ADC7E3",
 };
 
-const getTextColor = (hex: string): string => {
+const getTextColor = (hex) => {
   const c = hex.substring(1);
   const rgb = parseInt(c, 16);
   const r = (rgb >> 16) & 0xff;
@@ -33,19 +33,6 @@ const getTextColor = (hex: string): string => {
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
   return brightness > 155 ? "#222" : "#fff";
 };
-
-interface CardProps {
-  name: string;
-  role: string;
-  company: string[];
-  location: string;
-  avatar: any;
-  cardColor?: string; // Optional to allow external control or random internally
-  onHandshake: () => void;
-  onVideo: () => void;
-  onChat: () => void;
-  onShare: () => void;
-}
 
 const Card = ({
   name,
@@ -58,11 +45,16 @@ const Card = ({
   onVideo,
   onChat,
   onShare,
-}: CardProps) => {
-  const bgColor = cardColor || cardColors[Math.floor(Math.random() * cardColors.length)];
+}) => {
+  const bgColor =
+    cardColor || cardColors[Math.floor(Math.random() * cardColors.length)];
   const iconBgColor = iconColorMap[bgColor];
   const textColor = getTextColor(bgColor);
-  const iconColor = getTextColor(iconBgColor);
+
+  // Ensure company is array to avoid .join crash:
+  const safeCompany = Array.isArray(company) ? company : [];
+  const companyText =
+    safeCompany.length > 0 ? `@${safeCompany.join(", ")}` : "";
 
   return (
     <View style={[styles.card, { backgroundColor: "#181818" }]}>
@@ -81,33 +73,36 @@ const Card = ({
               style={{ width: 26, height: 26 }}
             />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.circleBtn, { backgroundColor: "#fff" }]} onPress={onVideo}>
+          <TouchableOpacity
+            style={[styles.circleBtn, { backgroundColor: "#fff" }]}
+            onPress={onVideo}
+          >
             <Ionicons name="videocam-outline" size={24} color="#2d7d46" />
           </TouchableOpacity>
         </View>
       </ImageBackground>
 
       <View style={[styles.infoSection, { backgroundColor: bgColor }]}>
-        <Text style={[styles.name, { color: textColor }]}>{name}</Text>
-        <Text style={[styles.role, { color: textColor }]}>{role}</Text>
-        <Text style={[styles.company, { color: textColor }]}>
-          @{company?.join(", ") ?? ""}
+        <Text style={[styles.name, { color: textColor }]}>
+          {name ?? ""}
         </Text>
-
-        <Text style={[styles.location, { color: textColor }]}>{location}</Text>
+        <Text style={[styles.role, { color: textColor }]}>
+          {role ?? ""}
+        </Text>
+        {/* Company text, always inside a <Text> */}
+        <Text style={[styles.company, { color: textColor }]}>
+          {companyText}
+        </Text>
+        <Text style={[styles.location, { color: textColor }]}>
+          {location ?? ""}
+        </Text>
       </View>
       <View style={[styles.bottomBar, { backgroundColor: "#181818" }]}>
-        <TouchableOpacity
-          style={[styles.bottomBtn]}
-          onPress={onChat}
-        >
-          <Ionicons name="chatbubble-ellipses-outline" size={26} color={'#BBFFBB'} />
+        <TouchableOpacity style={styles.bottomBtn} onPress={onChat}>
+          <Ionicons name="chatbubble-ellipses-outline" size={26} color={"#BBFFBB"} />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.bottomBtn]}
-          onPress={onShare}
-        >
-          <Feather name="share-2" size={26} color={'#BBFFBB'} />
+        <TouchableOpacity style={styles.bottomBtn} onPress={onShare}>
+          <Feather name="share-2" size={26} color={"#BBFFBB"} />
         </TouchableOpacity>
       </View>
     </View>

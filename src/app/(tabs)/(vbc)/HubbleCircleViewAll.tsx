@@ -10,6 +10,7 @@ import React, { useState } from "react";
 import SearchBar from "../../../components/SearchBar";
 import VbcCard from "../../../components/VbcCard";
 import NavHeader from "../../../components/NavHeader";
+import { FONT } from "@/assets/constants/fonts";
 
 const HubbleCircleViewAll = () => {
   const [searchText, setSearchText] = useState("");
@@ -51,7 +52,7 @@ export default HubbleCircleViewAll;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#121212",
   },
   scrollContent: {
     paddingBottom: 20,
@@ -61,9 +62,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: "500",
     marginVertical: 16,
-    color: "#333",
+    color: "#fff",
+    fontFamily: FONT.MONSERRATMEDIUM
   },
   cardContainer: {
     gap: 12,

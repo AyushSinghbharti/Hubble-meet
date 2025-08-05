@@ -23,7 +23,7 @@ const ProfileSummary = () => {
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
       >
-        {/* Top Header with dark background */}
+
         <View style={styles.header}>
           <TouchableOpacity>
             <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -32,16 +32,15 @@ const ProfileSummary = () => {
           <View style={styles.placeholder} />
         </View>
 
-        {/* Profile Image with share button overlay */}
+
         <View style={styles.imageContainer}>
           <Image
-            source={require("@/assets/images/p1.jpg")} // replace with actual
+            source={require("@/assets/images/p1.jpg")}
             style={styles.profileImage}
           />
           <TouchableOpacity style={styles.shareButton}>
             <Ionicons name="share-social" size={18} color="#000" />
           </TouchableOpacity>
-          {/* QR code in bottom right with curved background that connects to edge */}
           <View style={styles.qrWrapper}>
             <View style={styles.qrCurveBackground}>
               <Ionicons name="qr-code" size={24} color="#C7F649" />
@@ -49,9 +48,9 @@ const ProfileSummary = () => {
           </View>
         </View>
 
-        {/* Content Section */}
+
         <View style={styles.contentSection}>
-          {/* Name and Location */}
+
           <Text style={styles.name}>Shyam Kumar</Text>
           <Text style={styles.location}>Bangalore, India</Text>
 

@@ -7,49 +7,24 @@ import React, {
 } from "react";
 import {
   View,
-  Text,
-  Image,
-  StyleSheet,
   Dimensions,
   FlatList,
-  TouchableOpacity,
-  ScrollView,
-  ImageBackground,
+
 } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  runOnJS,
-  withTiming,
-  interpolate,
-} from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
-import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
 import logo from "../../../../assets/logo/logo.png";
-import { FONT } from "../../../../assets/constants/fonts";
 import styles from "./Styles/Styles";
-import BlockUserModal from "../../../components/Modal/BlockUserModal";
 import ProfilePrompt from "../../../components/Modal/ProfilePromptModal";
-import ShareModal from "../../../components/Share/ShareBottomSheet";
-import {
-  useAcceptConnection,
-  useSendConnection,
-} from "@/src/hooks/useConnection";
 import { useAuthStore } from "@/src/store/auth";
 import { UserProfile } from "@/src/interfaces/profileInterface";
 import ErrorAlert from "@/src/components/errorAlert";
 import { useConnectionStore } from "@/src/store/connectionStore";
-import { useInAppNotify } from "@/src/hooks/useInAppNotify";
 import { fetchUserProfile } from "@/src/api/profile";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { AxiosError } from "axios";
 import { useAppState } from "@/src/store/appState"; // Import the updated store
-import { MotiView } from "moti";
 import ConnectCard from "@/src/components/skeletons/connectCard";
 import ProfileCard from "./ProfileCard";
 
