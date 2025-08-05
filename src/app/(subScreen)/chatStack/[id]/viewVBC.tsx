@@ -22,6 +22,7 @@ import {
   useUnblockUser,
 } from "@/src/hooks/useConnection";
 import { useAuthStore } from "@/src/store/auth";
+import colourPalette from "@/src/theme/darkPaletter";
 
 export default function ViewVBC() {
   const params = useLocalSearchParams();
@@ -153,7 +154,7 @@ export default function ViewVBC() {
         <Image
           source={item.image}
           style={[
-            { height: 22, width: 22 },
+            { height: 22, width: 22, tintColor: colourPalette.textPrimary },
             item.disabled && styles.disabledImage, // Add disabled image style
           ]}
         />
@@ -161,7 +162,11 @@ export default function ViewVBC() {
         <Feather
           name={item.icon as any}
           size={21}
-          color={item.disabled ? "#999" : "#1e1e1e"}
+          color={
+            item.disabled
+              ? colourPalette.textPlaceholder
+              : colourPalette.textPrimary
+          }
         />
       )}
       <Text
@@ -177,7 +182,7 @@ export default function ViewVBC() {
 
   return (
     <Modal
-      style={styles.container}
+      backdropColor={colourPalette.backgroundPrimary}
       onRequestClose={() => router.back()}
       animationType="slide"
     >
@@ -187,7 +192,11 @@ export default function ViewVBC() {
           style={{ paddingVertical: 12 }}
           onPress={() => router.back()}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={colourPalette.textPrimary}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity hitSlop={8}>
@@ -258,8 +267,6 @@ export default function ViewVBC() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-
   /* Header */
   header: {
     flexDirection: "row",
@@ -284,27 +291,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
     fontFamily: "InterBold",
+    color: colourPalette.textPrimary,
   },
   role: {
     textAlign: "center",
     fontFamily: "Inter",
     marginTop: 4,
     fontSize: 13,
-    color: "#000",
+    color: colourPalette.textSecondary,
   },
   blockedStatus: {
     textAlign: "center",
     fontFamily: "Inter",
     marginTop: 4,
     fontSize: 12,
-    color: "#ff4444",
+    color: colourPalette.buttonPrimary,
     fontWeight: "bold",
   },
 
   /* Divider */
   divider: {
     height: 1,
-    backgroundColor: "#F1F1F1",
+    backgroundColor: colourPalette.backgroundSecondary,
     marginVertical: 24,
     marginHorizontal: 16,
   },
@@ -321,11 +329,11 @@ const styles = StyleSheet.create({
   rowLabel: {
     marginLeft: 16,
     fontSize: 15,
-    color: "#000",
+    color: colourPalette.textPrimary,
     fontFamily: "Inter",
   },
   disabledText: {
-    color: "#999",
+    color: colourPalette.textPlaceholder,
   },
   disabledImage: {
     opacity: 0.5,

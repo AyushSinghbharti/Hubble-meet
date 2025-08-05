@@ -1,12 +1,7 @@
 // components/messageAction.tsx
+import colourPalette from "@/src/theme/darkPaletter";
 import React from "react";
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  Text,
-} from "react-native";
+import { View, TouchableOpacity, StyleSheet, Image, Text } from "react-native";
 
 interface MessageActionProps {
   isVisible?: boolean;
@@ -100,7 +95,7 @@ const styles = StyleSheet.create({
     minWidth: 84,
     minHeight: 185,
     position: "absolute",
-    backgroundColor: "#fff",
+    backgroundColor: colourPalette.backgroundSecondary,
     borderRadius: 18,
     justifyContent: "space-evenly",
     alignItems: "center",
@@ -112,6 +107,7 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   icon: {
+    tintColor: colourPalette.textPrimary,
     height: 24,
     aspectRatio: 1,
   },

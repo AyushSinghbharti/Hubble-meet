@@ -6,11 +6,10 @@ import React, {
   forwardRef,
 } from "react";
 import {
-  View,
-  StyleSheet,
   ViewStyle,
   ImageSourcePropType,
   ImageBackground,
+  StyleSheet,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -20,9 +19,9 @@ interface RandomBGImages {
   style?: ViewStyle | ViewStyle[];
   type?: "Dark" | "Light" | "SemiDark" | "VeryLight" | "none";
   blur?: number;
+  imageNumber?: number; // ✅ new prop
 }
 
-// Add ref methods interface
 export interface RandomBGImagesRef {
   newImage: () => void;
 }
@@ -52,16 +51,24 @@ const gradientColour: {
 };
 
 const RandomBackgroundImages = forwardRef<RandomBGImagesRef, RandomBGImages>(
-  ({ children, style, type = "Light", blur = 0 }, ref) => {
+  ({ children, style, type = "Light", blur = 0, imageNumber }, ref) => {
     const [backgroundImageNumber, setBackgroundImageNumber] = useState(0);
 
-    // Initialize with random image
+    // Setup image on mount
     useEffect(() => {
-      const imageNumber = Math.floor(Math.random() * backgroundImages.length);
-      setBackgroundImageNumber(imageNumber);
-    }, []);
+      if (
+        typeof imageNumber === "number" &&
+        imageNumber >= 1 &&
+        imageNumber <= backgroundImages.length
+      ) {
+        setBackgroundImageNumber(imageNumber - 1); // convert to 0-based
+      } else {
+        const randomImage = Math.floor(Math.random() * backgroundImages.length);
+        setBackgroundImageNumber(randomImage);
+      }
+    }, [imageNumber]);
 
-    // Expose newImage function through ref
+    // Expose function to change image
     useImperativeHandle(ref, () => ({
       newImage: () => {
         setBackgroundImageNumber(

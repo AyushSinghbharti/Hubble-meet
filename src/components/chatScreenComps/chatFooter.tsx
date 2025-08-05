@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ChatMessage } from "@/src/interfaces/chatInterface";
+import colourPalette from "@/src/theme/darkPaletter";
 
 interface ChatFooterProps {
   message: string;
@@ -27,7 +28,7 @@ const ChatFooter = ({
   message,
   useMessage,
   onPress,
-  selectedMessage, // Assuming seletedMessage is not used in this component
+  selectedMessage,
   onCancelReply = () => {},
   onSendMessage = () => {},
 }: ChatFooterProps) => {
@@ -40,20 +41,15 @@ const ChatFooter = ({
             <View
               style={{
                 flexDirection: "row",
-                alignItems: "center",
                 justifyContent: "space-between",
+                alignItems: "center",
               }}
             >
               <Text style={styles.replyText}>
                 {selectedMessage.sender.username}
               </Text>
               <TouchableOpacity onPress={onCancelReply}>
-                <Entypo
-                  name="cross"
-                  size={24}
-                  color="black"
-                  onPress={onCancelReply}
-                />
+                <Entypo name="cross" size={20} color={colourPalette.textPrimary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.replyMessage} numberOfLines={2}>
@@ -63,31 +59,35 @@ const ChatFooter = ({
         </View>
       )}
 
-      <View style={styles.footerContainer}>
-        {/* Camera icon */}
-        <TouchableOpacity style={styles.IconContainer} onPress={onPress}>
-          <Image
-            source={require("../../../assets/icons/attach.png")}
-            style={styles.attachIcon}
-          />
-        </TouchableOpacity>
-
-        {/* Message Input */}
-        <View style={styles.inputWrapper}>
+      <View style={styles.footerWrapper}>
+        <View style={styles.chatBar}>
+          {/* Input Field */}
           <TextInput
             value={message}
-            onChangeText={(text) => useMessage(text)}
-            style={styles.input}
+            onChangeText={useMessage}
             placeholder="Type a message..."
-            placeholderTextColor="#888"
+            placeholderTextColor="#B0B0B0"
+            style={styles.inputField}
             multiline
           />
 
-          {/* Send button */}
-          <TouchableOpacity onPress={() => onSendMessage(message)}>
+          {/* Attachment Icon */}
+          <TouchableOpacity style={styles.iconWrapper} onPress={onPress}>
+            <Image
+              source={require("../../../assets/icons/attach.png")}
+              style={styles.icon}
+            />
+          </TouchableOpacity>
+
+          {/* Send Button */}
+          <TouchableOpacity
+            onPress={() => onSendMessage(message)}
+            style={styles.sendWrapper}
+          >
             <Image
               source={require("../../../assets/icons/send.png")}
-              style={[styles.attachIcon, { tintColor: "#7A7A7A" }]}
+              style={styles.sendIcon}
+              resizeMode="contain"
             />
           </TouchableOpacity>
         </View>
@@ -98,76 +98,60 @@ const ChatFooter = ({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-    elevation: 5,
-    marginBottom: 0,
+    backgroundColor: colourPalette.backgroundPrimary,
+    borderTopWidth: 0.5,
+    borderTopColor: "#333",
   },
-  footerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+  footerWrapper: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: "#fff",
   },
-  IconContainer: {
-    height: 48,
-    aspectRatio: 1,
-    borderRadius: 40,
-    backgroundColor: "#D9D9D9",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  attachIcon: {
-    tintColor: "#1D1D1D",
-    width: 24,
-    height: 24,
-  },
-  inputWrapper: {
-    flex: 1,
+  chatBar: {
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: 8,
-    backgroundColor: "white",
+    borderRadius: 30,
+    backgroundColor: "#121212",
     borderWidth: 1,
-    borderColor: "#989898",
-    borderRadius: 40,
-    paddingHorizontal: 16,
+    borderColor: "#333",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  input: {
+  inputField: {
     flex: 1,
     fontSize: 16,
-    color: "#000",
-    maxHeight: 80,
+    color: "#FFF",
+    paddingRight: 8,
+    maxHeight: 100,
   },
-  modal: {
-    justifyContent: "flex-end",
-    margin: 0,
-  },
-  modalContainer: {
-    backgroundColor: "white",
-    paddingVertical: 20,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-  },
-  option: {
-    alignItems: "center",
+  iconWrapper: {
+    padding: 8,
     justifyContent: "center",
+    alignItems: "center",
   },
-  label: {
-    fontSize: 12,
-    marginTop: 5,
-    color: "#333",
+  icon: {
+    width: 24,
+    height: 24,
+    tintColor: "#AFAFAF",
+  },
+  sendWrapper: {
+    marginLeft: 8,
+    backgroundColor: "#CDE6A9",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sendIcon: {
+    width: 20,
+    height: 20,
+    tintColor: "#1D1D1D",
   },
 
-  //Reply Bar Styles
+  // --- Reply section unchanged
   replyContainer: {
+    backgroundColor: colourPalette.backgroundPrimary,
     padding: 12,
-    backgroundColor: "#fff",
     width: "100%",
     minHeight: 90,
     justifyContent: "center",
@@ -179,17 +163,17 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 26,
     marginHorizontal: 4,
-    backgroundColor: "#D9D9D9",
+    backgroundColor: colourPalette.backgroundSecondary,
   },
   replyText: {
     fontSize: 14,
     fontFamily: "InterSemiBold",
-    color: "#000",
+    color: colourPalette.textPrimary,
   },
   replyMessage: {
     fontSize: 14,
     fontFamily: "InterMedium",
-    color: "#000",
+    color: colourPalette.textSecondary,
   },
 });
 

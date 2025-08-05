@@ -24,6 +24,7 @@ import { useGetOtherVbcCard } from "@/src/hooks/useVbc";
 import VbcChatCard from "./VbcChatCard";
 import MediaViewer from "@/src/components/chatScreenComps/mediaViewer";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
+import colourPalette from "@/src/theme/darkPaletter";
 
 // Helper function to format time
 const formatTime = (timestamp: string | Date): string => {
@@ -497,7 +498,9 @@ export default function ChatBody({
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: colourPalette.backgroundPrimary }}
+    >
       <View style={{ flex: 1 }}>
         <MessageAction
           onAction={onAction}
@@ -584,8 +587,6 @@ export default function ChatBody({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-
   listContent: { paddingBottom: 9 },
 
   row: { flexDirection: "row", paddingHorizontal: 8 },

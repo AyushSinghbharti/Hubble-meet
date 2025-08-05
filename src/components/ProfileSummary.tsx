@@ -1,4 +1,3 @@
-// components/ProfileSummary.tsx
 import React from "react";
 import {
   View,
@@ -11,10 +10,42 @@ import {
   Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { UserProfile } from "../interfaces/profileInterface";
+import QRNotch from "./ProfileQRBackground";
 
 const { width } = Dimensions.get("window");
 
-const ProfileSummary = () => {
+const ProfileSummary = ({
+  userProfile,
+  onBackPress,
+  onSuccessPress,
+}: {
+  userProfile: UserProfile;
+  onBackPress: () => void;
+  onSuccessPress: () => void;
+}) => {
+  const {
+    full_name,
+    city,
+    date_of_birth,
+    gender,
+    current_company,
+    job_title,
+    bio,
+    email,
+    phone,
+    profile_picture_url,
+    industries_of_interest,
+    current_industry,
+    connection_preferences,
+  } = userProfile;
+
+  const formattedDOB = new Date(date_of_birth).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -23,9 +54,9 @@ const ProfileSummary = () => {
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
       >
-        {/* Top Header with dark background */}
+        {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={onBackPress}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Profile Summary</Text>
@@ -35,92 +66,78 @@ const ProfileSummary = () => {
         {/* Profile Image with share button overlay */}
         <View style={styles.imageContainer}>
           <Image
-            source={require("@/assets/images/p1.jpg")} // replace with actual
+            source={{uri: profile_picture_url}}
             style={styles.profileImage}
           />
           <TouchableOpacity style={styles.shareButton}>
             <Ionicons name="share-social" size={18} color="#000" />
           </TouchableOpacity>
           {/* QR code in bottom right with curved background that connects to edge */}
-          <View style={styles.qrWrapper}>
-            <View style={styles.qrCurveBackground}>
-              <Ionicons name="qr-code" size={24} color="#C7F649" />
+          <View style={styles.qrSvgWrapper}>
+            <QRNotch
+              width={100}
+              height={10}
+              bumpWidth={100}
+              bumpHeight={30}
+              fill="#1E1E1E"
+            />
+            <View style={styles.qrIcon}>
+              <Ionicons name="qr-code" size={18} color="#C7F649" />
             </View>
           </View>
         </View>
 
         {/* Content Section */}
         <View style={styles.contentSection}>
-          {/* Name and Location */}
-          <Text style={styles.name}>Shyam Kumar</Text>
-          <Text style={styles.location}>Bangalore, India</Text>
+          <Text style={styles.name}>{full_name}</Text>
+          <Text style={styles.location}>{city}</Text>
 
-          {/* Info Grid - 2x2 layout */}
           <View style={styles.gridContainer}>
             <View style={styles.gridRow}>
-              <InfoBox title="Date of Birth" value="23rd Sep 2001" />
-              <InfoBox title="Gender" value="Male ♂" />
+              <InfoBox title="Date of Birth" value={formattedDOB} />
+              <InfoBox
+                title="Gender"
+                value={`${gender} ${gender === "Male" ? "♂" : "♀"}`}
+              />
             </View>
             <View style={styles.gridRow}>
-              <InfoBox title="Working at" value="Amazon" />
-              <InfoBox title="Position" value="Design Lead" />
+              <InfoBox
+                title="Working at"
+                value={current_company?.join(", ") || ""}
+              />
+              <InfoBox title="Position" value={job_title || ""} />
             </View>
           </View>
 
-          {/* Bio */}
           <Text style={styles.sectionLabel}>Bio</Text>
-          <Text style={styles.bio}>
-            I am a passionate and details oriented Product designer with a
-            strong focus on creating user-centric designs that enhances
-            usability and deliver seamless digital experiences
-          </Text>
+          <Text style={styles.bio}>{bio}</Text>
 
-          {/* Contact */}
           <Text style={styles.sectionLabel}>Email</Text>
-          <Text style={styles.contact}>jhondoe254@gmail.com</Text>
+          <Text style={styles.contact}>{email}</Text>
 
           <Text style={styles.sectionLabel}>Phone</Text>
-          <Text style={styles.contact}>+91 990 334 4556</Text>
+          <Text style={styles.contact}>{phone}</Text>
 
           {/* Tags */}
           <TagSection
             title="Interested Industries"
-            tags={[
-              "Design",
-              "Financial",
-              "Construction",
-              "Agentic AI",
-              "Front-end Developing",
-            ]}
+            tags={industries_of_interest || []}
           />
+          <TagSection title="Your Industries" tags={current_industry || []} />
           <TagSection
-            title="Your Industries"
-            tags={[
-              "Computers & Electronics",
-              "Government",
-              "Manufacturing",
-              "Marketing & Advertising",
-            ]}
-          />
-          <TagSection
-            title="Interested Job Roles"
-            tags={[
-              "Product Designer",
-              "Project Manager",
-              "Design Engineer",
-              "Interaction Designer",
-            ]}
+            title="Connection Preferences"
+            tags={connection_preferences || []}
           />
         </View>
       </ScrollView>
 
-      {/* Fixed Bottom Actions */}
+      {/* Footer */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.backBtn}>
+        <TouchableOpacity style={styles.backBtn} onPress={onBackPress}>
           <Ionicons name="chevron-back" size={18} color="#aaa" />
           <Text style={styles.backText}>Back to Edit</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.confirmBtn}>
+        <TouchableOpacity style={styles.confirmBtn} onPress={onSuccessPress}>
           <Text style={styles.confirmText}>Confirm</Text>
           <Ionicons name="arrow-forward" size={18} color="#000" />
         </TouchableOpacity>
@@ -129,27 +146,28 @@ const ProfileSummary = () => {
   );
 };
 
-// Reusable Info Box
 const InfoBox = ({ title, value }: { title: string; value: string }) => (
   <View style={styles.infoBox}>
-    <Text style={styles.infoTitle}>{title}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
+    <Text style={styles.infoTitle}>{title || ""}</Text>
+    <Text style={styles.infoValue}>{value || ""}</Text>
   </View>
 );
 
-// Reusable Tags
-const TagSection = ({ title, tags }: { title: string; tags: string[] }) => (
-  <View style={styles.tagSection}>
-    <Text style={styles.sectionLabel}>{title}</Text>
-    <View style={styles.tagWrap}>
-      {tags.map((tag, i) => (
-        <View style={styles.tag} key={i}>
-          <Text style={styles.tagText}>{tag}</Text>
-        </View>
-      ))}
+const TagSection = ({ title, tags }: { title: string; tags: string[] }) => {
+  if (!tags?.length) return null;
+  return (
+    <View style={styles.tagSection}>
+      <Text style={styles.sectionLabel}>{title || ""}</Text>
+      <View style={styles.tagWrap}>
+        {tags.map((tag, i) => (
+          <View style={styles.tag} key={i}>
+            <Text style={styles.tagText}>{tag || ""}</Text>
+          </View>
+        ))}
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 export default ProfileSummary;
 
@@ -330,13 +348,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
   },
-
-  qrCurveBackground: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: "#1E1E1E",
-    alignItems: "center",
+  qrSvgWrapper: {
+    position: "absolute",
+    bottom: 7,
+    right: 50,
     justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2,
+  },
+
+  qrIcon: {
+    bottom: -12,
+    zIndex: 3,
+    height: 24,
+    width: 24,
+    justifyContent: "center",
+    alignItems: "center"
   },
 });

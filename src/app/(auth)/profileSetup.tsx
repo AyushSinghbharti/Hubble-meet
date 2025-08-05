@@ -42,6 +42,8 @@ import { logout } from "@/src/hooks/useAuth";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
 import OtpModal from "./otpVerify";
 import { FONT } from "@/assets/constants/fonts";
+import ProfileSummary from "@/src/components/ProfileSummary";
+import { UserProfile } from "@/src/interfaces/profileInterface";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -290,13 +292,18 @@ export default function ProfileSetup() {
       setError("Please fill all fields");
       return;
     }
-    setStep((s) => Math.min(4, s + 1));
+    setStep((s) => Math.min(5, s + 1));
   };
 
   const prev = () => setStep((s) => Math.max(0, s - 1));
   const skip = () => setStep(4);
 
-  const { mutateAsync: createProfile } = useCreateUserProfile();
+  const {
+    mutateAsync: createProfile,
+    isPending,
+    isError,
+    error: CreateProfileError,
+  } = useCreateUserProfile();
 
   const submit = async () => {
     if (!userId) {
@@ -641,12 +648,46 @@ export default function ProfileSetup() {
   ];
 
   // Splash screen
-  if (step === 4 && finalScreen) {
+  if (step === 5 && finalScreen) {
     setTimeout(() => {
       submit();
     }, 3000);
 
     return <FinalSetupPage />;
+  }
+
+  if (step === 5) {
+    const profileData: UserProfile = {
+      user_id: userId || "",
+      full_name: name || "",
+      date_of_birth: dob?.toISOString() ?? new Date().toISOString(),
+      gender: gender || "",
+      bio: bio || "",
+      email: email || "",
+      phone: phoneNumber || "",
+      current_company: worklist || [],
+      job_title: jobTitle,
+      city: address,
+      current_industry: spaces || [],
+      industries_of_interest: connectPeople || [],
+      cities_on_radar: radarCities || [],
+      connection_preferences: rolesLookingFor || [],
+      profile_picture_url:
+        image || "https://xsgames.co/randomusers/assets/images/favicon.png",
+      allow_vbc_sharing: shareVBC ?? false,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(), // optional but good to include
+      status: "CONNECTED", // or undefined if not yet set
+    };
+
+    return (
+      <ProfileSummary
+        onBackPress={prev}
+        onSuccessPress={() => setFinalScreen(true)}
+        userProfile={profileData}
+      />
+    );
   }
 
   return (

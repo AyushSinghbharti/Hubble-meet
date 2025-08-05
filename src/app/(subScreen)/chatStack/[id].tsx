@@ -38,6 +38,7 @@ import { useClearChat } from "@/src/hooks/useChat";
 import ShareVBCScreen from "./[id]/vbcShare";
 import ViewVbcModal from "@/src/components/chatScreenComps/chatVBCShow";
 import ChatBodyLoader from "@/src/components/skeletons/chatBodyLoader";
+import colourPalette from "@/src/theme/darkPaletter";
 
 export default function ChatDetailsScreen() {
   const router = useRouter();
@@ -546,12 +547,13 @@ export default function ChatDetailsScreen() {
                 flex: 1,
                 justifyContent: "flex-end",
                 alignItems: "center",
+                backgroundColor: colourPalette.backgroundPrimary,
               }}
             >
               <Text
                 style={{
                   marginBottom: 10,
-                  color: "#8B8B8BCC",
+                  color: colourPalette.textDescription,
                   fontFamily: "Inter",
                   fontSize: 12,
                 }}

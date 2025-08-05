@@ -11,13 +11,13 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { UserProfile } from "@/src/interfaces/profileInterface";
+import colourPalette from "@/src/theme/darkPaletter";
 
 interface ChatHeaderProps {
   profileInfo: UserProfile;
   showMenu: boolean;
   setShowMenu: any;
 }
-
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({
   profileInfo,
@@ -30,7 +30,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     <View style={styles.shadowWrapper}>
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => router.replace("/chat")}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={colourPalette.textPrimary}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -67,7 +71,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             setShowMenu(!showMenu);
           }}
         >
-          <Feather name="more-vertical" size={24} color="#000" />
+          <Feather
+            name="more-vertical"
+            size={24}
+            color={colourPalette.textPrimary}
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -76,8 +84,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
 
 const styles = StyleSheet.create({
   shadowWrapper: {
+    backgroundColor: colourPalette.backgroundSecondary,
     width: "100%",
-    backgroundColor: "#fff",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
@@ -86,8 +94,8 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   headerContainer: {
+    backgroundColor: colourPalette.backgroundSecondary,
     height: 80,
-    backgroundColor: "#F7F7F7",
     paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
@@ -106,8 +114,8 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     fontFamily: "InterBold",
+    color: colourPalette.textPrimary,
     fontWeight: "600",
-    color: "#000",
   },
   subTitle: {
     fontSize: 10,

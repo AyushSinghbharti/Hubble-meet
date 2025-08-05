@@ -22,7 +22,6 @@ import {
   getTokenFromStorage,
   getUserIdFromStorage,
 } from "../store/localStorage";
-import axios from "axios";
 import FlashMessage from "react-native-flash-message";
 
 //Global runners
@@ -106,7 +105,7 @@ function RootLayoutNav() {
   return (
     <PaperProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <Stack initialRouteName="(splash)">
           <Stack.Screen name="(splash)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />

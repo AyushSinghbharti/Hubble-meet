@@ -22,6 +22,8 @@ import { useChatStore } from "@/src/store/chatStore";
 import { getChatFromStorage } from "@/src/store/localStorage";
 import { useDeleteChat } from "@/src/hooks/useChat";
 import ChatCardSkeleton from "@/src/components/skeletons/chatCard";
+import colourPalette from "@/src/theme/darkPaletter";
+import { StatusBar } from "expo-status-bar";
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -138,7 +140,7 @@ export default function ChatScreen() {
     const loading = result.isLoading;
     const otherUserInfo = result.data;
 
-    if(loading) return <ChatCardSkeleton />
+    if (loading) return <ChatCardSkeleton />;
 
     return (
       <Swipeable
@@ -169,9 +171,11 @@ export default function ChatScreen() {
                 style={styles.avatar}
               />
             </View>
-            <View style={styles.chatText}>
+            <View>
               <Text style={styles.name}>{otherUserInfo?.full_name}</Text>
-              <Text style={styles.message}>{lastMessageText}</Text>
+              <Text style={[isUnread ? styles.unreadMessage : styles.message]}>
+                {lastMessageText}
+              </Text>
             </View>
           </View>
           <View style={styles.rightSection}>
@@ -185,7 +189,7 @@ export default function ChatScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Chats</Text>
+      <View style={styles.header} />
 
       {/* Search Bar */}
       <View style={styles.searchBarHolder}>
@@ -193,12 +197,12 @@ export default function ChatScreen() {
           <Ionicons
             name="search"
             size={24}
-            color="#94A3B8"
+            color="#BBCF8D"
             style={{ marginLeft: 10 }}
           />
           <TextInput
             placeholder="Search Chats"
-            placeholderTextColor="#b8b6f6"
+            placeholderTextColor={colourPalette.textPlaceholder}
             style={styles.searchInput}
           />
         </View>
@@ -277,12 +281,13 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#F7F7F7" },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: colourPalette.backgroundPrimary,
+  },
   header: {
-    marginTop: 32,
-    fontSize: 24,
-    fontWeight: "bold",
-    alignSelf: "center",
+    marginTop: 24,
     marginBottom: 8,
   },
   searchBarHolder: {
@@ -290,24 +295,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: 12,
+    marginBottom: 6,
   },
   searchContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#dcdff1",
+    backgroundColor: colourPalette.backgroundPrimary,
     borderRadius: 30,
     gap: 8,
-    backgroundColor: "#fff",
+    borderColor: colourPalette.borderColor,
   },
   searchInput: {
     fontFamily: "Inter",
     fontSize: 16,
-    color: "#A5B4FC",
+    color: colourPalette.textPrimary,
   },
   addButton: {
-    backgroundColor: "#c5db98",
+    backgroundColor: colourPalette.buttonPrimary,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -315,17 +321,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   chatCard: {
-    backgroundColor: "#fff",
+    backgroundColor: colourPalette.backgroundPrimary,
     padding: 12,
     borderRadius: 12,
-    marginVertical: 6,
+    paddingBottom: 16,
+    marginVertical: 2,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     elevation: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: colourPalette.borderColor,
     borderBottomWidth: 1,
-
     minHeight: 72,
   },
   leftSection: { flexDirection: "row", alignItems: "center" },
@@ -340,29 +346,25 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
   },
-  onlineDot: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 12,
-    height: 12,
-    backgroundColor: "#5DC72F",
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-  chatText: {},
   name: {
     fontFamily: "InterBold",
+    color: colourPalette.textPrimary,
     fontSize: 16,
   },
   message: {
-    color: "#8E8E8E",
+    color: colourPalette.textDescription,
+    fontFamily: "Inter",
+    fontSize: 12,
+    marginTop: 2,
+  },
+  unreadMessage: {
+    color: colourPalette.buttonPrimary,
     fontFamily: "Inter",
     fontSize: 12,
     marginTop: 2,
   },
   rightSection: {
+    gap: 4,
     alignItems: "flex-end",
   },
   time: {
@@ -383,11 +385,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 7,
     paddingVertical: 2,
-  },
-  badgeText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
   },
 
   //Icon

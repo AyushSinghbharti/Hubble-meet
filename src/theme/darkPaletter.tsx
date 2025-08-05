@@ -19,6 +19,7 @@ const colourPalette = {
   textSecondary: "#D1D5DB",
   textDescription: "#9CA3AF",
   textThird: "#60A5FA",
+  textPlaceholder: "#898989",
 
   errorText: "#F87171",
   errorButton: "#B91C1C",
@@ -26,7 +27,7 @@ const colourPalette = {
   progressBackground: "#3A3A3C",
   progressActive: "#BBCF8D",
 
-  borderColor: "#2C2C2E",
+  borderColor: "#393939",
   shadowColor: "#000000",
 
   iconActive: "#E5E7EB",
