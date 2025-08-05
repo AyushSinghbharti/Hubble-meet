@@ -1,30 +1,29 @@
 import React from "react";
-import { Dimensions } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-const { width } = Dimensions.get("window");
-
-interface TabBarBackgroundProps {
+interface QRNotchProps {
+  width?: number;
   height?: number;
   bumpWidth?: number;
   bumpHeight?: number;
   fill?: string;
-  borderRadius?: number;
-  stroke?: string;
 }
 
-export default function TabBarBackground({
-  height = 200,
-  bumpWidth = 90,
-  bumpHeight = 25,
-  fill = "#fff",
-  stroke = "#ccc",
-}: TabBarBackgroundProps) {
+const QRNotch = ({
+  width = 100,
+  height = 50,
+  bumpWidth = 60,
+  bumpHeight = 30,
+  //   fill = "#1E1E1E",
+  fill = "#FFFFFF",
+}: QRNotchProps) => {
   const center = width / 2;
   const halfBump = bumpWidth / 2;
 
+  // Create path similar to TabBarBackground but inverted (bump goes up)
   const path = `
-    M0 0
+    M0 ${height}
+    V0
     H${center - halfBump}
     C${center - halfBump * 0.6} 0, ${
     center - halfBump * 0.6
@@ -34,13 +33,12 @@ export default function TabBarBackground({
   } 0
     H${width}
     V${height}
-    H0
     Z
   `;
 
   return (
     <Svg
-      width="100%"
+      width={width}
       height={height + bumpHeight}
       viewBox={`0 ${-bumpHeight} ${width} ${height + bumpHeight}`}
       style={{
@@ -48,7 +46,9 @@ export default function TabBarBackground({
         top: 0,
       }}
     >
-      <Path d={path} fill={fill} stroke={stroke} strokeWidth={1.1} />
+      <Path d={path} fill={fill} />
     </Svg>
   );
-}
+};
+
+export default QRNotch;
