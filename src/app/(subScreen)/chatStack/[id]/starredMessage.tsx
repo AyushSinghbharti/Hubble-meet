@@ -13,6 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useChatStore } from "@/src/store/chatStore";
 import { useAuthStore } from "@/src/store/auth";
+import colourPalette from "@/src/theme/darkPaletter";
+import { FONT } from "@/assets/constants/fonts";
 
 const StarFilledIcon = require("../../../../../assets/icons/star2.png");
 const StarOutlineIcon = require("../../../../../assets/icons/star.png");
@@ -24,7 +26,9 @@ export default function StarredMessage() {
   const userId = useAuthStore((s) => s.userId);
   const starredMessages = useChatStore((s) => s.starredMessages);
 
-  const [toggledStars, setToggledStars] = useState<{ [id: string]: boolean }>({});
+  const [toggledStars, setToggledStars] = useState<{ [id: string]: boolean }>(
+    {}
+  );
 
   const messages = starredMessages
     .filter((msg) => msg.chat?.id === chatId && msg.id) // Ensure id exists
@@ -85,21 +89,26 @@ export default function StarredMessage() {
 
   return (
     <Modal
+      backdropColor={colourPalette.backgroundPrimary}
       animationType="slide"
       style={styles.container}
       onRequestClose={() => router.back()}
     >
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={colourPalette.textPrimary}
+          />
         </TouchableOpacity>
         <Text style={styles.title}>Starred Messages</Text>
         <View style={styles.iconRow}>
           <TouchableOpacity style={styles.iconBtn}>
-            <Ionicons name="search" size={24} />
+            <Ionicons name="search" size={24}  color={colourPalette.textPrimary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn}>
-            <Ionicons name="ellipsis-vertical" size={24} />
+            <Ionicons name="ellipsis-vertical" size={24}  color={colourPalette.textPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -117,10 +126,10 @@ export default function StarredMessage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colourPalette.backgroundPrimary,
   },
   topBar: {
-    backgroundColor: "#F7F7F7",
+    backgroundColor: colourPalette.backgroundSecondary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -132,8 +141,9 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     marginLeft: 12,
-    fontFamily: "InterBold",
     fontSize: 16,
+    fontFamily: FONT.MONSERRATSEMIBOLD,
+    color: colourPalette.textPrimary,
   },
   iconRow: {
     flexDirection: "row",
@@ -154,12 +164,12 @@ const styles = StyleSheet.create({
   senderName: {
     marginBottom: 4,
     fontSize: 12,
-    fontFamily: "Inter",
-    color: "#000",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
+    color: colourPalette.textPrimary,
   },
   dateText: {
     fontSize: 12,
-    color: "#7B7B7B",
+    color: "#ccc",
   },
   bubble: {
     maxWidth: "85%",
@@ -178,10 +188,9 @@ const styles = StyleSheet.create({
   },
   messageText: {
     flex: 1,
-    fontFamily: "Inter",
+    fontFamily: FONT.MONSERRATREGULAR,
     fontSize: 14,
     paddingLeft: 5,
-    color: "#222",
     lineHeight: 20,
   },
   meta: {

@@ -18,7 +18,6 @@ import { getStableColor } from "@/src/utility/getStableColor";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/src/store/auth";
-import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { lightenColor } from "@/utils/lightenColor";
 import { resolveChatAndNavigate } from "@/src/utility/resolveChatAndNavigate";
 import BlockUserModal from "@/src/components/Modal/BlockUserModal";

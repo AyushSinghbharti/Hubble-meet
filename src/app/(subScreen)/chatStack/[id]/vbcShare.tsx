@@ -17,6 +17,8 @@ import { VbcCard } from "@/src/interfaces/vbcInterface";
 import ProfileCard from "@/src/components/profileSetupComps/profileCard";
 import { getStableColor } from "@/src/utility/getStableColor";
 import { useChatStore } from "@/src/store/chatStore";
+import colourPalette from "@/src/theme/darkPaletter";
+import { FONT } from "@/assets/constants/fonts";
 
 type Props = {
   visible: boolean;
@@ -54,7 +56,12 @@ export default function ShareVBCScreen({
           username: user.full_name,
           email: user.email,
         },
-        chat: { id: chatId, name: "", isGroup: false, participants:  currentChat.participants || [], },
+        chat: {
+          id: chatId,
+          name: "",
+          isGroup: false,
+          participants: currentChat.participants || [],
+        },
         vCardData: {
           userId: vbc.user_id,
           displayName: vbc.full_name || vbc.display_name,
@@ -104,7 +111,7 @@ export default function ShareVBCScreen({
               data={vbcCards.filter(
                 (vbc) => vbc.connection_status !== "BLOCKED"
               )}
-              keyExtractor={(i) => i.id}
+              keyExtractor={(i, index) => i.user_id + index}
               contentContainerStyle={{ paddingBottom: 32 }}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -141,7 +148,7 @@ const styles = StyleSheet.create({
   },
   container: {
     maxHeight: "70%",
-    backgroundColor: "#fff",
+    backgroundColor: colourPalette.backgroundSecondary,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     padding: 16,
@@ -152,8 +159,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  header: { fontSize: 18, fontWeight: "600" },
-  close: { fontSize: 24, lineHeight: 24 },
-  sep: { height: 1, backgroundColor: "#eee", marginVertical: 8 },
+  header: {
+    fontSize: 18,
+    fontFamily: FONT.MONSERRATSEMIBOLD,
+    color: colourPalette.textPrimary,
+  },
+  close: {
+    fontSize: 24,
+    fontWeight: "800",
+    lineHeight: 24,
+    color: colourPalette.textPrimary,
+  },
+  sep: { height: 1, backgroundColor: "#eee", marginBottom: 12 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
 });

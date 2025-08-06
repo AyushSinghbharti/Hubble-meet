@@ -131,6 +131,8 @@ import {
   Image,
 } from "react-native";
 import * as Contacts from "expo-contacts";
+import colourPalette from "../theme/darkPaletter";
+import { FONT } from "@/assets/constants/fonts";
 
 interface Contact {
   id: string;
@@ -210,7 +212,9 @@ const ContactPicker: React.FC<ContactPickerProps> = ({
             source={
               item.imageUri
                 ? { uri: item.imageUri }
-                : {uri: "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg?semt=ais_hybrid&w=740"}
+                : {
+                    uri: "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg?semt=ais_hybrid&w=740",
+                  }
             }
             style={styles.avatar}
           />
@@ -249,17 +253,18 @@ const styles = StyleSheet.create({
   modal: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: colourPalette.backgroundPrimary,
   },
   title: {
     fontSize: 22,
-    fontWeight: "600",
+    color: colourPalette.textPrimary,
+    fontFamily: FONT.MONSERRATMEDIUM,
     marginBottom: 12,
   },
   contactItem: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderColor: "#eee",
+    borderColor: colourPalette.borderColor,
   },
   contactRow: {
     flexDirection: "row",
@@ -270,15 +275,15 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontWeight: "500",
-    color: "#111",
+    color: colourPalette.textPrimary,
+    fontFamily: FONT.MONSERRATMEDIUM,
   },
   phone: {
     fontSize: 13,
     color: "#666",
   },
   selected: {
-    backgroundColor: "#e0ffe0",
+    backgroundColor: colourPalette.backgroundSecondary,
   },
   buttonContainer: {
     marginTop: 16,

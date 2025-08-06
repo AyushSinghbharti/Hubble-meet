@@ -60,7 +60,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{profileInfo.full_name}</Text>
             <Text style={styles.subTitle}>
-              Works at {profileInfo?.current_company || "not specific"}
+              Works at {profileInfo?.current_company?.[0] || "not specific"}
             </Text>
           </View>
         </TouchableOpacity>

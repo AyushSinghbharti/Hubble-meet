@@ -126,6 +126,9 @@ const ChatBubble = ({
   const swipeableRef = useRef<SwipeableRef | null>(null);
   const bubbleRef = useRef<View>(null);
   const isVcard = item.messageType === "VCARD";
+  if(isVcard) {
+    // console.log(JSON.stringify(item, null, 4));
+  }
 
   const { data: userData } = useOtherUserProfile(item.vCardUserId || "");
   const { data: vbcData } = useGetOtherVbcCard(item.vCardUserId || "");
@@ -253,6 +256,7 @@ const ChatBubble = ({
               ? styles.vcardWrapper
               : [
                   styles.bubbleWrapper,
+
                   me ? styles.bubbleMe : styles.bubbleThem,
                 ],
           ]}
@@ -310,25 +314,23 @@ const ChatBubble = ({
                 style={{
                   flexDirection: "row",
                   flexWrap: "wrap",
-                  justifyContent: "flex-start",
+                  justifyContent: "center",
                   gap: 8,
-                  maxWidth: 220,
+                  maxWidth: "98%",
                 }}
               >
-                <View>
-                  {item.media.map((mediaItem, index) => (
-                    <Pressable
-                      key={mediaItem.id}
-                      onPress={() => onMediaPress(item.media || [], index)}
-                    >
-                      <Image
-                        source={{ uri: mediaItem.url }}
-                        style={{ width: 100, height: 100, borderRadius: 10 }}
-                        resizeMode="cover"
-                      />
-                    </Pressable>
-                  ))}
-                </View>
+                {item.media.map((mediaItem, index) => (
+                  <Pressable
+                    key={mediaItem.id}
+                    onPress={() => onMediaPress(item.media || [], index)}
+                  >
+                    <Image
+                      source={{ uri: mediaItem.url }}
+                      style={{ width: 100, height: 100, borderRadius: 10 }}
+                      resizeMode="cover"
+                    />
+                  </Pressable>
+                ))}
               </View>
             ) : item.messageType === "CONTACTS" ? (
               renderContacts()
@@ -621,12 +623,12 @@ const styles = StyleSheet.create({
   },
 
   bubbleThem: {
-    backgroundColor: colourPalette.backgroundSecondary,
+    backgroundColor: "#E8E8E8",
     alignSelf: "flex-start",
   },
 
   replyContainer: {
-    backgroundColor: colourPalette.backgroundPrimary,
+    backgroundColor: "#e2e2e2",
     borderLeftWidth: 3,
     borderLeftColor: "#007AFF",
     borderRadius: 6,
@@ -639,14 +641,14 @@ const styles = StyleSheet.create({
 
   replyStrip: {
     width: 3,
-    backgroundColor: colourPalette.buttonPrimary,
+    backgroundColor: "#007AFF",
     borderRadius: 2,
   },
 
   replySender: {
     fontSize: 12,
     fontWeight: "600",
-    color: colourPalette.buttonPrimary,
+    color: "#007AFF",
     marginBottom: 2,
   },
 
@@ -713,7 +715,6 @@ const styles = StyleSheet.create({
 
   messageText: {
     fontSize: 13,
-    color: colourPalette.textPrimary,
     fontFamily: FONT.MONSERRATMEDIUM,
     flexShrink: 1,
   },
@@ -725,7 +726,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 10,
-    color: colourPalette.textDescription,
+    color: "#4D4D4D",
     fontFamily: FONT.MONSERRATMEDIUM,
   },
 });

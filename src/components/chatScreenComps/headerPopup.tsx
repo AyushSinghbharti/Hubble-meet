@@ -1,3 +1,4 @@
+import { FONT } from "@/assets/constants/fonts";
 import colourPalette from "@/src/theme/darkPaletter";
 import React from "react";
 import {
@@ -63,30 +64,30 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   container: {
-    height: 217,
-    width: 278,
+    minHeight: 175,
+    minWidth: 220,
     position: "absolute",
-    borderRadius: 10,
+    borderRadius: 15,
     elevation: 15,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 6,
     zIndex: 999,
     justifyContent: "space-evenly",
-    backgroundColor: colourPalette.backgroundPrimary,
+    backgroundColor: colourPalette.backgroundSecondary,
     borderColor: colourPalette.borderColor,
     borderWidth: 2,
   },
   option: {
-    paddingLeft: 19,
+    paddingLeft: 12,
     paddingVertical: 8,
   },
   text: {
     color: colourPalette.textPrimary,
-    fontFamily: "Inter",
+    fontFamily: FONT.MONSERRATMEDIUM,
     fontSize: 16,
   },
 });
