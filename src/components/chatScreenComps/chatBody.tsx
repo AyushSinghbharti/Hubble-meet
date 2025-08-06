@@ -25,6 +25,7 @@ import VbcChatCard from "./VbcChatCard";
 import MediaViewer from "@/src/components/chatScreenComps/mediaViewer";
 import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import colourPalette from "@/src/theme/darkPaletter";
+import { UserProfile } from "@/src/interfaces/profileInterface";
 
 // Helper function to format time
 const formatTime = (timestamp: string | Date): string => {
@@ -126,21 +127,6 @@ const ChatBubble = ({
   const swipeableRef = useRef<SwipeableRef | null>(null);
   const bubbleRef = useRef<View>(null);
   const isVcard = item.messageType === "VCARD";
-  if(isVcard) {
-    // console.log(JSON.stringify(item, null, 4));
-  }
-
-  const { data: userData } = useOtherUserProfile(item.vCardUserId || "");
-  const { data: vbcData } = useGetOtherVbcCard(item.vCardUserId || "");
-
-  const mergedUserData = useMemo(() => {
-    if (!userData) return undefined;
-    return {
-      ...userData,
-      color: vbcData?.color,
-      vbcColor: vbcData?.color,
-    };
-  }, [userData, vbcData]);
 
   const saveContact = async (contact: { name: string; phone: string }) => {
     const { status } = await Contacts.requestPermissionsAsync();
@@ -335,14 +321,7 @@ const ChatBubble = ({
             ) : item.messageType === "CONTACTS" ? (
               renderContacts()
             ) : item.messageType === "VCARD" ? (
-              <VbcChatCard
-                vbc={{ ...mergedUserData }}
-                viewShareButton
-                viewChatButton={
-                  mergedUserData?.status && mergedUserData?.status !== "BLOCKED"
-                }
-                viewBlockButton
-              />
+              <VbcChatCard vbc={item} />
             ) : item.messageType === "DOCUMENT" &&
               item.media &&
               item.media.length > 0 ? (

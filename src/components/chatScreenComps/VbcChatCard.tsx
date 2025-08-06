@@ -1,352 +1,202 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
   Image,
   StyleSheet,
-  TouchableOpacity,
-  useWindowDimensions,
-  Share,
   Pressable,
-  Alert,
-  Modal,
+  useWindowDimensions,
+  ActivityIndicator,
 } from "react-native";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { FONT } from "@/assets/constants/fonts";
 import { VbcCard as VbcInterface } from "@/src/interfaces/vbcInterface";
 import { getStableColor } from "@/src/utility/getStableColor";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { useRouter } from "expo-router";
-import { useAuthStore } from "@/src/store/auth";
-import { lightenColor } from "@/utils/lightenColor";
-import { resolveChatAndNavigate } from "@/src/utility/resolveChatAndNavigate";
-import BlockUserModal from "@/src/components/Modal/BlockUserModal";
-import ErrorAlert from "@/src/components/errorAlert";
-import ShareModal from "../Share/ShareBottomSheet";
-import { useUnblockUser, useBlockUser } from "@/src/hooks/useConnection";
-import { useConnectionStore } from "@/src/store/connectionStore";
+import { useOtherUserProfile } from "@/src/hooks/useProfile";
+import { fetchOtherUserProfile } from "@/src/api/profile";
 
 type Props = {
   vbc: Partial<VbcInterface> & {
+    vCardUserId: string;
     vCardDisplayName?: string;
     vCardJobTitle?: string;
     vCardCompanyName?: string | null;
     vCardLocation?: string | null;
-    vCardAllowSharing?: boolean;
+    vCardProfilePic?: string | null;
     avatarUrl?: string | null;
-
+    vCardBgColor?: string | null;
     displayName?: string;
     jobTitle?: string;
     companyName?: string | null;
     location?: string | null;
-    allowSharing?: boolean;
-
     profile_picture_url?: string | null;
-    allow_vbc_sharing?: boolean;
     color?: string | null;
   };
   backgroundColor?: string;
-  viewShareButton?: boolean;
-  viewChatButton?: boolean;
-  viewBlockButton?: boolean;
   style?: any;
 };
 
 const FALLBACK_AVATAR = require("@/assets/icons/profile.png");
 
-const VbcChatCard: React.FC<Props> = ({
-  vbc,
-  backgroundColor,
-  viewShareButton = true,
-  viewChatButton = true,
-  viewBlockButton = true,
-  style,
-}) => {
-  const [blockModal, setBlockModal] = useState(false);
-  const [shareModal, setShareModal] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isBlocked, setIsBlocked] = useState(false);
-
+const VbcChatCard: React.FC<Props> = ({ vbc, backgroundColor, style }) => {
   // ---- resolve fields ----
-  const id = vbc.user_id || vbc.id || "";
-  const name =
-    vbc.vCardDisplayName ||
-    vbc.full_name ||
-    (vbc as any).display_name ||
-    "Unknown";
-  const title =
-    vbc.vCardJobTitle || vbc.jobTitle || (vbc as any).job_title || "";
-  const company =
-    vbc.vCardCompanyName || vbc.companyName || (vbc as any).company_name || "";
-  const location = vbc.vCardLocation || vbc.location || (vbc as any).city || "";
-  const avatar = vbc.avatarUrl || vbc.profile_picture_url || null;
+  const name = vbc.vCardDisplayName ?? "Unknown";
+  const title = vbc.vCardJobTitle ?? "";
+  const company = vbc.vCardCompanyName ?? "";
+  const location = vbc.vCardLocation ?? "";
+  const avatar = vbc.vCardProfilePic ?? null;
   const bgColor =
-    getStableColor(vbc.user_id || "") || backgroundColor || vbc.color;
-  const initialStatus = vbc?.status || "NOT_CONNECTED";
-  const showActions = viewShareButton || viewChatButton || viewBlockButton;
+    vbc.vCardBgColor ||
+    getStableColor(vbc.vCardUserId || "") ||
+    backgroundColor ||
+    vbc.color ||
+    "#F5E6B3";
+  const [loading, setLoading] = useState(false);
 
   const setCurrentPitchUser = usePitchStore((s) => s.setCurrentPitchUser);
-  const setFocusUserId = usePitchStore((state) => state.setFocusUserId);
-  const currentUser = useAuthStore((state) => state.user);
-  const userId = useAuthStore((s) => s.userId);
-  const connections = useConnectionStore((state) => state.connections);
   const router = useRouter();
 
-  // Check if user is blocked from connections store
-  useEffect(() => {
-    const connection = connections.find((conn) => conn.user_id === id);
-    setIsBlocked(
-      connection?.connection_status === "BLOCKED" || initialStatus === "BLOCKED"
-    );
-  }, [connections, id, initialStatus]);
-
-  // ---- responsive sizing (chat bubble width) ----
+  // ---- responsive sizing ----
   const { width } = useWindowDimensions();
-  const maxWidth = Math.min(width * 0.75, 360);
-  const compact = maxWidth < 340;
-
-  const AVATAR = compact ? 72 : 96;
-  const ACTION = compact ? 30 : 36;
-  const ICON = ACTION * 0.6;
+  const maxWidth = Math.min(width * 0.7, 300);
 
   const handleProfilePress = async () => {
-    setCurrentPitchUser(vbc);
+    setLoading(true);
+    const res = await fetchOtherUserProfile(vbc?.vCardUserId || "");
+    console.log(res);
+    setCurrentPitchUser(res);
+    setLoading(false);
     router.push("/connect");
-  };
-
-  // Handle video/pitch press - copied from VbcCard.tsx
-  const onVideoPress = () => {
-    setFocusUserId(vbc.user_id); // Set focused user in store
-    router.push("/pitch"); // Navigate WITHOUT params
-  };
-
-  // Handle chat press - copied from VbcCard.tsx
-  const onChatPress = async () => {
-    try {
-      await resolveChatAndNavigate({ currentUser, targetUser: vbc });
-    } catch (error) {
-      console.error("Chat navigation error:", error);
-      setError("Failed to start chat");
-    }
-  };
-
-  // Handle share press - open ShareModal
-  const onSharePress = () => {
-    setShareModal(true);
-  };
-
-  // Handle block press with proper state management
-  const { mutate: unBlock } = useUnblockUser();
-  const { mutate: blockUser } = useBlockUser();
-
-  const onBlockPress = () => {
-    if (isBlocked) {
-      // Unblock user
-      unBlock(
-        { user_id: userId, blocked_user_id: id },
-        {
-          onSuccess: () => {
-            setIsBlocked(false);
-          },
-          onError: (error) => {
-            setError("Failed to unblock user");
-          },
-        }
-      );
-    } else {
-      // Block user via modal
-      setBlockModal(true);
-    }
-  };
-
-  // Handle successful block from modal
-  const handleBlockSuccess = () => {
-    setIsBlocked(true);
-    setBlockModal(false);
   };
 
   const s = useMemo(
     () =>
       StyleSheet.create({
         card: {
-          flexDirection: "row",
-          alignItems: "center",
           backgroundColor: bgColor,
-          padding: compact ? 10 : 14,
-          borderRadius: compact ? 16 : 20,
+          borderRadius: 24,
           width: maxWidth,
           shadowColor: "#000",
-          shadowOpacity: 0.08,
-          shadowRadius: 8,
-          shadowOffset: { width: 0, height: 2 },
-          elevation: 3,
+          shadowOpacity: 0.1,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 5,
+          marginVertical: 8,
+          overflow: "hidden",
+        },
+        // Part 1: Top section with image left and content right
+        topSection: {
+          flexDirection: "row",
+          alignItems: "center",
+          padding: 8,
+          paddingHorizontal: 16,
         },
         avatar: {
-          width: AVATAR,
-          height: AVATAR * 1.05,
-          borderRadius: 18,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
           backgroundColor: "#EAEAEA",
         },
-        body: {
+        content: {
           flex: 1,
-          marginLeft: compact ? 10 : 14,
-        },
-        header: {
-          flexDirection: "row",
-          alignItems: "flex-start",
-        },
-        textWrap: {
-          flex: 1,
-          flexShrink: 1,
+          marginLeft: 16,
         },
         name: {
-          fontSize: compact ? 16 : 18,
-          fontFamily: FONT.BOLD || "Inter-Bold",
-          lineHeight: compact ? 20 : 22,
+          fontSize: 18,
+          fontFamily: FONT.MONSERRATSEMIBOLD,
           color: "#1B1B1B",
+          lineHeight: 20,
         },
         title: {
-          fontSize: compact ? 12 : 13.5,
+          fontSize: 14,
           color: "#646464",
-          fontFamily: FONT.SEMI_BOLD || "Inter-SemiBold",
-          marginTop: 2,
+          fontFamily: FONT.MONSERRATMEDIUM,
+          lineHeight: 18,
         },
         company: {
-          fontSize: compact ? 12 : 13,
-          color: "#7A7A7A",
-          fontFamily: FONT.REGULAR || "Inter-Regular",
-          marginTop: 1,
+          fontSize: 12,
+          color: "#646464",
+          fontFamily: FONT.MONSERRATMEDIUM,
         },
         location: {
-          fontSize: compact ? 11 : 12,
+          fontSize: 13,
           color: "#7A7A7A",
-          fontFamily: FONT.MEDIUM || "Inter-Medium",
-          marginTop: 1,
+          fontFamily: FONT.REGULAR || "Inter-Regular",
+          lineHeight: 16,
         },
-        actions: {
-          flexDirection: "row",
-          marginTop: compact ? 8 : 12,
+        // Part 2: Bottom section with View button
+        bottomSection: {
+          borderTopWidth: 2,
+          borderTopColor: "rgba(0, 0, 0, 0.1)",
         },
-        actionBtn: {
-          width: ACTION,
-          height: ACTION,
-          borderRadius: 99,
-          backgroundColor: lightenColor(bgColor, 50) || "#FFF0C3",
-          justifyContent: "center",
+        viewButton: {
+          paddingVertical: 6,
           alignItems: "center",
-          marginRight: 10,
+          backgroundColor: "transparent",
+        },
+        viewButtonText: {
+          color: "#1B1B1B",
+          fontSize: 18,
+          fontFamily: FONT.MONSERRATSEMIBOLD,
         },
       }),
-    [bgColor, maxWidth, compact, AVATAR, ACTION, ICON, showActions]
+    [bgColor, maxWidth]
   );
 
-  return (
-    <>
-      {/* Error Alert */}
-      {error && (
-        <View
-          style={{
-            position: "absolute",
-            top: -50,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-          }}
-        >
-          <ErrorAlert message={error} onClose={() => setError(null)} />
-        </View>
-      )}
+  if (loading) {
+    return (
+      <View
+        style={[
+          s.card,
+          style,
+          { minHeight: 100, justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size={"large"} />
+      </View>
+    );
+  }
 
-      <Pressable style={[s.card, style]} onPress={handleProfilePress}>
+  return (
+    <View style={[s.card, style]}>
+      {/* Part 1: Top section - Image left, content right */}
+      <Pressable style={s.topSection} onPress={handleProfilePress}>
         <Image
           source={avatar ? { uri: avatar } : FALLBACK_AVATAR}
           style={s.avatar}
         />
 
-        <View style={s.body}>
-          <View style={s.header}>
-            <View style={s.textWrap}>
-              <Text style={s.name} numberOfLines={2}>
-                {name}
-              </Text>
-              {!!title && (
-                <Text style={s.title} numberOfLines={1}>
-                  {title}
-                </Text>
-              )}
-              {!!company && (
-                <Text style={s.company} numberOfLines={1}>
-                  {company}
-                </Text>
-              )}
-              {!!location && (
-                <Text style={s.location} numberOfLines={1}>
-                  {location}
-                </Text>
-              )}
-            </View>
+        <View style={s.content}>
+          <Text style={s.name} numberOfLines={1}>
+            {name}
+          </Text>
 
-            <TouchableOpacity style={s.actionBtn} onPress={onVideoPress}>
-              <Image
-                source={require("@/assets/icons/pitch2.png")}
-                style={{ width: ICON + 4, height: ICON + 4 }}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {showActions && (
-            <View style={s.actions}>
-              {viewChatButton && !isBlocked && (
-                <TouchableOpacity style={s.actionBtn} onPress={onChatPress}>
-                  <Image
-                    source={require("@/assets/icons/chat.png")}
-                    style={{ width: ICON, height: ICON, tintColor: "#000" }}
-                  />
-                </TouchableOpacity>
-              )}
-
-              {viewShareButton && (
-                <TouchableOpacity style={s.actionBtn} onPress={onSharePress}>
-                  <Feather name="share-2" size={ICON} />
-                </TouchableOpacity>
-              )}
-
-              {viewBlockButton && (
-                <TouchableOpacity style={s.actionBtn} onPress={onBlockPress}>
-                  {isBlocked ? (
-                    <Image
-                      source={require("@/assets/icons/unblock.png")}
-                      style={{ width: ICON + 7, height: ICON + 7 }}
-                    />
-                  ) : (
-                    <Image
-                      source={require("@/assets/icons/block2.png")}
-                      style={{ width: ICON, height: ICON }}
-                    />
-                  )}
-                </TouchableOpacity>
-              )}
-            </View>
+          {!!title && (
+            <Text style={s.title} numberOfLines={1}>
+              {title}
+            </Text>
+          )}
+          {!!company && (
+            <Text style={s.company} numberOfLines={1}>
+              {company}
+            </Text>
+          )}
+          {!!location && (
+            <Text style={s.location} numberOfLines={1}>
+              {location}
+            </Text>
           )}
         </View>
       </Pressable>
 
-      {/* Block User Modal */}
-      <BlockUserModal
-        visible={blockModal}
-        blockedUserId={vbc.user_id || ""}
-        userName={name}
-        onClose={() => setBlockModal(false)}
-        onBlockSuccess={handleBlockSuccess}
-      />
-
-      {/* Share Modal */}
-      <ShareModal
-        visible={shareModal}
-        onClose={() => setShareModal(false)}
-        cardProfile={vbc}
-      />
-    </>
+      {/* Part 2: Bottom section - View button with border top */}
+      <View style={s.bottomSection}>
+        <Pressable style={s.viewButton} onPress={handleProfilePress}>
+          <Text style={s.viewButtonText}>View</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 };
 

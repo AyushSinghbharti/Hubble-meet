@@ -43,6 +43,7 @@ const ShareModal = ({ visible, onClose, cardProfile }) => {
     if (selectedUsers.length === 0) return;
 
     for (const target of selectedUsers) {
+      console.log("VBC data here: ", JSON.stringify(cardProfile, null, 4));
       await resolveChatAndNavigate({
         initialMessage: `This is a VBC Card of ${cardProfile.full_name}`,
         messageType: 'VCARD',
@@ -57,6 +58,10 @@ const ShareModal = ({ visible, onClose, cardProfile }) => {
           Location: cardProfile?.city,
           IsDeleted: cardProfile.is_active,
           AllowSharing: cardProfile?.allow_vbc_sharing,
+          
+          email: cardProfile?.email,
+          profilePic: cardProfile?.profile_picture_url,
+          // bgColor: cardProfile?.backgroundColor, //Add BG COLOUR HERE
         }
       });
     }

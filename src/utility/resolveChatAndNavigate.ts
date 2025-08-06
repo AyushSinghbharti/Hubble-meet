@@ -19,6 +19,11 @@ export interface VbcDataProp {
   Location: string;
   IsDeleted: boolean;
   AllowSharing: boolean | null;
+  email: string | null;
+  companyName: string | null;
+  phone: string | null;
+  bgColor: string | null;
+  profilePic: string | null;
 }
 
 
@@ -37,11 +42,11 @@ export const resolveChatAndNavigate = async ({
   messageType?: "VCARD" | "TEXT" | "IMAGE" | "DOCUMENT";
   vbcData?: VbcDataProp;
 }) => {
-  let targetUserProfile = await fetchUserProfile(targetUser.user_id);;
+  let targetUserProfile = await fetchUserProfile(targetUser.user_id);
   let targetUserEmail = targetUserProfile.email;
-  
-  if(!targetUserProfile) return;
-  
+
+  if (!targetUserProfile) return;
+
   try {
     const chats: Chat[] = await getUserChats(currentUser.user_id);
 
@@ -102,11 +107,17 @@ export const resolveChatAndNavigate = async ({
           userId: vbcData?.id || undefined,
           displayName: vbcData?.DisplayName || undefined,
           jobTitle: vbcData?.Title || undefined,
-          companyName: vbcData?.CompanyName || undefined,
+          companyName: vbcData?.CompanyName[0] || undefined,
           location: vbcData?.Location || undefined,
           allowSharing: vbcData?.AllowSharing || false,
+
+          email: vbcData?.email,
+          bgColor: vbcData?.bgColor,
+          profilePic: vbcData?.profilePic,
         },
       };
+      // console.log("payload here: ", JSON.stringify(payload, null, 4));
+      // console.log("VBC data here: ", JSON.stringify(vbcData, null, 4));
 
       try {
         await sendMessage(payload);

@@ -43,9 +43,9 @@ export default function ShareVBCScreen({
   });
   const { mutate: sendMessage, isLoading: sending } = useSendMessage();
   const currentChat = useChatStore((state) => state.currentChat);
-  // console.log(JSON.stringify(vbcCards, null, 4))
 
   const handleShare = (vbc: VbcCard) => {
+    console.log(JSON.stringify(vbc, null, 4));
     if (!user || !chatId) return;
     sendMessage(
       {
@@ -69,6 +69,10 @@ export default function ShareVBCScreen({
           companyName: vbc.company_name,
           location: vbc.city || vbc.location,
           allowSharing: true,
+
+          // email: vbc.email, //Ask for email too
+          // bgColor: vbc.bgColor, //Ask for BG Feild later
+          profilePic: vbc.profile_picture_url || undefined,
         },
       },
       {
