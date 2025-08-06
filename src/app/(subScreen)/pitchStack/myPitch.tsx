@@ -1,235 +1,215 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
-  TextInput,
-  ImageBackground,
   TouchableOpacity,
+  FlatList,
   StyleSheet,
   SafeAreaView,
-  Image,
   ActivityIndicator,
+  Image,
 } from "react-native";
-import { Ionicons, Feather, Entypo } from "@expo/vector-icons";
-import { useVideoPlayer, VideoView } from "expo-video";
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import UploadErrorModal from "../../../components/pitchScreenComps/popUpNotification";
 import { useAuthStore } from "@/src/store/auth";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { useDeletePitch, useGetUserPitch } from "@/src/hooks/usePitch";
-import { AxiosError } from "axios";
 import ErrorAlert from "@/src/components/errorAlert";
 import { removePitchFromStorage } from "@/src/store/localStorage";
+import { Video } from 'expo-av'; // Add this for video playback
+import { FONT } from "@/assets/constants/fonts";
+import NavHeader from "@/src/components/NavHeader";
 
 export default function MyPitchScreen() {
   const router = useRouter();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [viewModal, setViewModal] = useState(false);
-  const [videoUri, setVideoUri] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
   const userId = useAuthStore((state) => state.userId);
   const user = useAuthStore((state) => state.user);
-  const pitch = usePitchStore((state) => state.pitch);
+  const [deleting, setDeleting] = useState(false);
+
+  const { data, isLoading, error, refetch } = useGetUserPitch(userId || "");
   const clearPitch = usePitchStore((state) => state.clearPitch);
   const clearPitchId = usePitchStore((state) => state.clearPitchId);
 
-  const result = useGetUserPitch(userId || "");
+  const [viewModal, setViewModal] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletePitchId, setDeletePitchId] = useState<string | null>(null);
+  const [playingPitchId, setPlayingPitchId] = useState<string | null>(null);
+  const videoRef = useRef(null);
 
-  useEffect(() => {
-    setLoading(result.isLoading);
-  }, [result.isLoading]);
+  const { mutate: deletePitch } = useDeletePitch();
 
-  useEffect(() => {
-    if (result.error) {
-      const axiosError = result.error as AxiosError<any>;
-      const status = axiosError.response?.status;
-      const message =
-        status === 404
-          ? `No pitches found for user ${user?.full_name}`
-          : "Failed to fetch pitch details, please try again.";
+  // The API returns a single pitch object or undefined, so normalize to array
+  const pitches = data ? [data] : [];
 
-      setError(message);
-      console.error("Pitch fetch error:", message);
-    }
-  }, [result.error]);
-
-  useEffect(() => {
-    if (pitch) {
-      setVideoUri(pitch.url);
-    }
-  }, [pitch]);
-
-  const player = useVideoPlayer(videoUri, (player) => {
-    player.loop = true;
-    player.pause();
-  });
-
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      player.pause();
-      setIsPlaying(false);
+  // Toggle video playback
+  const handlePlayVideo = (pitchId) => {
+    if (playingPitchId === pitchId) {
+      setPlayingPitchId(null);
+      videoRef.current?.pauseAsync();
     } else {
-      player.play();
-      setIsPlaying(true);
+      setPlayingPitchId(pitchId);
+      videoRef.current?.playAsync();
     }
   };
 
-  const handleRouter = (type) => {
-    if (type === "Upload") {
-      router.push({
-        pathname: "/pitchStack/createPitch",
-        params: {
-          item: JSON.stringify({
-            name: null,
-            desc: null,
-            format: "Upload",
-            pitchType: "Individual",
-            duration: 30,
-            videoUrl: null,
-          }),
-        },
-      });
-    } else {
-      router.push({
-        pathname: "/pitchStack/createPitch",
-        params: {
-          item: JSON.stringify({
-            name: null,
-            desc: null,
-            format: "Record",
-            pitchType: "Individual",
-            duration: 30,
-            videoUrl: null,
-          }),
-        },
-      });
-    }
+  // Show delete modal for selected pitch
+  const handleShowDeleteModal = (id) => {
+    setDeletePitchId(id);
+    setViewModal(true);
   };
-
-  const handleDeletePress = () => {
-    setViewModal(!viewModal);
-  };
-
-  const { mutate: del } = useDeletePitch();
 
   const handleDeletePitch = () => {
-    if (!pitch?.id) return;
+    if (!deletePitchId) return;
 
-    del(pitch.id, {
+    setDeleting(true); // <-- show loader
+
+    deletePitch(deletePitchId, {
       onSuccess: () => {
-        handleRouter("Upload");
-        setViewModal(!viewModal);
-        clearPitchId();
         clearPitch();
+        clearPitchId();
         removePitchFromStorage({ removeId: true });
         setViewModal(false);
+        setDeletePitchId(null);
+        setDeleting(false); // <-- stop loader
+        refetch?.();
       },
       onError: () => {
-        setError("Error while deleting video, please try again!!!");
+        setDeleteError("Error while deleting video, please try again.");
+        setDeleting(false); // <-- stop loader
       },
     });
   };
 
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.replace("/pitch")}
-          hitSlop={50}
-          style={{ zIndex: 999 }}
-        >
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Pitch</Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <SafeAreaView style={styles.mainBackground}>
+      <NavHeader title="My Pitch" />
 
-      <View style={styles.videoContainer}>
-        {loading ? (
-          <ActivityIndicator size={50} color={"skyblue"} />
-        ) : pitch ? (
-          <>
-            <VideoView
-              style={StyleSheet.absoluteFillObject}
-              player={player}
-              nativeControls={false}
-              startsPictureInPictureAutomatically={true}
-              allowsPictureInPicture={true}
-              onTouchStart={handlePlayPause}
-            />
-            {!isPlaying && (
+      {isLoading ? (
+        <ActivityIndicator size="large" color="skyblue" />
+      ) : error ? (
+        <Text style={styles.errorText}>
+          {(error.response?.status || error.status) === 404
+            ? `No pitches found for ${user?.full_name || "user"}`
+            : "Failed to fetch pitch details"}
+        </Text>
+      ) : pitches.length === 0 ? (
+        <Text style={styles.emptyText}>Pitch is not uploaded. Upload one now!</Text>
+      ) : (
+        <FlatList
+          data={pitches}
+          contentContainerStyle={styles.scrollCards}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.pitchCard}>
               <TouchableOpacity
-                onPress={handlePlayPause}
-                style={[styles.playButton]}
+                style={styles.deleteIcon}
+                onPress={() => handleShowDeleteModal(item.id)}
               >
-                <Entypo name="controller-play" size={32} color="white" />
+                <Feather name="trash-2" size={22} color="#ff4343" />
               </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={styles.deleteIcon}
-              onPress={handleDeletePress}
-            >
-              <Image
-                source={require("../../../../assets/icons/delete.png")}
-                style={[styles.icon, { tintColor: "#fff" }]}
-              />
-            </TouchableOpacity>
-            <View style={styles.tag}>
-              <Text style={styles.tagText}>Individual</Text>
+
+              <TouchableOpacity onPress={() => handlePlayVideo(item.id)} activeOpacity={0.9}>
+                <Video
+                  ref={videoRef}
+                  style={styles.videoThumbnail}
+                  source={{ uri: item.url }}
+                  resizeMode="contain"
+                  isLooping
+                  shouldPlay={playingPitchId === item.id}
+                  onError={(e) => console.log("Video Error:", e)}
+                />
+              </TouchableOpacity>
+
+              <View style={styles.pitchInfo}>
+
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+
+                  <View>
+
+                    <Text style={styles.pitchIndividual}>
+                      {item.type || "Individual"}:{" "}
+                      <Text style={styles.pitchName}>
+                        {item.display_name || user?.full_name || "Unknown"}
+                      </Text>
+                    </Text>
+                    <Text numberOfLines={1} ellipsizeMode="tail" style={styles.pitchDescr}>
+                      {item.pitch_caption || user?.bio || ""}
+                    </Text>
+
+                  </View>
+
+
+                  <View style={styles.pitchStatsRow}>
+                    <Image style={{ height: 25, width: 25 }} source={require('../../../../assets/icons/like.png')} />
+                    <Text style={styles.pitchStatsText}>{item.likeCount ?? 1.5}</Text>
+                  </View>
+
+                </View>
+
+
+                {/* <Text style={styles.pitchStatus}>{item.status || "Not Uploaded"}</Text> */}
+              </View>
             </View>
-            <View style={styles.pitchStatus}>
-              <Text style={styles.tagText}>
-                {pitch.status || "Not Uploaded"}
-              </Text>
-            </View>
-          </>
-        ) : (
-          <Text>Pitch is not uploaded for you, upload one now!!!</Text>
-        )}
-      </View>
+          )}
+        />
+      )}
 
-      <View style={styles.inputSection}>
-        <Text style={styles.input}>
-          {pitch?.display_name || user?.full_name}
-        </Text>
-        <Text style={[styles.input, { height: 80 }]}>
-          {pitch?.pitch_caption || user?.bio}
-        </Text>
-      </View>
-
-      <View style={[styles.uploadButtonContainer]}>
+      <View style={styles.bottomBar}>
         <TouchableOpacity
-          onPress={() => handleRouter("Record")}
-          style={[styles.toggleButton, styles.activeToggle]}
+          style={styles.uploadBtn}
+          onPress={() =>
+            router.push({
+              pathname: "/pitchStack/createPitch",
+              params: {
+                item: JSON.stringify({
+                  name: null,
+                  desc: null,
+                  format: "Upload",
+                  pitchType: "Individual",
+                  duration: 30,
+                  videoUrl: null,
+                }),
+              },
+            })
+          }
         >
-          <Image
-            source={require("../../../../assets/icons/record.png")}
-            style={[styles.icon, { tintColor: "#fff" }]}
-          />
-          <Text style={styles.activeText}>Record</Text>
+          <Text style={styles.uploadBtnText}>Upload New</Text>
         </TouchableOpacity>
-        <Text style={styles.uploadHint}>Or</Text>
+
         <TouchableOpacity
-          onPress={() => handleRouter("Upload")}
-          style={[styles.toggleButton, styles.inActiveToggle]}
+          style={styles.recordBtn}
+          onPress={() =>
+            router.push({
+              pathname: "/pitchStack/createPitch",
+              params: {
+                item: JSON.stringify({
+                  name: null,
+                  desc: null,
+                  format: "Record",
+                  pitchType: "Individual",
+                  duration: 30,
+                  videoUrl: null,
+                }),
+              },
+            })
+          }
         >
-          <Image
-            source={require("../../../../assets/icons/upload.png")}
-            style={[styles.icon, { tintColor: "#000" }]}
-          />
-          <Text style={styles.toggleText}>Upload</Text>
+          <View style={styles.row}>
+            <View style={styles.redCircle} />
+            <Text style={styles.recordBtnText}>Record New</Text>
+          </View>
         </TouchableOpacity>
       </View>
-
-      {/* Modal */}
-      {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
 
       <UploadErrorModal
         visible={viewModal}
         onClose={handleDeletePitch}
-        onExit={() => setViewModal(!viewModal)}
+        onExit={deleting ? undefined : () => {
+          setViewModal(false);
+          setDeletePitchId(null);
+        }}
         type={"pending"}
         icon="delete"
         iconColor="#000"
@@ -237,174 +217,123 @@ export default function MyPitchScreen() {
         description="This will remove the existing pitch from the application."
         buttonText="Continue"
       />
-    </View>
+
+      {deleting && <ActivityIndicator color="#fff" />}
+      {deleteError && (
+        <ErrorAlert message={deleteError} onClose={() => setDeleteError(null)} />
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f7f7f7",
-    paddingHorizontal: 16,
-    paddingBottom: 60,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    paddingTop: 45,
-    marginBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontFamily: "InterBold",
-    color: "#111",
-  },
-  videoContainer: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderColor: "#CBD5E1",
-    borderWidth: 1,
-    borderRadius: 10,
-    overflow: "hidden",
-    marginBottom: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  playButton: {
-    alignSelf: "center",
-    padding: 10,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    borderRadius: 10,
+  mainBackground: { flex: 1, backgroundColor: "#2c2c2c" },
+  errorText: { color: "red", textAlign: "center", marginTop: 20 },
+  emptyText: { color: "#ccc", textAlign: "center", marginTop: 20 },
+  scrollCards: { paddingVertical: 12, gap: 20, paddingHorizontal: 6 },
+  pitchCard: {
+    backgroundColor: "#191919",
+    borderRadius: 15,
+    marginBottom: 20,
+    paddingBottom: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    position: "relative",
   },
   deleteIcon: {
     position: "absolute",
-    top: 20,
-    right: 20,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    padding: 6,
-    borderRadius: 10,
+    top: 16,
+    right: 14,
+    zIndex: 10,
   },
-  tag: {
-    position: "absolute",
-    bottom: 20,
-    right: 20,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    borderWidth: 1,
-    borderColor: "#fff",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+  videoThumbnail: {
+    width: "100%",
+    height: 190,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    backgroundColor: "#232323",
   },
-  pitchStatus: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    borderWidth: 1,
-    borderColor: "#fff",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+  pitchInfo: { paddingHorizontal: 16, paddingTop: 14, },
+  pitchIndividual: {
+    color: "#a4a4a4",
+    fontFamily: "Inter",
+    fontSize: 13,
+    marginBottom: 3,
   },
-  tagText: {
-    color: "#fff",
-    fontFamily: "InterMedium",
-    fontSize: 12,
-  },
-  inputSection: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 14,
-    color: "#343D46",
-    fontFamily: "InterSemiBold",
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  recordButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#4a5f24",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 30,
-  },
-  uploadButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#e6e6e0",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 30,
-  },
-  orText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  buttonText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#fff",
-  },
-
-  //Upload Button Container
-  uploadButtonContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 10,
-  },
-  toggleButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
-  },
-  activeToggle: {
-    backgroundColor: "#596c2d",
-    borderWidth: 2,
-    borderColor: "#f7f7f7",
-  },
-  inActiveToggle: {
-    backgroundColor: "#EAF0DB",
-    borderWidth: 2,
-    borderColor: "#f7f7f7",
-  },
-  toggleText: {
-    color: "#4D5D2A",
-    fontFamily: "InterMedium",
-  },
-  activeText: {
+  pitchName: {
     color: "#fff",
     fontFamily: "InterSemiBold",
+    fontSize: 13,
   },
-  icon: {
-    height: 22,
-    width: 22,
-  },
-  uploadHint: {
-    marginTop: 6,
+  pitchDescr: {
+    color: "#bebebe",
     fontFamily: "Inter",
     fontSize: 12,
-    textAlign: "center",
-    color: "#525f7f",
-    lineHeight: 18,
+  },
+  pitchStatsRow: {
+    flexDirection: "column",
+    alignItems: "center",
+    marginTop: 10,
+    justifyContent: "flex-end"
+  },
+  pitchStatsText: {
+    marginLeft: 5,
+    color: "#bababa",
+    fontFamily: "Inter",
+    fontSize: 12,
+  },
+  pitchStatus: {
+    marginTop: 6,
+    color: "#bbb",
+    fontFamily: "Inter",
+    fontSize: 12,
+  },
+  bottomBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: "#2c2c2c",
+    paddingHorizontal: 8,
+    paddingVertical: 14,
+  },
+  uploadBtn: {
+    flex: 1,
+    backgroundColor: "#181818",
+    borderRadius: 12,
+    alignItems: "center",
+    marginRight: 8,
+    paddingVertical: 14,
+  },
+  uploadBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
+  },
+  recordBtn: {
+    flex: 1,
+    backgroundColor: "#ddeaaa",
+    borderRadius: 12,
+    alignItems: "center",
+    marginLeft: 8,
+    paddingVertical: 14,
+  },
+  recordBtnText: {
+    color: "#222",
+    fontSize: 16,
+    fontWeight: "700",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  redCircle: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "red",
+    marginRight: 8,
   },
 });

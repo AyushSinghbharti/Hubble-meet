@@ -354,7 +354,7 @@ export default function SettingsScreen() {
               />
             </View>
 
-            <Divider />
+            <Divider width={'110%'} />
 
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>Job Title</Text>
@@ -365,7 +365,7 @@ export default function SettingsScreen() {
               />
             </View>
 
-            <Divider />
+            <Divider width={'110%'} />
 
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>Interested Industries</Text>
@@ -377,7 +377,7 @@ export default function SettingsScreen() {
               />
             </View>
 
-            <Divider />
+            <Divider width={'110%'} />
 
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>Interested Job Roles</Text>
@@ -389,7 +389,7 @@ export default function SettingsScreen() {
               />
             </View>
 
-            <Divider />
+            <Divider width={'110%'} />
 
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>Cities on your radar</Text>

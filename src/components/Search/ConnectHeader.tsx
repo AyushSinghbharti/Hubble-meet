@@ -12,7 +12,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import colourPalette from "@/src/theme/darkPaletter";
 import { FONT } from "@/assets/constants/fonts";
@@ -34,6 +34,10 @@ const Header = ({ logoSource, onSearch }) => {
 
   const onBagPress = () => {
     router.push("notification");
+  };
+
+  const onQRPress = () => {
+    router.push("/(subScreen)/connectStack/qrScanner");
   };
 
   const handleSearchToggle = () => {
@@ -110,6 +114,15 @@ const Header = ({ logoSource, onSearch }) => {
             />
           </TouchableOpacity>
 
+          <TouchableOpacity onPress={onQRPress} style={{paddingLeft: 6}}>
+            <FontAwesome
+              name="qrcode"
+              size={24}
+              color="#BBCF8D"
+              style={searchActive ? styles.iconExpanded : styles.iconCentered}
+            />
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={onBagPress} style={styles.bagBtn}>
             <Image
               style={{ height: 25, width: 25 }}
@@ -141,12 +154,11 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "center",
     zIndex: 1,
-    marginLeft: 22
+    marginLeft: 22,
   },
   logo: {
     height: 24,
     width: 148,
-
   },
   rightSection: {
     flexDirection: "row",
@@ -158,7 +170,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 20,
     zIndex: 5,
-    borderWidth: 1
+    borderWidth: 1,
   },
   searchExpanded: {
     flex: 1,
@@ -187,6 +199,5 @@ const styles = StyleSheet.create({
   bagBtn: {
     padding: 6,
     zIndex: 10,
-
   },
 });

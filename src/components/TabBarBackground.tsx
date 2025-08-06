@@ -17,7 +17,7 @@ export default function TabBarBackground({
   height = 200,
   bumpWidth = 90,
   bumpHeight = 25,
-  fill = "#fff",
+  fill = "#2D2D2D",
   stroke = "#ccc",
 }: TabBarBackgroundProps) {
   const center = width / 2;
@@ -26,12 +26,10 @@ export default function TabBarBackground({
   const path = `
     M0 0
     H${center - halfBump}
-    C${center - halfBump * 0.6} 0, ${
-    center - halfBump * 0.6
-  } ${-bumpHeight}, ${center} ${-bumpHeight}
-    C${center + halfBump * 0.6} ${-bumpHeight}, ${center + halfBump * 0.6} 0, ${
-    center + halfBump
-  } 0
+    C${center - halfBump * 0.6} 0, ${center - halfBump * 0.6
+    } ${-bumpHeight}, ${center} ${-bumpHeight}
+    C${center + halfBump * 0.6} ${-bumpHeight}, ${center + halfBump * 0.6} 0, ${center + halfBump
+    } 0
     H${width}
     V${height}
     H0

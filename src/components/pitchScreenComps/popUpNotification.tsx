@@ -22,6 +22,7 @@ interface UploadErrorModalProps {
   iconColor?: string;
 }
 
+
 const MODAL_CONFIG = {
   success: {
     icon: require("../../../assets/icons/success.png"),
@@ -61,8 +62,13 @@ const UploadErrorModal: React.FC<UploadErrorModalProps> = ({
   icon,
   iconColor = "#000",
 }) => {
+
   const config = MODAL_CONFIG[type];
 
+  if (!config) {
+    console.warn(`UploadErrorModal received an invalid type: "${type}"`);
+    return null; // or render a fallback UI
+  }
   return (
     <Modal animationType="fade" transparent visible={visible} onRequestClose={onExit}>
       <Pressable style={styles.overlay} onPress={onExit}>
