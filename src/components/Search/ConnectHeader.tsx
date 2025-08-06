@@ -14,6 +14,8 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import colourPalette from "@/src/theme/darkPaletter";
+import { FONT } from "@/assets/constants/fonts";
 
 const MIN_WIDTH = 40;
 
@@ -84,7 +86,7 @@ const Header = ({ logoSource, onSearch }) => {
                 value={searchText}
                 onChangeText={setSearchText}
                 placeholder="Search..."
-                placeholderTextColor="#888"
+                placeholderTextColor="#CCC"
                 editable={true}
                 // onSubmitEditing={() => onSearch && onSearch(searchText)}
                 onSubmitEditing={() => {
@@ -172,7 +174,8 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 40,
-    color: "#0f172a",
+    color: colourPalette.textPrimary,
+    fontFamily: FONT.MONSERRATREGULAR,
     paddingRight: 6, // So the icon doesn't overlap text
   },
   iconCentered: {
