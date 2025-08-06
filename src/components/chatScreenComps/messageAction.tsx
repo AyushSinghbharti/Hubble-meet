@@ -139,7 +139,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   deleteOption: {
-    backgroundColor: "red",
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
