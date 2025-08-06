@@ -32,8 +32,6 @@ export default function ProfileScreen() {
   const [showQR, setShowQR] = useState(false);
   const profileData = useAuthStore((state) => state.user);
 
-  console.log("Profile Data User", JSON.stringify(profileData, null, 2));
-
   const [expanded, setExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
 
