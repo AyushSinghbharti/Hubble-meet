@@ -1,4 +1,5 @@
 // components/messageAction.tsx
+import { FONT } from "@/assets/constants/fonts";
 import colourPalette from "@/src/theme/darkPaletter";
 import React from "react";
 import { View, TouchableOpacity, StyleSheet, Image, Text } from "react-native";
@@ -25,14 +26,18 @@ const MessageAction = ({
   const DeleteOptionModal = () => (
     <TouchableOpacity
       style={styles.modalOverlay}
-      onPress={() => setViewDelete(false)}
+      onPress={() => {
+        console.log("pressed");
+        setViewDelete(false);
+      }}
       activeOpacity={1}
     >
       <View style={styles.deleteModal}>
         <TouchableOpacity
           style={styles.deleteOption}
-          hitSlop={15}
+          // hitSlop={15}
           onPress={() => {
+            console.log("pressed");
             onAction("deleteforeveryone");
             setViewDelete(false);
           }}
@@ -44,7 +49,7 @@ const MessageAction = ({
 
         <TouchableOpacity
           style={styles.deleteOption}
-          hitSlop={15}
+          // hitSlop={15}
           onPress={() => {
             onAction("deleteforme");
             setViewDelete(false);
@@ -56,7 +61,7 @@ const MessageAction = ({
     </TouchableOpacity>
   );
 
-  if (viewDelete) return <DeleteOptionModal />;
+  if (viewDelete) return <DeleteOptionModal />
 
   return (
     <View style={[styles.container, { top: topOffset, left: leftOffset }]}>
@@ -127,20 +132,22 @@ const styles = StyleSheet.create({
   deleteModal: {
     width: "90%",
     minHeight: 127,
-    backgroundColor: "white",
+    backgroundColor: colourPalette.backgroundSecondary,
     alignItems: "center",
     justifyContent: "center",
     gap: 13,
     borderRadius: 20,
   },
   deleteOption: {
+    backgroundColor: "red",
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
   optionText: {
     fontSize: 16,
-    fontFamily: "Inter",
+    color: colourPalette.textPrimary,
+    fontFamily: FONT.MONSERRATMEDIUM,
   },
   divider: {
     borderWidth: 0.5,

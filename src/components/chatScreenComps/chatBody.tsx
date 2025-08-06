@@ -212,7 +212,13 @@ const ChatBubble = ({
         paddingHorizontal: 16,
       }}
     >
-      <Text style={{ color: "#007AFF", fontWeight: "bold", fontSize: 24 }}>
+      <Text
+        style={{
+          color: colourPalette.textSecondary,
+          fontFamily: FONT.MONSERRATBOLD,
+          fontSize: 24,
+        }}
+      >
         ↩
       </Text>
     </View>
@@ -458,6 +464,7 @@ export default function ChatBody({
   const userId = useAuthStore((state) => state.userId);
 
   const onAction = (action: string) => {
+    console.log(action);
     if (action === "reply") {
       onReply?.(selectedMessage);
     } else if (action === "star") {
@@ -614,12 +621,12 @@ const styles = StyleSheet.create({
   },
 
   bubbleThem: {
-    backgroundColor: "#E8E8E8",
+    backgroundColor: colourPalette.backgroundSecondary,
     alignSelf: "flex-start",
   },
 
   replyContainer: {
-    backgroundColor: "#e2e2e2",
+    backgroundColor: colourPalette.backgroundPrimary,
     borderLeftWidth: 3,
     borderLeftColor: "#007AFF",
     borderRadius: 6,
@@ -632,14 +639,14 @@ const styles = StyleSheet.create({
 
   replyStrip: {
     width: 3,
-    backgroundColor: "#007AFF",
+    backgroundColor: colourPalette.buttonPrimary,
     borderRadius: 2,
   },
 
   replySender: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#007AFF",
+    color: colourPalette.buttonPrimary,
     marginBottom: 2,
   },
 
@@ -705,9 +712,9 @@ const styles = StyleSheet.create({
   },
 
   messageText: {
-    fontSize: 14,
-    color: "#000",
-    fontFamily: "Inter",
+    fontSize: 13,
+    color: colourPalette.textPrimary,
+    fontFamily: FONT.MONSERRATMEDIUM,
     flexShrink: 1,
   },
 
@@ -716,9 +723,9 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     marginTop: 4,
   },
-  timeText: { fontSize: 10, color: "#4D4D4D" },
-
-  vcardWrapper: {
-    // maxWidth: 250,
+  timeText: {
+    fontSize: 10,
+    color: colourPalette.textDescription,
+    fontFamily: FONT.MONSERRATMEDIUM,
   },
 });
