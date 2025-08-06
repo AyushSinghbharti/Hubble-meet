@@ -9,6 +9,7 @@ import {
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import BlockModal from "@/src/components/Alerts/BlockModal";
 import InfoModal from "@/src/components/Modal/InfoModal";
+import NavHeader from "@/src/components/NavHeader";
 
 const loginAlerts = [
   {
@@ -87,6 +88,7 @@ Qui aliquid fuga id quibusdam autem sit voluptatem quia. Ut velit quis id tempor
     <>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Login Alerts Card */}
+        <NavHeader title="Security & Privacy" />
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Login Alerts</Text>
           <View>

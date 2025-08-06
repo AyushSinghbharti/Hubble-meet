@@ -5,7 +5,12 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import { View, Dimensions, FlatList } from "react-native";
+import {
+  View,
+  Dimensions,
+  FlatList,
+
+} from "react-native";
 import { useRouter } from "expo-router";
 import AlertModal from "../../../components/Alerts/AlertModal";
 import Header from "../../../components/Search/ConnectHeader";
@@ -19,7 +24,7 @@ import { useConnectionStore } from "@/src/store/connectionStore";
 import { fetchUserProfile } from "@/src/api/profile";
 import { usePitchStore } from "@/src/store/pitchStore";
 import { AxiosError } from "axios";
-import { useAppState } from "@/src/store/appState";
+import { useAppState } from "@/src/store/appState"; // Import the updated store
 import ConnectCard from "@/src/components/skeletons/connectCard";
 import ProfileCard from "./ProfileCard";
 

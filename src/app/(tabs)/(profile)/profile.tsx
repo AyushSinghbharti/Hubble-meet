@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -9,16 +9,20 @@ import {
   Platform,
   Dimensions,
   StatusBar,
+  Animated,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Ionicons, Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
 import InviteModal from "../../../components/Modal/InviteModal";
 import MyInviteModal from "../../../components/Alerts/MyInviteModal";
 import ProfileCard from "../../../components/profileSetupComps/profileCard";
 import { useAuthStore } from "@/src/store/auth";
-import { LinearGradient } from "expo-linear-gradient";
 import QRCode from 'react-native-qrcode-svg';
-import Svg, { Path } from "react-native-svg";
+import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+
 import { router } from "expo-router";
+import NavHeader from "@/src/components/NavHeader";
+import { Easing } from "react-native-reanimated";
 
 const { width, height } = Dimensions.get('window');
 
@@ -30,24 +34,149 @@ export default function ProfileScreen() {
 
   console.log("Profile Data User", JSON.stringify(profileData, null, 2));
 
+  const [expanded, setExpanded] = useState(false);
+  const animation = useRef(new Animated.Value(0)).current;
 
-  const toggleQR = () => {
-    setShowQR(!showQR);
+  const openExpand = () => {
+    Animated.timing(animation, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+    setExpanded(true);
   };
+
+  const closeExpand = () => {
+    Animated.timing(animation, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+    setExpanded(false);
+  };
+
+  const toggleExpand = () => {
+    if (expanded) {
+      closeExpand();
+    } else {
+      openExpand();
+    }
+  };
+  const panelHeight = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 390], // adjust expanded height
+  });
+
+  const panelOpacity = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+  const panelTranslateY = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [330, 0], // Slide up from bottom (330 = panel height)
+  });
+
+  const { width } = Dimensions.get("window");
+  const BOX_SIZE = width * 0.6;
+  const BORDER_WIDTH = 3;
+  const PERIMETER = BOX_SIZE * 4;
+  const DASH_LENGTH = 300;
+  const GAP_LENGTH = PERIMETER - DASH_LENGTH;
+  const QR_SIZE = BOX_SIZE - 50; // 8px gap on all sides
+  const dashOffset = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(dashOffset, {
+        toValue: PERIMETER,
+        duration: 4000,
+        easing: Easing.linear,
+        useNativeDriver: false,
+      })
+    ).start();
+  }, []);
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
-      <View style={styles.header}>
-        <View style={{ width: 30 }} />
-        <Text style={[styles.headerText, {marginLeft: 16}]}>Profile Summary</Text>
-        <View style={{flexDirection: "row", gap: 8}} >
-          <Ionicons name="share-social-outline" size={24} color="#fff" />
-          <Ionicons name="settings" size={24} color="#fff" onPress={() => router.push('/Setting')} />
-        </View>
-      </View>
+      <NavHeader title="Profile Summary" rightIcon={
+        <TouchableOpacity onPress={() => router.push('./Setting')}>
+          <Ionicons name="settings-outline" size={24} color="#fff" />
+        </TouchableOpacity>
+      } />
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          <Animated.View
+            style={{
+              position: 'absolute',
+              top: '20%',
+              width: '100%',
+              height: panelHeight,
+              justifyContent: 'center',
+              alignItems: 'center',
+              opacity: panelOpacity,
+              overflow: 'hidden',
+              zIndex: 999,
+              transform: [{ translateY: panelTranslateY }],
+
+            }}
+          >
+            <View style={styles.qrOverlay}>
+              <TouchableOpacity style={styles.qrCloseButton} onPress={closeExpand}>
+                <Ionicons name="close" size={30} color="#fff" />
+              </TouchableOpacity>
+
+              <View style={styles.container}>
+                <View style={styles.qrContainer}>
+                  <View style={{ width: BOX_SIZE, height: BOX_SIZE, position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
+
+
+                    <QRCode
+                      value="https://hubblemeet.com/profile/shyam-kumar"
+                      size={QR_SIZE}
+                      color="#000"
+                      backgroundColor="#fff"
+
+                    />
+
+                    {/* Animated Gradient Border */}
+                    <Svg
+                      style={{ position: 'absolute', top: 0, left: 0 }}
+                      height={BOX_SIZE}
+                      width={BOX_SIZE}
+                    >
+                      <Defs>
+                        <LinearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                          <Stop offset="0%" stopColor="#1E1E1E" />
+                          <Stop offset="200%" stopColor="#BBCF8D" />
+                          <Stop offset="100%" stopColor="#BBCF8D" />
+                        </LinearGradient>
+                      </Defs>
+
+                      <AnimatedRect
+                        x={0}
+                        y={0}
+                        width={BOX_SIZE}
+                        height={BOX_SIZE}
+                        stroke="url(#grad)"
+                        strokeWidth={BORDER_WIDTH}
+                        fill="none"
+                        rx={12}
+                        strokeDasharray={`${DASH_LENGTH}, ${GAP_LENGTH}`}
+                        strokeDashoffset={dashOffset}
+                      />
+                    </Svg>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+
+          </Animated.View>
+        </View>
+
+
         <View style={styles.largeImageContainer}>
           <Image
             source={{
@@ -56,16 +185,16 @@ export default function ProfileScreen() {
             style={styles.largeProfileImage}
           />
           <View style={styles.qrCurveContainer}>
-            <Svg height={60} width={80} viewBox="0 0 80 60">
+            {/* <Svg height={60} width={80} viewBox="0 0 80 60">
               <Path
                 d="M0,0 Q40,60 80,0 L80,0 Z"
                 fill="#181818" // Match the background of your card
               />
-            </Svg>
+            </Svg> */}
 
             <TouchableOpacity
               style={styles.qrButtonLarge}
-              onPress={toggleQR}
+              onPress={toggleExpand}
             >
               <MaterialIcons
                 name="qr-code-2"
@@ -125,26 +254,19 @@ export default function ProfileScreen() {
           <View style={styles.contactSection}>
             <Text style={styles.sectionTitle}>Email</Text>
             <View style={styles.contactRow}>
-              <LinearGradient
-                colors={["#DCE9BA", "#DCE9BA", "#DCE9BA"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.iconGradient}
-              >
-                <Ionicons name="mail-outline" size={20} color="#1F2937" />
-              </LinearGradient>
+
               <Text style={styles.contactText}>{profileData?.email || "jhondoe254@gmail.com"}</Text>
             </View>
             <Text style={styles.sectionTitle}>Phone</Text>
             <View style={styles.contactRow}>
-              <LinearGradient
+              {/* <LinearGradient
                 colors={["#DCE9BA", "#DCE9BA", "#DCE9BA"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.iconGradient}
               >
                 <Feather name="phone" size={20} color="#1F2937" />
-              </LinearGradient>
+              </LinearGradient> */}
               <Text style={styles.contactText}>{profileData?.phone || "+91 990 334 4556"}</Text>
             </View>
           </View>
@@ -183,25 +305,10 @@ export default function ProfileScreen() {
           </View>
           <View style={{ height: 50 }} />
         </View>
-
+        {/* 
         {showQR && (
-          <View style={styles.qrOverlay}>
-            <TouchableOpacity
-              style={styles.qrCloseButton}
-              onPress={toggleQR}
-            >
-              <Ionicons name="close" size={30} color="#fff" />
-            </TouchableOpacity>
-            <View style={styles.qrContainer}>
-              <QRCode
-                value="https://hubblemeet.com/profile/shyam-kumar"
-                size={200}
-                color="#000"
-                backgroundColor="#fff"
-              />
-            </View>
-          </View>
-        )}
+         
+        )} */}
       </ScrollView>
 
       <InviteModal
@@ -218,7 +325,11 @@ export default function ProfileScreen() {
       />
     </View>
   );
+
 }
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
+
 
 const styles = StyleSheet.create({
   container: {
@@ -298,7 +409,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   modalInviteButton: {
-    backgroundColor: "#B8E986",
+    backgroundColor: "#BBCF8D",
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
@@ -382,25 +493,37 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.9)",
+    backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1000,
-  },
-  qrCloseButton: {
-    position: "absolute",
-    top: 60,
-    right: 20,
-    zIndex: 1001,
-    padding: 10,
+    marginTop: 60,
+    padding: 40
   },
   qrContainer: {
-    backgroundColor: "#fff",
     padding: 30,
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    width: '80%',
+    position: "relative",
+    overflow: 'visible',
+
+
   },
+  qrCloseButton: {
+    position: 'absolute',
+    top: -20,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: "rgba(0,0,0,0.9)",
+    padding: 8,
+    borderRadius: 30,
+  },
+
+
+
+
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',

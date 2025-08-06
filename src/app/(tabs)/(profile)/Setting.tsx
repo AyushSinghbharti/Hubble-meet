@@ -29,7 +29,7 @@ const Setting = () => {
 
   return (
     <View style={styles.container}>
-      <NavHeader title="Setting" style={{ paddingHorizontal: 16 }} />
+      <NavHeader title="Setting" />
 
       <ScrollView contentContainerStyle={[styles.content]}>
         {/* Section 1 */}
@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     paddingBottom: 40,
+    bottom: 50
   },
   sectionTitle: {
     fontSize: 14,

@@ -64,7 +64,7 @@ const ProfileSummary = ({
           <View style={styles.placeholder} />
         </View>
 
-        {/* Profile Image with share button overlay */}
+
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: profile_picture_url }}
@@ -88,7 +88,7 @@ const ProfileSummary = ({
           </View>
         </View>
 
-        {/* Content Section */}
+
         <View style={styles.contentSection}>
           <Text style={styles.name}>{full_name}</Text>
           <Text style={styles.location}>{city}</Text>

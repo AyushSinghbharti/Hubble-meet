@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 20,
     zIndex: 5,
+    borderWidth: 1
   },
   searchExpanded: {
     flex: 1,

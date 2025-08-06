@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   expandThumb: {
     position: "absolute",
     top: 10,
-    right: 270,
+    right: 255,
     borderRadius: 10,
     overflow: "hidden",
     width: 80,

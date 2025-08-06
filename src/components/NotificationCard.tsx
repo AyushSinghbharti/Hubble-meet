@@ -55,11 +55,11 @@ const styles = StyleSheet.create({
   card: {
     padding: 16,
     borderRadius: 12,
-    backgroundColor: "#fff",
+    backgroundColor: "#1a1a1a", // Dark background
     marginBottom: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 2,
     width: "100%",
   },
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   image: {
     height: 48,
     width: 45,
-    borderRadius: 24
+    borderRadius: 24,
   },
   statusDot: {
     position: "absolute",
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: "#2ECC71",
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: "#1a1a1a", // Match dark background
   },
   textWrapper: {
     flex: 1,
@@ -103,17 +103,17 @@ const styles = StyleSheet.create({
   name: {
     fontWeight: "600",
     fontSize: 16,
-    color: "#0f172a",
+    color: "#ffffff", // Bright text
     flexShrink: 1,
     marginRight: 8,
   },
   date: {
     fontSize: 12,
-    color: "#a0a0a0",
+    color: "#999999",
     flexShrink: 0,
   },
   status: {
-    color: "#64748b",
+    color: "#cccccc",
     fontSize: 14,
     marginTop: 2,
     flexWrap: "wrap",

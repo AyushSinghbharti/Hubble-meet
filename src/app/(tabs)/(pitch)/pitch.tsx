@@ -247,16 +247,18 @@ export default function PitchScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <TouchableOpacity style={{ backgroundColor: "#323231", borderRadius: 30, height: 50, width: 50, alignItems: "center", justifyContent: "center", marginHorizontal: 10 }} onPress={navigateToMyPitch}>
-          <View style={styles.iconContainer}>
+        <TouchableOpacity onPress={navigateToMyPitch} style={styles.pitchWrapper}>
+          <View style={styles.iconCircle}>
             <Image
               source={require("../../../../assets/myPitch.png")}
               style={styles.pitchIcon}
+              resizeMode="contain"
             />
-            <Text style={styles.headerText}>My Pitch</Text>
           </View>
+          <Text style={styles.headerText}>My Pitch</Text>
         </TouchableOpacity>
       </View>
+
 
       {/* Card View */}
       <View style={styles.cardArea}>
@@ -339,29 +341,52 @@ const styles = StyleSheet.create({
     paddingTop: 36,
     paddingBottom: 100,
   },
-  headerContainer: {
-    position: "absolute",
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    top: 70,
-    zIndex: 2,
-  },
+
   iconContainer: {
     justifyContent: "center",
     alignItems: "center",
     marginTop: 20,
   },
-  pitchIcon: {
-    height: 35,
-    width: 35,
-
-
-
-
-
+  headerContainer: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "flex-end", // 👈 pushes it to the right
+    paddingHorizontal: 20,
+    position: "absolute", // 👈 ensure it's floating
+    top: 50, // 👈 distance from top of screen
+    right: 0, // 👈 stick to right
+    zIndex: 1000, // 👈 very high to stay on top
+    marginTop: 20
   },
+
+
+  pitchWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 10,
+  },
+
+  iconCircle: {
+    backgroundColor: "#323231",
+    borderRadius: 25, // half of width/height
+    height: 50,
+    width: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 5, // spacing between icon and text
+  },
+
+  pitchIcon: {
+    height: 24,
+    width: 24,
+  },
+
+  headerText: {
+    color: "#fff",
+    fontSize: 12,
+    textAlign: "center",
+  },
+
   headerText: {
     fontSize: 12,
     color: "#fff",

@@ -6,23 +6,18 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Platform,
   Image,
   findNodeHandle,
   UIManager,
   ActivityIndicator,
-  Pressable,
-  Alert,
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import NavHeader from "../../../components/NavHeader";
-import SelectCountryModal from "../../../components/selectCountryModal";
 import TagDropdown from "../../../components/TagDropdown";
 import { FONT } from "../../../../assets/constants/fonts";
-import colorTheme from "../../../theme/colourTheme";
 import Button from "../../../components/Button";
 import { useAuthStore } from "@/src/store/auth";
 import { UserProfile } from "@/src/interfaces/profileInterface";
@@ -36,33 +31,32 @@ import {
 import { uploadFileToS3 } from "@/src/api/aws";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import Divider from "@/src/components/Divider";
 
 export default function SettingsScreen() {
   const profileData: UserProfile | null = useAuthStore((state) => state.user);
   const { mutate: updateUserProfile, isPending: pendingUpdateUserProfile } =
     useUpdateUserProfile();
-
-  const [error, setError] = useState<string | null>();
+  const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState(profileData?.full_name || "");
-  const [phone, setPhone] = useState(profileData?.phone?.slice(3) || "");
-  const [email, setEmail] = useState(profileData?.email || "");
-  const [location, setLocation] = useState(profileData?.city || "");
-  const [jobTitle, setJobTitle] = useState(profileData?.job_title || "");
+  const [dob, setDob] = useState<Date | null>(
+    profileData?.date_of_birth ? new Date(profileData.date_of_birth) : null
+  );
+  const [gender, setGender] = useState(profileData?.gender || "male");
   const [bio, setBio] = useState(profileData?.bio || "");
   const [image, setImage] = useState(profileData?.profile_picture_url || null);
   const [uploadingImage, setUploadImage] = useState(false);
   const [swipedIds, setSwipedIds] = useState([]);
   const [swipeCount, setSwipeCount] = useState(0);
   const [companies, setCompanies] = useState(profileData?.current_company || []);
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [industries, setIndustries] = useState(profileData?.current_industry || []);
-  const [dob, setDob] = useState<Date | null>(
-    profileData?.date_of_birth ? new Date(profileData.date_of_birth) : null
-  );
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  // For autocomplete suggestions
+  const [email, setEmail] = useState(profileData?.email || "");
+  const [location, setLocation] = useState(profileData?.city || "");
+  const [jobTitle, setJobTitle] = useState(profileData?.job_title || "");
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (error && scrollViewRef.current) {
@@ -70,18 +64,6 @@ export default function SettingsScreen() {
     }
   }, [error]);
 
-  // Phone country flag and dial code info
-  const [selectedFlag, setSelectedFlag] = useState({
-    flag: "https://flagcdn.com/w40/in.png",
-    dial_code: profileData?.phone?.slice(0, 3) || "+91",
-  });
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [flagBoxPosition, setFlagBoxPosition] = useState({ x: 0, y: 0 });
-  const flagBoxRef = useRef(null);
-  const router = useRouter();
-
-  // Date Picker Handlers
   const showDatePicker = () => setDatePickerVisibility(true);
   const hideDatePicker = () => setDatePickerVisibility(false);
   const handleConfirm = (date) => {
@@ -89,7 +71,6 @@ export default function SettingsScreen() {
     hideDatePicker();
   };
 
-  // Image picker and upload
   const pickImage = async () => {
     const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -100,15 +81,10 @@ export default function SettingsScreen() {
     if (!res.canceled && res.assets?.[0]?.uri) {
       try {
         setUploadImage(true);
-        try {
-          const s3Response = await uploadFileToS3(res.assets[0]);
-          const url = s3Response.url;
-          setImage(url);
-        } catch {
-          setError("Error uploading image to server");
-        }
+        const s3Response = await uploadFileToS3(res.assets[0]);
+        const url = s3Response.url;
+        setImage(url);
       } catch (err) {
-        console.log(err);
         setError("Error uploading image, please try again");
       } finally {
         setUploadImage(false);
@@ -116,21 +92,8 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleOpenModal = () => {
-    const handle = findNodeHandle(flagBoxRef.current);
-    if (handle) {
-      UIManager.measure(handle, (x, y, width, height, pageX, pageY) => {
-        setFlagBoxPosition({ x: pageX, y: pageY });
-        setModalVisible(true);
-      });
-    }
-  };
+  const isProfileComplete = () => name && bio && email && companies.length && jobTitle && location && dob;
 
-  const isProfileComplete = () => {
-    return name && bio && email && companies?.length && jobTitle && location && dob;
-  };
-
-  // Swipe data loading from AsyncStorage
   useEffect(() => {
     const loadSwipeData = async () => {
       try {
@@ -145,53 +108,29 @@ export default function SettingsScreen() {
     loadSwipeData();
   }, []);
 
-  // Save swipe data to AsyncStorage when changed
   useEffect(() => {
     AsyncStorage.setItem("swipedIds", JSON.stringify(swipedIds));
     AsyncStorage.setItem("swipeCount", swipeCount.toString());
   }, [swipedIds, swipeCount]);
 
-  // City autocomplete search function
   const performSearch = async (query) => {
     if (!query || query.length < 2) {
       setSuggestions([]);
       return;
     }
-
     try {
       const response = await axios.get("https://nominatim.openstreetmap.org/search", {
-        params: {
-          q: query,
-          format: "json",
-          addressdetails: 1,
-          limit: 5,
-        },
-        headers: {
-          "Accept-Language": "en",
-          "User-Agent": "MyReactNativeApp/1.0 (myemail@example.com)", // Customize as needed
-        },
+        params: { q: query, format: "json", addressdetails: 1, limit: 5 },
+        headers: { "Accept-Language": "en", "User-Agent": "MyReactNativeApp/1.0" },
       });
-
       const results = response.data.map((item) => ({
         label: item.display_name,
         value: item.display_name,
-        lat: item.lat,
-        lon: item.lon,
-        city:
-          item.address.city ||
-          item.address.town ||
-          item.address.village ||
-          item.address.county ||
-          "",
+        city: item.address.city || item.address.town || item.address.village || "",
       }));
-
       setSuggestions(results);
     } catch (error) {
-      console.error("Failed to fetch location suggestions:", error);
-      Alert.alert(
-        "Error",
-        "Could not load location suggestions. Please try again later."
-      );
+      setError("Could not load location suggestions");
       setSuggestions([]);
     }
   };
@@ -201,380 +140,558 @@ export default function SettingsScreen() {
       setError("Invalid user session. Please re-login.");
       return;
     }
-
     if (!name || !bio || !email) {
       setError("Please fill all required fields");
       return;
     }
-
     const formData = {
-      fullName: name || undefined,
-      bio: bio || undefined,
-      currentCompany: companies || [],
-      jobTitle: jobTitle || "",
-      city: location || "",
-      currentIndustry: industries?.length ? industries : [],
-      industriesOfInterest: profileData?.industries_of_interest || [],
-      profilePictureUrl: image || undefined,
-      dateOfBirth: dob?.toISOString().split("T")[0] || undefined,
+      fullName: name,
+      bio: bio,
+      currentCompany: companies,
+      jobTitle: jobTitle,
+      city: location,
+      currentIndustry: industries,
+      profilePictureUrl: image,
+      dateOfBirth: dob?.toISOString().split("T")[0],
+      gender: gender,
     };
-
     updateUserProfile(
       { userId: profileData.user_id, data: formData },
       {
-        onSuccess: (res) => {
-          console.log("Profile updated successfully", JSON.stringify(res, null, 2));
-          Alert.alert("Profile updated successfully");
-        },
-        onError: (err) => {
-          console.error("Error updating profile", err);
-          setError("Failed to update profile. Please try again later.");
-        },
+        onSuccess: () => alert("Profile updated successfully"),
+        onError: () => setError("Failed to update profile"),
       }
     );
   };
 
-  return (
-    <ScrollView
-      style={styles.container}
-      ref={scrollViewRef}
-      contentContainerStyle={{ paddingBottom: 100 }}
-      keyboardShouldPersistTaps="handled"
-    >
-      <NavHeader title="Profile" onBackPress={() => router.replace("/profile")} />
+  const handleUndo = () => {
+    // Reset all fields to original profile data
+    setName(profileData?.full_name || "");
+    setDob(profileData?.date_of_birth ? new Date(profileData.date_of_birth) : null);
+    setGender(profileData?.gender || "male");
+    setBio(profileData?.bio || "");
+    setImage(profileData?.profile_picture_url || null);
+    setCompanies(profileData?.current_company || []);
+    setIndustries(profileData?.current_industry || []);
+    setEmail(profileData?.email || "");
+    setLocation(profileData?.city || "");
+    setJobTitle(profileData?.job_title || "");
+    setError(null);
+  };
 
-      <View style={[styles.profileContainer]}>
-        {uploadingImage ? (
-          <View
-            style={[
-              styles.profileImage,
-              { justifyContent: "center", alignItems: "center" },
-            ]}
-          >
-            <ActivityIndicator color={"#f7f7f7"} size={"large"} />
+  return (
+    <View style={styles.container}>
+      <NavHeader title="Edit Profile" />
+      <ScrollView
+        style={styles.scrollView}
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Image Section */}
+        <View style={styles.profileContainer}>
+          {uploadingImage ? (
+            <View style={[styles.profileImageContainer, styles.loadingContainer]}>
+              <ActivityIndicator color="#A3CB38" size="large" />
+            </View>
+          ) : (
+            <View style={styles.profileImageContainer}>
+              <Image
+                source={{ uri: image || "https://via.placeholder.com/120" }}
+                style={styles.profileImage}
+              />
+            </View>
+          )}
+          <TouchableOpacity onPress={pickImage} style={styles.changeButton}>
+            <Text style={styles.changeText}>Change</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Personal Section */}
+        <View style={{ backgroundColor: "#1E1E1E", paddingHorizontal: 20, borderRadius: 20, paddingVertical: 10, marginBottom: 30 }} >
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Personal</Text>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>What's your full name?</Text>
+              <Input
+                value={name}
+                onChangeText={setName}
+                placeholder="Shyam Kumar"
+              />
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>When were you born?</Text>
+              <TouchableOpacity onPress={showDatePicker}>
+                <Input
+                  value={dob ? dob.toLocaleDateString('en-GB') : ""}
+                  placeholder="Select date"
+                  editable={false}
+                  rightIcon="calendar-outline"
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>How do you identify?</Text>
+              <View style={styles.genderContainer}>
+                {[
+                  { key: "male", label: "Male", icon: "♂" },
+                  { key: "female", label: "Female", icon: "♀" },
+                  { key: "non-binary", label: "Non-Binary", icon: "⚧" }
+                ].map((option) => (
+                  <TouchableOpacity
+                    key={option.key}
+                    style={[
+                      styles.genderButton,
+                      gender === option.key && styles.selectedGenderBorder
+                    ]}
+                    onPress={() => setGender(option.key)}
+                  >
+                    <Text style={styles.genderIcon}>{option.icon}</Text>
+                    <Text
+                      style={[
+                        styles.genderText,
+                        gender === option.key && styles.selectedGenderText
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+
+                ))}
+              </View>
+            </View>
           </View>
-        ) : (
-          <Image
-            source={{
-              uri:
-                image ||
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRooEnD32-UtBw55GBfDTxxUZApMhWWnRaoLw&s",
-            }}
-            style={styles.profileImage}
-          />
-        )}
-        <Text style={styles.profileName}>{profileData?.full_name}</Text>
-        <TouchableOpacity style={{ marginTop: 2 }} onPress={pickImage}>
-          <Text
-            style={{
-              color: "#fff",
-              fontFamily: FONT.MEDIUM,
-              fontSize: 12,
-              textDecorationLine: "underline",
-              letterSpacing: 0.5,
-            }}
-          >
-            Change
-          </Text>
+
+          {/* Bio Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: "#d1d1d1" }]}>Your Bio</Text>
+            <View style={styles.fieldContainer}>
+              <Input
+                value={bio}
+                onChangeText={setBio}
+                placeholder="I am a passionate and details oriented Product designer with a strong focus on creating user-centric designs that enhances usability and delivery"
+                multiline
+                numberOfLines={4}
+                maxLength={100}
+              />
+              <Text style={styles.counter}>{bio.length}/100</Text>
+            </View>
+          </View>
+
+          {/* Contact Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: "#d1d1d1" }]}>Where can people reach you professionally?</Text>
+            <View style={styles.fieldContainer}>
+              <Input
+                value={email}
+                onChangeText={setEmail}
+                placeholder="jhondoe254@gmail.com"
+                keyboardType="email-address"
+              />
+            </View>
+          </View>
+
+          {/* City Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: "#d1d1d1" }]}>City</Text>
+            <View style={styles.fieldContainer}>
+              <View style={styles.autocompleteContainer}>
+                <TextInput
+                  style={styles.locationInput}
+                  value={location}
+                  onChangeText={(text) => {
+                    setLocation(text);
+                    performSearch(text);
+                  }}
+                  placeholder="Jaipur, India"
+                  placeholderTextColor="#666"
+                />
+                {suggestions.length > 0 && (
+                  <FlatList
+                    data={suggestions}
+                    keyExtractor={(item, index) => index.toString()}
+                    style={styles.suggestionList}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.suggestionItem}
+                        onPress={() => {
+                          setLocation(item.city || item.label);
+                          setSuggestions([]);
+                        }}
+                      >
+                        <Text style={styles.suggestionText}>{item.label}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                )}
+              </View>
+            </View>
+          </View>
+
+        </View>
+
+
+
+        <View style={styles.section}>
+
+
+          <Text style={[styles.sectionTitle]}>Interests & Background</Text>
+
+
+          <View style={{ backgroundColor: "#1E1E1E", paddingHorizontal: 20, borderRadius: 20, paddingVertical: 10, marginBottom: 30 }} >
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Industries you work in?</Text>
+              <TagDropdown
+
+                options={industriesChipData}
+                selected={industries}
+                onChange={setIndustries}
+                placeholder="Select industries"
+              />
+            </View>
+
+            <Divider />
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Job Title</Text>
+              <Input
+                value={jobTitle}
+                onChangeText={setJobTitle}
+                placeholder="General Manager"
+              />
+            </View>
+
+            <Divider />
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Interested Industries</Text>
+              <TagDropdown
+                options={industriesChipData}
+                selected={industries}
+                onChange={setIndustries}
+                placeholder="Select industries"
+              />
+            </View>
+
+            <Divider />
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Interested Job Roles</Text>
+              <TagDropdown
+                options={topCompaniesForChipData}
+                selected={companies}
+                onChange={setCompanies}
+                placeholder="Select job roles"
+              />
+            </View>
+
+            <Divider />
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Cities on your radar</Text>
+              <Input
+                value={location}
+                onChangeText={setLocation}
+                placeholder="Bangalore, Gurgaon"
+              />
+            </View>
+
+          </View>
+
+
+        </View>
+
+        {/* Add extra padding at bottom for the fixed buttons */}
+        <View style={styles.bottomPadding} />
+      </ScrollView>
+
+      {/* Fixed Bottom Buttons */}
+      <View style={styles.bottomButtonContainer}>
+        <TouchableOpacity
+          style={styles.undoButton}
+          onPress={handleUndo}
+        >
+          <Text style={styles.undoButtonText}>Undo & Exit</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSave}
+          disabled={pendingUpdateUserProfile}
+        >
+          {pendingUpdateUserProfile ? (
+            <ActivityIndicator color="#000" size="small" />
+          ) : (
+            <Text style={styles.saveButtonText}>Save</Text>
+          )}
         </TouchableOpacity>
       </View>
-
-      <Text style={styles.label}>
-        User Name <Text style={{ color: "red" }}>*</Text>
-      </Text>
-      <Input placeholder="Enter name" value={name} onChangeText={setName} />
-
-      <Text style={styles.label}>
-        DOB <Text style={{ color: "red" }}>*</Text>
-      </Text>
-      <TouchableOpacity onPress={showDatePicker}>
-        <Input
-          placeholder="Select date"
-          value={dob ? dob.toLocaleDateString() : ""}
-          icon="calendar-clear-outline"
-          editable={false}
-        />
-      </TouchableOpacity>
 
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
-        date={dob || new Date(1990, 0, 1)}
+        date={dob || new Date()}
         onConfirm={handleConfirm}
         onCancel={hideDatePicker}
-      />
-
-      <Text style={styles.label}>
-        Phone Number <Text style={{ color: "red" }}>*</Text>
-      </Text>
-      <View style={styles.phoneContainer}>
-        <Pressable
-          style={styles.countryCode}
-          // onPress={handleOpenModal}
-          ref={flagBoxRef}
-        >
-          {selectedFlag && (
-            <>
-              <Image
-                source={{ uri: selectedFlag.flag }}
-                style={{ width: 24, height: 18, marginRight: 6 }}
-              />
-              <Text style={[styles.input, { flex: 0 }]}>{selectedFlag.dial_code}</Text>
-            </>
-          )}
-        </Pressable>
-        <View style={{ flex: 1 }}>
-          <Input
-            placeholder="525 735 4556"
-            editable={false}
-            containerStyle={{ marginLeft: 8 }}
-            value={phone}
-            onChangeText={setPhone}
-          />
-        </View>
-      </View>
-      <Text style={styles.otpText}>Verify with OTP</Text>
-
-      <FormLabel label="Email" />
-      <Input placeholder="r.g.rhodes@aol.com" value={email} onChangeText={setEmail} />
-      <Text style={styles.otpText}>Verify with OTP</Text>
-
-      <FormLabel label="Country/City" />
-      <View style={[styles.autocompleteContainer]}>
-        <TextInput
-          style={[styles.input, { height: 50, paddingLeft: 10 }]}
-          value={location}
-          onChangeText={(text) => {
-            setLocation(text);
-            performSearch(text);
-          }}
-          placeholder="City..."
-          placeholderTextColor={"#000"}
-          autoCorrect={false}
-        />
-        {suggestions.length > 0 && (
-          <FlatList
-            data={suggestions}
-            keyExtractor={(item, index) => index.toString()}
-            style={styles.suggestionList}
-            keyboardShouldPersistTaps="handled"
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.suggestionItem}
-                onPress={() => {
-                  setLocation(item.city || item.label);
-                  setSuggestions([]);
-                }}
-              >
-                <Text style={styles.suggestionText}>{item.label}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        )}
-      </View>
-
-      <FormLabel label="Your Bio" />
-      <Input
-        placeholder="Write something..."
-        multiline
-        numberOfLines={4}
-        maxLength={100}
-        value={bio}
-        onChangeText={setBio}
-      />
-      <Text style={styles.counter}>{bio.length}/100</Text>
-
-      <FormLabel label="Company" />
-      <TagDropdown
-        options={topCompaniesForChipData}
-        selected={companies}
-        onChange={setCompanies}
-        placeholder="Select companies"
-        mode="Light"
-      />
-
-      <FormLabel label="Job Title" />
-      <Input placeholder="General Manager" value={jobTitle} onChangeText={setJobTitle} />
-
-      <FormLabel label="Industries" />
-      <TagDropdown
-        options={industriesChipData}
-        selected={industries}
-        onChange={setIndustries}
-        placeholder="Select industries"
-        mode="Light"
-      />
-
-      <Button label="Save settings" onPress={handleSave} enableRedirect={false} />
-
-      <SelectCountryModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onSelect={(country) => {
-          setSelectedFlag({ flag: country.flag, dial_code: country.dial_code });
-          setModalVisible(false);
-        }}
-        position={flagBoxPosition}
+        maximumDate={new Date()}
       />
 
       {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
-    </ScrollView>
+    </View>
   );
 }
 
-const FormLabel = ({ label }) => <Text style={styles.label}>{label}</Text>;
-
 const Input = ({
-  placeholder,
-  icon,
-  editable = true,
-  multiline = false,
-  numberOfLines = 1,
-  maxLength,
   value,
   onChangeText,
-  containerStyle = {},
+  placeholder,
+  multiline,
+  numberOfLines,
+  editable = true,
+  rightIcon,
+  keyboardType,
+  maxLength
 }) => (
-  <View style={[styles.inputContainer, containerStyle]}>
+  <View style={styles.inputContainer}>
     <TextInput
-      style={[
-        styles.input,
-        multiline && styles.textArea,
-        Platform.OS === "ios" && { lineHeight: 20 },
-        Platform.OS === "android" && {
-          textAlignVertical: multiline ? "top" : "center",
-        },
-      ]}
-      placeholder={placeholder}
-      placeholderTextColor="#aaa"
-      multiline={multiline}
-      numberOfLines={numberOfLines}
-      maxLength={maxLength}
+      style={[styles.input, multiline && styles.multilineInput]}
       value={value}
       onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor="#666"
+      multiline={multiline}
+      numberOfLines={multiline ? numberOfLines : 1}
       editable={editable}
-      pointerEvents={editable ? "auto" : "none"}
+      keyboardType={keyboardType}
+      maxLength={maxLength}
     />
-    {icon && <Ionicons name={icon} size={20} color="gray" />}
+    {rightIcon && (
+      <Ionicons
+        name={rightIcon}
+        size={20}
+        color="#666"
+        style={styles.inputIcon}
+      />
+    )}
   </View>
 );
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === "ios" ? 10 : 30,
-    backgroundColor: "#3E3E3E",
+    backgroundColor: "#1A1A1A",
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 60, // Space for status bar
+  },
+  bottomPadding: {
+    height: 100, // Space for fixed bottom buttons
+  },
+
+  // Profile Image Section
   profileContainer: {
     alignItems: "center",
-    marginVertical: 24,
+    marginBottom: 30,
+  },
+  profileImageContainer: {
+    width: "100%",
+    height: 400,
+    overflow: "hidden",
+    backgroundColor: "#2A2A2A",
+    marginBottom: 12,
+  },
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   profileImage: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    marginBottom: 8,
+    width: "100%",
+    height: "100%",
   },
-  profileName: {
-    color: "#fff",
+  changeButton: {
+    paddingVertical: 4,
+  },
+  changeText: {
+    color: "#A3CB38",
+    fontSize: 14,
+    textDecorationLine: "underline",
+    fontFamily: FONT?.MEDIUM,
+  },
+
+  // Section Styles
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    color: "#BBCF8D",
     fontSize: 18,
-    fontWeight: "600",
+    fontFamily: FONT?.MONSERRATMEDIUM,
+    marginBottom: 16,
+  },
+  fieldContainer: {
+    marginBottom: 16,
   },
   label: {
-    fontSize: 16,
-    marginTop: 16,
-    color: "#fff",
-    fontFamily: FONT.SEMIBOLD,
+    color: "#CCCCCC",
+    fontSize: 14,
+    fontFamily: FONT?.MEDIUM,
+    marginBottom: 8,
   },
+
+  // Input Styles
   inputContainer: {
+    backgroundColor: "#2A2A2A",
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#cfd4dc",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 12 : 10,
-    backgroundColor: "#F8FBFF",
+    borderColor: "#404040",
     flexDirection: "row",
     alignItems: "center",
-    minHeight: 48,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    fontFamily: "InterMedium",
-    padding: 0,
-    backgroundColor: "#F8FBFF",
-    borderRadius: 10,
-
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontFamily: FONT?.MEDIUM,
   },
-  textArea: {
-    minHeight: 80,
-    height: "auto",
+  multilineInput: {
     textAlignVertical: "top",
-    paddingVertical: Platform.OS === "ios" ? 12 : 10,
+    minHeight: 80,
   },
-  phoneContainer: {
-    flexDirection: "row",
-    gap: 8,
-    alignItems: "center",
+  inputIcon: {
+    marginLeft: 8,
   },
-  countryCode: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    backgroundColor: "#f1f1f1",
-  },
-  otpText: {
-    color: "green",
+  counter: {
+    color: "#666",
     fontSize: 12,
     textAlign: "right",
     marginTop: 4,
-    fontFamily: FONT.BOLD,
+    fontFamily: FONT?.REGULAR,
   },
-  counter: {
-    alignSelf: "flex-end",
-    fontSize: 12,
-    color: "#888",
-  },
-  button: {
-    marginTop: 24,
-    backgroundColor: colorTheme.buttonPrimary,
-    paddingVertical: 16,
-    alignItems: "center",
+
+  // Location Input
+  locationInput: {
+    backgroundColor: "#2A2A2A",
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#404040",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontFamily: FONT?.MEDIUM,
   },
-  buttonText: {
-    color: "#000",
-    fontFamily: "InterBold",
-    fontSize: 16,
-  },
-  // Autocomplete specific styles
   autocompleteContainer: {
     position: "relative",
     zIndex: 1000,
-    marginTop: 8,
-    marginBottom: 16,
   },
   suggestionList: {
-    backgroundColor: "#F8FBFF",
+    backgroundColor: "#2A2A2A",
     borderRadius: 8,
-    borderColor: "#cfd4dc",
+    borderColor: "#404040",
     borderWidth: 1,
     maxHeight: 150,
     marginTop: 4,
   },
   suggestionItem: {
     padding: 12,
-    borderBottomColor: "#d1d1d1",
+    borderBottomColor: "#404040",
     borderBottomWidth: 1,
   },
   suggestionText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontFamily: FONT?.MEDIUM,
+  },
+
+  // Gender Selection
+  genderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  genderButton: {
+    flex: 1,
+    backgroundColor: "#2A2A2A",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#404040",
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  selectedGender: {
+    backgroundColor: "#A3CB38",
+    borderColor: "#A3CB38",
+  },
+  genderIcon: {
+    fontSize: 20,
+    color: "#FFFFFF",
+    marginBottom: 4,
+  },
+  genderText: {
+    color: "#d1d1d1",
+    fontSize: 12,
+    fontFamily: FONT?.MEDIUM,
+  },
+  selectedGenderText: {
+    color: "#BBCF8D",
+  },
+
+  // Fixed Bottom Buttons
+  bottomButtonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#1A1A1A",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 34, // Extra padding for safe area
+    flexDirection: "row",
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#404040",
+  },
+  undoButton: {
+    flex: 1,
+    backgroundColor: "transparent",
+    borderRadius: 12,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  undoButtonText: {
+    color: "#BBCF8D",
     fontSize: 16,
-    color: "#000",
-    fontFamily: "InterMedium",
+    fontFamily: FONT?.MONSERRATMEDIUM,
+  },
+  saveButton: {
+    flex: 1,
+    backgroundColor: "#BBCF8D",
+    borderRadius: 22,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  saveButtonText: {
+    color: "#000000",
+    fontSize: 16,
+    fontFamily: FONT?.SEMIBOLD,
+  },
+  selectedGenderBorder: {
+    borderColor: '#BBCF8D' // Change to your desired selected color
   },
 });
