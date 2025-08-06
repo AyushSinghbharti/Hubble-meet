@@ -16,16 +16,15 @@ import { loginStyles as styles } from "./Styles/Styles";
 import { useRef, useState } from "react";
 import SelectCountryModal from "../../components/selectCountryModal";
 import ManualBlur from "../../components/BlurComp";
-import ErrorAlert from "../../components/errorAlert";
 import RandomBackgroundImages from "../../components/RandomBGImage";
 import { useLogin, useSocialLogin } from "../../hooks/useAuth";
 import { SocialUserPayload, useSocialAuth } from "@/src/hooks/useSocialAuth";
-import { useOtherUserProfile } from "@/src/hooks/useProfile";
 import { fetchUserProfile } from "@/src/api/profile";
 import { useAuthStore } from "@/src/store/auth";
 import RegisterModal from "./signup";
 import OtpModal from "./otpVerify";
 import { ActivityIndicator } from "react-native-paper";
+import { FONT } from "@/assets/constants/fonts";
 
 type Country = {
   name: string;
@@ -224,7 +223,7 @@ export default function Login() {
   };
 
   return (
-    <RandomBackgroundImages style={styles.container} type="SemiDark">
+    <RandomBackgroundImages style={styles.container} type="Dark" imageNumber={3}>
       <Image
         source={require("../../../assets/logo/logo2.png")}
         style={styles.logo}
@@ -280,7 +279,15 @@ export default function Login() {
           </View>
         </View>
         {error && (
-          <Text style={{ position: "absolute", top: 45, color: "red" }}>
+          <Text
+            style={{
+              position: "absolute",
+              top: 48,
+              color: "red",
+              fontSize: 12,
+              fontFamily: FONT.MONSERRATITALICMEDIUM,
+            }}
+          >
             {error}
           </Text>
         )}

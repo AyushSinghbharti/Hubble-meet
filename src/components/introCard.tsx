@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
+import { FONT } from "@/assets/constants/fonts";
 
 type IntroCardProps = {
   backgroundImage: any;
@@ -134,21 +135,21 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   heading: {
-    fontSize: 25,
-    fontFamily: "InterBold",
+    fontSize: 24,
+    fontFamily: FONT.MONSERRATBOLD,
     color: "#BBCF8D",
     marginBottom: 10,
   },
   description: {
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATMEDIUM,
     fontSize: 13,
     color: "#FFFFFF80",
   },
   swipeText: {
-    fontSize: 16,
+    fontSize: 15,
     marginLeft: 3,
     color: "#BBCF8D",
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATMEDIUM,
   },
   pagination: {
     flexDirection: "row",

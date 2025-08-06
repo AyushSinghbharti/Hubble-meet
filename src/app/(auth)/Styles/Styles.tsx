@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import colourPalette from "../../../theme/darkPaletter";
+import { FONT } from "@/assets/constants/fonts";
 
 export default StyleSheet;
 
@@ -21,7 +22,7 @@ export const loginStyles = StyleSheet.create({
   title: {
     fontSize: 22,
     color: colourPalette.textPrimary,
-    fontFamily: "InterBold",
+    fontFamily: FONT.MONSERRATBOLD,
     marginBottom: 40,
   },
   form: {
@@ -30,7 +31,7 @@ export const loginStyles = StyleSheet.create({
   },
   label: {
     color: colourPalette.textPrimary,
-    fontFamily: "InterSemiBold",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
     fontSize: 18,
     marginBottom: 8,
   },
@@ -41,7 +42,7 @@ export const loginStyles = StyleSheet.create({
   },
   error: {
     color: colourPalette.errorText,
-    fontFamily: "Inter",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
   },
   flagBox: {
     flexDirection: "row",
@@ -61,7 +62,7 @@ export const loginStyles = StyleSheet.create({
     marginRight: 5,
   },
   countryCode: {
-    fontFamily: "InterSemiBold",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
     color: colourPalette.textPrimary,
     marginRight: 8,
     marginLeft: 3,
@@ -78,7 +79,7 @@ export const loginStyles = StyleSheet.create({
   phoneText:{
     color: colourPalette.textPrimary,
     fontSize: 15,
-    fontFamily: "InterSemiBold",
+    fontFamily: FONT.MONSERRATREGULAR,
   },
   loginBtn: {
     elevation: 5,
@@ -90,7 +91,7 @@ export const loginStyles = StyleSheet.create({
   },
   loginText: {
     color: "#000",
-    fontFamily: "InterBold",
+    fontFamily: FONT.MONSERRATBOLD,
     fontSize: 18,
   },
   signupText: {
@@ -98,10 +99,10 @@ export const loginStyles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
     marginBottom: 15,
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATREGULAR,
   },
   signupLink: {
-    fontFamily: "InterBold",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
     textDecorationLine: "underline",
   },
   orContainer: {
@@ -176,10 +177,10 @@ export const loginStyles = StyleSheet.create({
     color: colourPalette.textPrimary,
     fontSize: 14,
     width: "90%",
-    fontFamily: "Inter",
+    fontFamily: FONT.MONSERRATREGULAR,
   },
   orBold: {
     fontSize: 16,
-    fontFamily: "InterBold",
+    fontFamily: FONT.MONSERRATBOLD,
   },
 });

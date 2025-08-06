@@ -18,13 +18,13 @@ const { width } = Dimensions.get("window");
 
 const screenInfo = [
   {
-    backgroundImage: require("../../../assets/images/LoginPageBG.jpg"),
+    backgroundImage: require("@/assets/images/backgrounds/bg13.png"),
     heading: "Make Real Connections, that Matters",
     description:
       "Join a world where conversations flow, friendship grow, and moments shine. Connect, share and vibe with your people - your way.",
   },
   {
-    backgroundImage: require("../../../assets/images/IntroCardBG1.jpg"),
+    backgroundImage: require("@/assets/images/backgrounds/bg14.png"),
     heading: "Your Pitch, On Point. Every Time.",
     description:
       "Record a 30-second video to showcase who you are. Promote your personality, passion, and purpose — beyond your resume.",

@@ -78,7 +78,8 @@
     "react-native-web": "^0.20.0",
     "world-countries-capitals": "^3.4.0",
     "zustand": "^5.0.6",
-    "expo-clipboard": "~7.1.5"
+    "expo-clipboard": "~7.1.5",
+    "lottie-react-native": "7.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

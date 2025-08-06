@@ -2,6 +2,7 @@ import { Image, StyleSheet, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { StatusBar } from "expo-status-bar";
+import colourPalette from "@/src/theme/darkPaletter";
 
 export default function SplashScreenFirst() {
   const [themeCode, setThemeCode] = useState<"dark" | "light">("dark");
@@ -34,21 +35,21 @@ export default function SplashScreenFirst() {
         style={styles.container}
         colors={theme[themeCode].colors2}
       >
-        <Image
+        {/* <Image
           source={theme[themeCode].logo}
           style={{ height: 40, width: 248, marginBottom: 115 }}
-        />
+        /> */}
         <Image
-          source={require("../../../assets/images/splash-screen-2.png")}
+          source={require("../../../assets/images/splash-screen-3.png")}
           style={{
             height: theme[themeCode].height,
             width: theme[themeCode].width,
             marginBottom: 57,
           }}
         />
-        <Text style={[styles.title, { color: theme[themeCode].textColor }]}>
+        {/* <Text style={[styles.title, { color: theme[themeCode].textColor }]}>
           Swipe. Flip. Connect
-        </Text>
+        </Text> */}
       </LinearGradient>
     </LinearGradient>
   );
@@ -58,7 +59,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 65,
+    paddingBottom: 18,
     alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colourPalette.backgroundSecondary,
+    transform: [{scale: 2}]
   },
   title: {
     color: "#596C2D",
