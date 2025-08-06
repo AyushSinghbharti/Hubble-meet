@@ -221,14 +221,18 @@ const OtpModal: React.FC<OtpModalProps> = ({
             {type === "email" ? (
               <Text style={styles.instructionText}>
                 Enter the verification code sent to you at{"\n"}
-                <Text style={{ fontSize: 16, fontFamily: FONT.SEMIBOLD }}>
+                <Text
+                  style={{ fontSize: 16, fontFamily: FONT.MONSERRATSEMIBOLD }}
+                >
                   {maskedEmail}
                 </Text>
               </Text>
             ) : (
               <Text style={styles.instructionText}>
                 Enter the verification code sent to{" "}
-                <Text style={{ fontSize: 16, fontFamily: FONT.SEMIBOLD }}>
+                <Text
+                  style={{ fontSize: 16, fontFamily: FONT.MONSERRATSEMIBOLD }}
+                >
                   {maskedPhone}
                 </Text>
               </Text>
@@ -340,7 +344,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: "center",
     marginBottom: 30,
-    fontFamily: "Inter",
+    fontFamily: FONT.MONSERRATREGULAR,
   },
   otpContainer: {
     marginBottom: 25,
@@ -358,12 +362,12 @@ const styles = StyleSheet.create({
   pinCodeText: {
     color: "#FFFFFF",
     fontSize: 28,
-    fontFamily: "InterBold",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
   },
   timerText: {
     color: "#FFF",
     fontSize: 14,
-    fontFamily: "Inter",
+    fontFamily: FONT.MONSERRATREGULAR,
   },
   autoCapturingContainer: {
     flexDirection: "row",
@@ -377,7 +381,7 @@ const styles = StyleSheet.create({
   autoCapturingText: {
     color: "#4A90E2",
     fontSize: 14,
-    fontFamily: "Inter",
+    fontFamily: FONT.MONSERRATREGULAR,
   },
   pinCodeErrorBorder: {
     borderColor: "red",
@@ -386,7 +390,7 @@ const styles = StyleSheet.create({
     color: "red",
     marginTop: -20,
     marginBottom: 25,
-    fontFamily: "Inter",
+    fontFamily: FONT.MONSERRATREGULAR,
     fontSize: 13,
     alignSelf: "flex-start",
     paddingHorizontal: 20,
@@ -401,7 +405,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   resendText: {
-    fontFamily: "Inter",
+    fontFamily: FONT.MONSERRATREGULAR,
     fontSize: 14,
     color: "#FFFFFF",
     textDecorationLine: "underline",

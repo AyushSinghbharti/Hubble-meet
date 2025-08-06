@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import {
   Image,
   StyleSheet,
@@ -6,26 +7,21 @@ import {
   TextInput,
   TouchableOpacity,
   Modal,
-  ImageBackground,
-  ImageSourcePropType,
   KeyboardAvoidingView,
   Dimensions,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { useEffect, useRef, useState } from "react";
 import SelectCountryModal from "../../components/selectCountryModal";
 import ErrorAlert from "../../components/errorAlert";
 import { useRouter } from "expo-router";
 import TermDetailModal from "../../components/termDetailModal";
 import colourPalette from "../../theme/darkPaletter";
-import { LinearGradient } from "expo-linear-gradient";
-import ManualBlur from "../../components/BlurComp";
-import RandomBackgroundImages from "../../components/RandomBGImage";
 import { useSignup, useSocialLogin } from "../../hooks/useAuth";
-import { SocialUserPayload, useSocialAuth } from "@/src/hooks/useSocialAuth";
+import { useSocialAuth } from "@/src/hooks/useSocialAuth";
 import { fetchUserProfile } from "@/src/api/profile";
 import { useAuthStore } from "@/src/store/auth";
 import OtpModal from "./otpVerify";
+import { FONT } from "@/assets/constants/fonts";
 
 const GOOGLE_ICON = "https://img.icons8.com/color/512/google-logo.png";
 const APPLE_ICON = "https://img.icons8.com/ios-filled/512/mac-os.png";
@@ -300,7 +296,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#FFFFFF",
     marginBottom: 24,
-    fontFamily: "InterSemiBold",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
   },
   inputContainer: {
     marginBottom: 16,
@@ -312,7 +308,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
     color: "#FFFFFF",
-    fontFamily: "InterRegular",
+    fontFamily: FONT.MONSERRATREGULAR,
     borderWidth: 1,
     borderColor: "#6B7280",
   },
@@ -343,7 +339,7 @@ const styles = StyleSheet.create({
   countryCode: {
     color: "#FFFFFF",
     fontSize: 13,
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATMEDIUM,
     marginRight: 2,
   },
   phoneInputContainer: {
@@ -356,12 +352,12 @@ const styles = StyleSheet.create({
     color: "#D1D5DB",
     fontSize: 12,
     lineHeight: 16,
-    fontFamily: "InterRegular",
+    fontFamily: FONT.MONSERRATREGULAR,
   },
   linkText: {
     color: "#FFFFFF",
     textDecorationLine: "underline",
-    fontFamily: "InterMedium",
+    fontFamily: FONT.MONSERRATMEDIUM,
   },
   verifyButton: {
     paddingVertical: 14,
@@ -373,7 +369,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 15,
     fontWeight: "600",
-    fontFamily: "InterSemiBold",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
   },
   orContainer: {
     flexDirection: "row",
@@ -389,11 +385,11 @@ const styles = StyleSheet.create({
     color: "#D1D5DB",
     fontSize: 13,
     marginHorizontal: 12,
-    fontFamily: "InterRegular",
+    fontFamily: FONT.MONSERRATREGULAR,
   },
   signupBold: {
     color: "#FFFFFF",
-    fontFamily: "InterSemiBold",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
   },
   socialContainer: {
     flexDirection: "row",
@@ -425,11 +421,11 @@ const styles = StyleSheet.create({
   footerText: {
     color: "#D1D5DB",
     fontSize: 14,
-    fontFamily: "InterRegular",
+    fontFamily: FONT.MONSERRATREGULAR,
   },
   loginLink: {
     color: "#FFFFFF",
-    fontFamily: "InterSemiBold",
+    fontFamily: FONT.MONSERRATSEMIBOLD,
     textDecorationLine: "underline",
   },
 });
