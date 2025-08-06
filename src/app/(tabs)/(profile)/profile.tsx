@@ -27,7 +27,7 @@ import { Easing } from "react-native-reanimated";
 const { width, height } = Dimensions.get('window');
 
 export default function ProfileScreen() {
-  const [modalVisible, setModalVisible] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
   const [myInviteModalVisible, setMyInviteModalVisible] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const profileData = useAuthStore((state) => state.user);

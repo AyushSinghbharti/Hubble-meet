@@ -218,7 +218,7 @@ export default function PitchScreen() {
     if (pitch) router.push("/pitchStack/myPitch");
     else
       router.push({
-        pathname: "/pitchStack/createPitch",
+        pathname: "/pitchStack/myPitch",
         params: {
           item: JSON.stringify({
             name: null,
